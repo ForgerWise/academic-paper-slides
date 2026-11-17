@@ -94,18 +94,50 @@ function extract() {
       const r = el.getBoundingClientRect();
       return { x: r.left - sr.left, y: r.top - sr.top, w: r.width, h: r.height };
     };
-    // Inline content of a paragraph as styled runs
-    const runs = (el) => {
+    // Circled numbers (.circ) are drawn as shapes, because fonts draw the character for them at very different sizes
+    const circs = [];
+    const textAfter = (n, el) => {     // x of the first visible character that follows n inside el
+      const w = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+      let t;
+      while ((t = w.nextNode())) {
+        if (n.contains(t) || !(n.compareDocumentPosition(t) & Node.DOCUMENT_POSITION_FOLLOWING)) continue;
+        const k = t.textContent.search(/\S/);
+        if (k < 0) continue;
+        const rg = document.createRange();
+        rg.setStart(t, k); rg.setEnd(t, k + 1);
+        return rg.getBoundingClientRect().left - sr.left;
+      }
+      return null;
+    };
+    // Inline content of a paragraph as styled runs. With shapes = true a circled number at the start or the end
+    // of the line leaves the text and becomes a shape; `lead` is then where the text after it starts.
+    // Anywhere else (inside a line, in a list item, in a table) it stays in the text as its character.
+    const runs = (el, shapes) => {
       const outRuns = [];
+      let lead = null, strip = false;
       const walk = (node, st) => {
         node.childNodes.forEach((n) => {
           if (n.nodeType === 3) {
-            const t = n.textContent.replace(/\s+/g, ' ');
+            let t = n.textContent.replace(/\s+/g, ' ');
+            if (strip) { t = t.replace(/^ +/, ''); if (t) strip = false; }
             if (t) outRuns.push({ text: t, ...st });
           } else if (n.nodeType === 1) {
             if (n.tagName === 'BR') { outRuns.push({ text: '\n', ...st }); return; }
             if (/^(UL|OL|ASIDE)$/.test(n.tagName)) return;
             const cs = getComputedStyle(n);
+            if (n.classList.contains('circ')) {
+              const label = n.textContent.trim();
+              const k = parseInt(label, 10);
+              const first = !outRuns.some((r) => r.text.trim());
+              const x = textAfter(n, el);
+              if (shapes && (x === null || (first && lead === null))) {
+                circs.push({ type: 'circ', r: rect(n), text: label, color: hex(cs.color), size: px(cs.fontSize), linePx: px(cs.borderTopWidth) });
+                if (x !== null) { lead = x; strip = true; }
+              } else {
+                outRuns.push({ text: k >= 1 && k <= 20 ? String.fromCharCode(0x2460 + k - 1) : `(${label})`, ...st });
+              }
+              return;
+            }
             walk(n, { bold: bold(cs), italic: cs.fontStyle === 'italic',
               underline: cs.textDecorationLine.includes('underline'), color: hex(cs.color) });
           }
@@ -117,7 +149,7 @@ function extract() {
         outRuns[0].text = outRuns[0].text.replace(/^ +/, '');
         outRuns[outRuns.length - 1].text = outRuns[outRuns.length - 1].text.replace(/ +$/, '');
       }
-      return outRuns.filter((r) => r.text !== '');
+      return { list: outRuns.filter((r) => r.text !== ''), lead };
     };
     // The box the text itself occupies: the element's box without its padding
     const inner = (el) => {
@@ -129,7 +161,10 @@ function extract() {
       const cs = getComputedStyle(el);
       const lh = cs.lineHeight === 'normal' ? px(cs.fontSize) * 1.2 : px(cs.lineHeight);
       const a = cs.textAlign;
-      return { runs: runs(el), size: px(cs.fontSize), line: lh, r: inner(el),
+      const rr = runs(el, el.tagName !== 'LI'), box = inner(el);
+      // Text after a circled number gets its own box, starting where that text starts
+      if (rr.lead !== null) { box.w -= rr.lead - box.x; box.x = rr.lead; }
+      return { runs: rr.list, own: rr.lead !== null, size: px(cs.fontSize), line: lh, r: box,
         align: a === 'center' ? 'center' : (a === 'right' || a === 'end') ? 'right' : 'left', ...extra };
     };
     // Paragraphs of a text container, in reading order, with the measured gap before each
@@ -172,7 +207,7 @@ function extract() {
           cells: [...tr.children].map((c) => {
             const ccs = getComputedStyle(c);
             const a = ccs.textAlign;
-            return { runs: runs(c), w: c.getBoundingClientRect().width, bold: bold(ccs), color: hex(ccs.color),
+            return { runs: runs(c, false).list, w: c.getBoundingClientRect().width, bold: bold(ccs), color: hex(ccs.color),
               align: a === 'center' ? 'center' : (a === 'right' || a === 'end') ? 'right' : 'left',
               padX: px(ccs.paddingLeft), padY: px(ccs.paddingTop) };
           }),
@@ -222,6 +257,7 @@ function extract() {
       [...el.children].forEach(visit);
     };
     visit(sec);
+    items.push(...circs);
 
     const aside = sec.querySelector(':scope > aside');
     const scs = getComputedStyle(sec);
@@ -326,11 +362,27 @@ function extract() {
         slide.addShape('roundRect', { ...box(it.r), fill: { color: it.fill },
           line: { color: it.line || s.ink, width: PT(it.linePx) }, rectRadius: IN(it.radius) });
         const inner = { x: it.r.x + it.padX, y: it.r.y + it.padY, w: it.r.w - 2 * it.padX, h: it.r.h - 2 * it.padY };
-        if (it.paras.length) slide.addText(body(it.paras), { ...box(inner), margin: 0, valign: 'top', fit: 'none' });
+        // A line that follows a circled number is its own text box; the lines between such lines share one
+        const groups = [];
+        it.paras.forEach((p) => {
+          const g = groups[groups.length - 1];
+          if (p.own || !g || g.own) groups.push({ own: p.own, ps: [p] }); else g.ps.push(p);
+        });
+        groups.forEach((g, k) => {
+          const f = g.ps[0], l = g.ps[g.ps.length - 1];
+          const r = g.own ? f.r : { x: inner.x, y: k ? f.r.y : inner.y, w: inner.w, h: l.r.y + l.r.h - (k ? f.r.y : inner.y) };
+          slide.addText(body(g.ps.map((p, j) => (j ? p : { ...p, before: 0 }))), { ...box(r), margin: 0, valign: 'top', fit: 'none' });
+        });
       } else if (it.type === 'badge') {
         slide.addText(it.text, { ...box(it.r), shape: 'ellipse', fill: { color: it.fill || s.ink },
           line: { color: it.line || 'FFFFFF', width: PT(it.linePx) }, fontFace: font, fontSize: PT(it.size),
           bold: true, color: it.color || 'FFFFFF', align: 'center', valign: 'middle', margin: 0 });
+      } else if (it.type === 'circ') {
+        // The line of a shape is centered on its edge; a CSS border lies inside it
+        const h = it.linePx / 2;
+        slide.addText(it.text, { ...box({ x: it.r.x + h, y: it.r.y + h, w: it.r.w - it.linePx, h: it.r.h - it.linePx }),
+          shape: 'ellipse', line: { color: it.color || s.ink, width: PT(it.linePx) }, fontFace: font, fontSize: PT(it.size),
+          bold: true, color: it.color || s.ink, align: 'center', valign: 'middle', margin: 0, wrap: false, fit: 'none' });
       } else if (it.type === 'shape') {
         const o = { ...box(it.r) };
         o.fill = it.fill ? { color: it.fill } : { type: 'none' };

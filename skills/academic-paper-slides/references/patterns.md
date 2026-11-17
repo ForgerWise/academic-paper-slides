@@ -31,7 +31,7 @@ Each slide is one file, `project/slides/<id>.html`, holding exactly one `<sectio
 </section>
 ```
 
-The title is a label. Slides of one kind about different things are named by topic, "Training cost"; a topic that continues over several slides keeps its name and adds a circled number, "Architecture ②". SKILL.md section 3 has the rule.
+The title is a label. Slides of one kind about different things are named by topic, "Training cost"; a topic that continues over several slides keeps its name and adds a circled number, written `<h2 class="ttl">Architecture <span class="circ">2</span></h2>`. The class draws the circle at the height of the capital letters; the typed characters ① ② come out at a different size in every font, so do not use them. SKILL.md section 3 has the rule.
 
 ## Cover
 
@@ -171,19 +171,19 @@ A `text-align` on one cell applies to its whole column. Only the header row is b
 
 ## Experiment-setup flow
 
-One `.flow` row of up to four `.card` boxes with an arrow between them. In each box: a bold first line naming the step, then one or two short lines (what data it uses, what it produces), optionally a small image. The step being evaluated gets `class="card key"`. The flow must explain itself; do not add a paragraph under it.
+One `.flow` row of up to four `.card` boxes with an arrow between them. In each box: a bold first line with the step number in a circle (`<span class="circ">1</span>`) and the name of the step, then one or two short lines (what data it uses, what it produces), optionally a small image. The step being evaluated gets `class="card key"`. The flow must explain itself; do not add a paragraph under it.
 
 Set the text size once, inline on `.flow`; `check_layout.js` prints the largest size that fits (32 to 48px), so the boxes fill the slide. Keep every line in a box short: one fact per line, and a line may wrap once at most. A slide that holds only a flow gets `class="c mid"` on its section, which puts the flow in the vertical middle.
 
 ```html
 <div class="flow" style="font-size:40px">
-  <div class="card"><p class="bd">① Train the general model</p><p>Uses: 12 surveyed buildings</p><p>Learns: signal strength from floor plan</p></div>
+  <div class="card"><p class="bd"><span class="circ">1</span> Train the general model</p><p>Uses: 12 surveyed buildings</p><p>Learns: signal strength from floor plan</p></div>
   <p class="arrow">→</p>
-  <div class="card"><p class="bd">② Adapt to the new building</p><p>Uses: its floor plan only</p></div>
+  <div class="card"><p class="bd"><span class="circ">2</span> Adapt to the new building</p><p>Uses: its floor plan only</p></div>
   <p class="arrow">→</p>
-  <div class="card key"><p class="bd">③ Test positioning</p><p>3 buildings never seen in training</p></div>
+  <div class="card key"><p class="bd"><span class="circ">3</span> Test positioning</p><p>3 buildings never seen in training</p></div>
   <p class="arrow">→</p>
-  <div class="card"><p class="bd">④ Compare</p><p>Against: surveyed map, copied map</p></div>
+  <div class="card"><p class="bd"><span class="circ">4</span> Compare</p><p>Against: surveyed map, copied map</p></div>
 </div>
 ```
 

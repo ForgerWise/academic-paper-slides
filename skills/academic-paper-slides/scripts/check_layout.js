@@ -127,7 +127,10 @@ function measure(cfg) {
       const cjk = (name.match(/[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uac00-\ud7af]/g) || []).length;
       const words = name.replace(/[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uac00-\ud7af]/g, ' ').split(/\s+/).filter(Boolean).length;
       if (words > 4 || cjk > 10) out.flags.push('TITLE is too long: a topic name of one to three words');
-      if (/\s\d{1,2}$/.test(t)) out.flags.push('TITLE number: write it as a circled digit, for example "Architecture ①"');
+      const last = ttl.lastElementChild;
+      const circled = last && last.classList.contains('circ') && /^\d{1,2}$/.test(last.textContent.trim());
+      if (/\s\d{1,2}$/.test(t) && !circled) out.flags.push('TITLE number: put it in a circle, <span class="circ">1</span>');
+      if (/[\u2460-\u2473]/.test(t)) out.flags.push('TITLE number: do not type the character ①, fonts draw it at very different sizes; write <span class="circ">1</span>');
     }
     if (sec.querySelector('li ul, li ol')) out.flags.push('NESTED list inside <li>: write the second level as a sibling ul.bl.sub');
     if (!out.cover && sec.querySelector('ul, ol') && ![...sec.querySelectorAll('ul, ol')].every((u) => u.closest('.txt, .card, table')))

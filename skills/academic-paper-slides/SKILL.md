@@ -35,7 +35,7 @@ The deck is always the same set of files: `project/deck.json`, `project/deck.css
   ```bash
   node scripts/export_pptx.js <deck_root> <name>.pptx
   ```
-  The result is editable, not pictures of slides: each `.txt` block is one text box with real two-level bullets, tables are PowerPoint tables, flow boxes and rings are shapes, the notes are speaker notes.
+  The result is editable, not pictures of slides: each `.txt` block is one text box with real two-level bullets, tables are PowerPoint tables, flow boxes, rings and circled numbers are shapes, the notes are speaker notes.
 - **Google Slides**: export the PowerPoint file as above. If a Google Drive tool that can convert on upload is connected, upload it as a Google Slides presentation and give the link. Otherwise deliver the .pptx and tell the user to upload it to Drive and open it with Google Slides.
 
 For PowerPoint and Google Slides, set the font in `deck.css` to one that exists where the file will be opened, because a substituted font changes the line breaks: Arial for Latin text; for Chinese, Japanese or Korean, a Noto Sans family for Google Slides, or ask which system the user presents on. If LibreOffice is available, convert the .pptx to PDF and look at the pages before delivering.
@@ -84,7 +84,7 @@ A 15-minute talk is 15 to 17 slides. Scale with the talk length at about one sli
   - The only slide of its kind: the kind alone. "Problem", "Related work", "Conclusion".
   - Several slides of one kind about different things: name each by its topic, in one to three words (three to five characters in Chinese or Japanese). "Architecture", "Positional encoding", "Training cost".
   - Put the kind in front only when the name alone would not tell the audience where they are in the talk. "Preliminary: Attention" in a talk whose method slides are also about attention; plain "Training cost" needs no "Result:".
-  - One topic that continues because it does not fit on one slide: the same name plus a circled number. "Architecture ①", "Architecture ②". Numbers in titles are always circled digits (① to ⑳), never plain ones.
+  - One topic that continues because it does not fit on one slide: the same name plus a circled number. "Architecture ①", "Architecture ②". Numbers in titles are always circled, never plain. Write the number as `<span class="circ">1</span>`: it draws a circle about as tall as the capital letters of the title. Do not type the characters ① ②, because fonts draw them at very different sizes, some far taller than the title.
   - Avoid a kind with only a number ("Method ①", "Result ②"). It tells the audience nothing.
 - Write only what carries information, but do not abbreviate until it is unreadable.
 - Define a term on the line where it is first needed, in a few words in parentheses, for example "ViT (an image model built from Transformer blocks)". Do not spend an earlier slide on it, and do not explain common knowledge.
@@ -218,7 +218,7 @@ The script renders with local fonts, which differ slightly from the deck's fonts
 5. Write the notes last, when the slides are final. Run `check_notes.py` and work through section 4 until no `E` remains. Copy the `start-by` column into the `[≤ m:ss]` markers.
 6. Look at every screenshot yourself, slide by slide. The scripts cannot judge these, and they are what users send back:
    - Story: the titles and first lines, read in order, tell the paper. No slide comes out of nowhere.
-   - Titles: named by topic, no bare "Method ①", numbers circled, one line.
+   - Titles: named by topic, no bare "Method ①", one line. A number sits in a circle no taller than the capital letters beside it.
    - Alignment: lines of one level start at the same position whether they have a bullet or a number. Markers are one size, none hollow.
    - Space: nothing floats in an empty area. Text beside a figure, a table with half a slide under it, a flow in a strip at the top: enlarge it before you accept it.
    - Goal: on the problem slide the goal line is the largest text in the body.

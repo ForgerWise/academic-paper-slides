@@ -3,13 +3,13 @@
 <div class="rule"></div>
 <div class="pnum"></div>
 <div class="flow" style="font-size:44px">
-  <div class="card"><p class="bd">① Data</p><p>WMT 2014</p><p>English–German</p><p>4.5M sentence pairs</p><p>English–French</p><p>36M sentences</p></div>
+  <div class="card"><p class="bd"><span class="circ">1</span> Data</p><p>WMT 2014</p><p>English–German</p><p>4.5M sentence pairs</p><p>English–French</p><p>36M sentences</p></div>
   <p class="arrow">→</p>
-  <div class="card"><p class="bd">② Train</p><p>8 P100 GPUs</p><p>Base: 12 hours</p><p>Big: 3.5 days</p></div>
+  <div class="card"><p class="bd"><span class="circ">2</span> Train</p><p>8 P100 GPUs</p><p>Base: 12 hours</p><p>Big: 3.5 days</p></div>
   <p class="arrow">→</p>
-  <div class="card key"><p class="bd">③ Test</p><p>newstest2014</p><p>Score: BLEU</p><p>Beam size 4</p></div>
+  <div class="card key"><p class="bd"><span class="circ">3</span> Test</p><p>newstest2014</p><p>Score: BLEU</p><p>Beam size 4</p></div>
   <p class="arrow">→</p>
-  <div class="card"><p class="bd">④ Compare</p><p>GNMT, ConvS2S</p><p>ByteNet, MoE</p><p>Single models and ensembles</p></div>
+  <div class="card"><p class="bd"><span class="circ">4</span> Compare</p><p>GNMT, ConvS2S</p><p>ByteNet, MoE</p><p>Single models and ensembles</p></div>
 </div>
 <p class="cite">Source: Vaswani et al., NIPS 2017, Sec. 5.1, 5.2 and 6.1</p>
 <aside>[≤ 9:15] Here is how the experiments were run. There are two translation tasks from WMT 2014. English to German has about four and a half million sentence pairs. English to French is much larger, with thirty-six million sentences. Training used one machine with eight GPUs. There are two model sizes. The base model trained for twelve hours, and the big model trained for three and a half days. The models were tested on the newstest 2014 set and scored with BLEU, where higher is better. The results are compared with the best recurrent and convolutional models at that time, both single models and ensembles.</aside>

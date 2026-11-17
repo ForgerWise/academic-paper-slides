@@ -19,6 +19,9 @@ section.c.mid { justify-content: center; }   /* a slide that holds only a flow: 
 /* Title bar: label-only title, rule, page number */
 .ttl { position: absolute; left: 91px; top: 46px; width: 1635px; font-size: 84px; font-weight: 700; color: var(--accent); line-height: 1.2; white-space: nowrap; }
 .rule { position: absolute; left: 0px; top: 170px; width: 1739px; height: 6px; background: var(--accent); }
+/* Circled number: <span class="circ">1</span>. Drawn here, not typed as the character "\2460", because fonts draw that
+   character at very different sizes. The circle is about as tall as the capital letters of the text around it. */
+.circ { display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box; width: 1.46em; height: 1.46em; border: 0.11em solid currentColor; border-radius: 50%; font-size: 0.56em; font-weight: 700; line-height: 1; letter-spacing: -0.04em; vertical-align: 0.28em; }
 .pnum { position: absolute; left: 1746px; top: 26px; width: 151px; height: 64px; text-align: center; font-size: 48px; font-weight: 700; color: var(--accent); }
 .pnum::before { content: counter(page); }
 /* Optional logo: add class "lg" to the section and put <img class="logo"> first */
