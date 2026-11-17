@@ -147,6 +147,7 @@ The usual failure is a short text block at a cautious size, floating in a tall c
    - `GROW: set .txt font-size:NNpx`: set exactly that size.
    - `TEXT TOO BIG` or `TEXT TOO LONG` or `OVERFLOW`: move detail to the notes or split the slide. Do not go below 36px to make it fit.
    - `UNDERFILL`: the text is lost even at 54px. Go to step 5.
+   - `UNDERUSED`: a table or flow leaves the lower part of the slide empty. Enlarge its text within the size limits.
    - `TITLE`, `NESTED`, `LIST outside .txt`: fix the markup as the message says.
 5. **Rebalance an underfilled slide**, first option that applies:
    1. The figure can still grow within step 2: enlarge it, which narrows the text column and makes the text taller.
