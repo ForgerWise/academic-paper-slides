@@ -1,0 +1,21 @@
+{
+  "name": "academic-paper-slides",
+  "displayName": "Academic Paper Slides",
+  "version": "1.0.0",
+  "description": "Paper-seminar slide decks from an academic paper, built with Claude's Slides artifact type: one message per slide, text sized by a script to fill the slide, and speaker notes checked as read-aloud scripts.",
+  "author": {
+    "name": "ForgerWise"
+  },
+  "license": "MIT",
+  "keywords": [
+    "slides",
+    "academic",
+    "paper",
+    "seminar",
+    "journal-club",
+    "presentation",
+    "speaker-notes"
+  ],
+  "homepage": "https://github.com/ForgerWise/academic-paper-slides",
+  "repository": "https://github.com/ForgerWise/academic-paper-slides"
+}
