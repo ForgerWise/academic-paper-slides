@@ -1,0 +1,26 @@
+<section id="m1" class="c">
+<h2 class="ttl">Method 1</h2>
+<div class="rule"></div>
+<div class="pnum"></div>
+<div class="split">
+<div class="txt" style="font-size:48px">
+  <div class="grp">
+    <ul class="bl"><li>Encoder (left) and decoder (right): 6 identical layers each</li></ul>
+    <ul class="bl sub"><li>Encoder layer: self-attention, then a feed-forward network</li><li>Decoder layer adds attention over the encoder output</li></ul>
+  </div>
+  <div class="grp">
+    <ul class="bl"><li>Around every sub-layer</li></ul>
+    <ul class="bl sub"><li>Residual connection, then layer normalization</li></ul>
+  </div>
+  <div class="grp">
+    <ul class="bl"><li>Decoder self-attention is masked</li></ul>
+    <ul class="bl sub"><li>A position sees only earlier output positions</li></ul>
+  </div>
+</div>
+<div class="fig" style="width:516px;height:760px">
+  <img src="/project/img/fig1-architecture.png" alt="Fig. 1 of the paper: the Transformer architecture, encoder on the left and decoder on the right" style="width:516px;height:760px;object-fit:contain">
+</div>
+</div>
+<p class="cite">Figure: Vaswani et al., NIPS 2017, Fig. 1, Sec. 3.1</p>
+<aside>[≤ 4:38] Now the model itself. The figure shows the whole Transformer. The left block is the encoder and the right block is the decoder. Each block is repeated six times. One encoder layer has two parts. First comes self-attention, where every input word looks at every other input word. Then comes a small feed-forward network. The decoder layer has one extra part in the middle. It attends over the output of the encoder, and this is how the decoder reads the input sentence. Around every part there is a residual connection and layer normalization. One more detail. Self-attention in the decoder is masked, so a word can only look at the words before it.</aside>
+</section>

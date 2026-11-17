@@ -1,0 +1,14 @@
+<section id="cmp">
+<p class="kicker">COMPARISON</p>
+<h2>Why self-attention wins</h2>
+<table class="tb">
+<tr class="h"><th style="width:34%">Layer type</th><th>Complexity per layer</th><th>Sequential operations</th><th>Maximum path length</th></tr>
+<tr><td>Recurrent</td><td>O(n·d²)</td><td>O(n)</td><td>O(n)</td></tr>
+<tr class="z"><td>Convolutional</td><td>O(k·n·d²)</td><td>O(1)</td><td>O(logₖ n)</td></tr>
+<tr class="win"><td>Self-attention</td><td>O(n²·d)</td><td>O(1)</td><td>O(1)</td></tr>
+</table>
+<p class="lead">Constant path length and full parallelism make long-range dependencies easier to learn.</p>
+<p class="foot">Vaswani et al., Attention Is All You Need, NIPS 2017</p>
+<div class="pg"></div>
+<aside>Highlight the last row.</aside>
+</section>

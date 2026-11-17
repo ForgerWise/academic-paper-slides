@@ -1,0 +1,15 @@
+<section id="arch">
+<p class="kicker">ARCHITECTURE</p>
+<h2>The Transformer at a glance</h2>
+<div class="cards">
+<div class="figcard" style="width:480px;height:520px"><img src="/project/img/fig1-architecture.png" alt="Transformer architecture" style="width:330px;height:480px;object-fit:contain"></div>
+<div class="col snug">
+<div class="card flat tight"><p class="tag">ENCODER</p><h3>6 identical layers</h3><p>Multi-head self-attention followed by a feed-forward network.</p></div>
+<div class="card flat tight"><p class="tag">DECODER</p><h3>6 layers + encoder attention</h3><p>Adds a third sub-layer that attends over the encoder output.</p></div>
+<div class="card flat tight"><p class="tag">EVERY SUB-LAYER</p><h3>Residual + layer norm</h3><p>Residual connections and layer normalization around each sub-layer.</p></div>
+</div>
+</div>
+<p class="foot">Vaswani et al., Attention Is All You Need, NIPS 2017</p>
+<div class="pg"></div>
+<aside>Walk through the figure: encoder on the left, decoder on the right.</aside>
+</section>

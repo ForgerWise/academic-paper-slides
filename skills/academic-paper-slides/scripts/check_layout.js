@@ -127,9 +127,15 @@ function measure(cfg) {
     if (!out.cover && sec.querySelector('ul') && ![...sec.querySelectorAll('ul')].every((u) => u.closest('.txt, .card, table')))
       out.flags.push('LIST outside .txt: wrap the text of the slide in one .txt block');
 
-    // A table or flow with no text block: flag a slide that leaves the lower 40% empty
-    if (!out.cover && !sec.querySelector('.txt') && bottom > 0 && bottom < cfg.top + 0.6 * (cfg.bottom - cfg.top))
-      out.flags.push(`UNDERUSED: content ends at y ${out.bottom}. Enlarge the table or boxes (tables up to 44px, flow boxes up to 36px)`);
+    // A table or flow with no text block that leaves the lower 40% empty: flag it while its text can still grow
+    if (!out.cover && !sec.querySelector('.txt') && bottom > 0 && bottom < cfg.top + 0.6 * (cfg.bottom - cfg.top)) {
+      const size = (sel) => Math.max(0, ...[...sec.querySelectorAll(sel)].map((e) => px(getComputedStyle(e).fontSize)));
+      const tb = size('table'), card = size('.card');
+      if ((tb && tb < 44) || (card && card < 36))
+        out.flags.push(`UNDERUSED: content ends at y ${out.bottom}. Enlarge the text (tables up to 44px, flow boxes up to 36px)`);
+      else if (tb)
+        out.flags.push(`UNDERUSED: content ends at y ${out.bottom}. Add a .txt block above the table that says what it compares`);
+    }
 
     sec.querySelectorAll('.txt').forEach((txt) => {
       const pcls = txt.parentElement.classList;

@@ -1,0 +1,14 @@
+<section id="mha">
+<p class="kicker">CORE MECHANISM</p>
+<h2>Multi-head attention</h2>
+<div class="cards">
+<div class="figcard" style="width:480px;height:520px"><img src="/project/img/fig2-multi-head.png" alt="Multi-head attention" style="width:370px;height:480px;object-fit:contain"></div>
+<div class="col">
+<div class="card flat" style="flex-direction:row;align-items:center;gap:40px"><p class="num">8</p><p class="numlabel">parallel attention heads, each working in 64 dimensions</p></div>
+<div class="card teal"><p class="tag">WHY IT HELPS</p><h3>Different views of the sentence</h3><p>Each head can attend to different positions and subspaces. A single head would average them.</p></div>
+</div>
+</div>
+<p class="foot">Vaswani et al., Attention Is All You Need, NIPS 2017</p>
+<div class="pg"></div>
+<aside>Key point: several small heads instead of one big one, at similar cost.</aside>
+</section>

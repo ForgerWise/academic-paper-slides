@@ -1,0 +1,24 @@
+<section id="rw" class="c">
+<h2 class="ttl">Related work</h2>
+<div class="rule"></div>
+<div class="pnum"></div>
+<div class="stack">
+<div class="txt" style="font-size:48px">
+  <div class="grp">
+    <ul class="bl"><li>Compares three layer types</li></ul>
+    <ul class="bl sub"><li>Cost per layer, steps that must run in sequence, longest path between two words</li><li>n: sentence length, d: vector size, k: kernel width</li></ul>
+  </div>
+  <div class="grp">
+    <ul class="bl"><li>Self-attention: one step, and any two words are one hop apart</li></ul>
+  </div>
+</div>
+<table class="tb" style="font-size:44px">
+<tr class="h"><th style="width:34%">Layer type</th><th class="ctr">Cost per layer</th><th class="ctr">Steps in sequence</th><th class="ctr">Longest path</th></tr>
+<tr><td>Recurrent</td><td class="ctr">O(n·d²)</td><td class="ctr">O(n)</td><td class="ctr">O(n)</td></tr>
+<tr><td>Convolutional</td><td class="ctr">O(k·n·d²)</td><td class="ctr">O(1)</td><td class="ctr">O(logₖ n)</td></tr>
+<tr class="hl"><td>Self-attention (this paper)</td><td class="ctr">O(n²·d)</td><td class="ctr">O(1)</td><td class="ctr">O(1)</td></tr>
+</table>
+</div>
+<p class="cite">Table: Vaswani et al., NIPS 2017, Table 1 (three of four rows)</p>
+<aside>[≤ 3:42] This table compares three kinds of layers, and it comes from the paper. Look at the last two columns first. The third column is how many steps must run one after another. A recurrent layer needs one step per word. Convolution and self-attention need only one step, so they can run in parallel. The last column is the longest path between two words. For a recurrent layer the path grows with the sentence length. For convolution it grows more slowly. For self-attention it is always one, because every word connects directly to every other word. The price is in the second column. Self-attention costs more when sentences are very long.</aside>
+</section>

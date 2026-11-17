@@ -4,6 +4,12 @@ A Claude skill for when you need to turn your paper into presentation slides, wi
 
 **[Download the skill (zip)](https://github.com/ForgerWise/academic-paper-slides/releases/latest/download/academic-paper-slides.zip)** and upload it to Claude as a custom skill. Then attach a paper and ask: *"Make slides for a 15-minute presentation of this paper."*
 
+## See the difference
+
+![Four slides from the same paper, made in Claude's default slide style on the left and with this skill on the right](docs/compare.png)
+
+The same paper, *Attention Is All You Need*, turned into slides by Claude twice. Left: Claude's default slide style. Right: with this skill. Both full decks, including the speaker notes, are in [`examples/attention`](examples/attention).
+
 ## Why use it
 
 **No AI-slop look.** No grids of rounded cards, no colored blocks around every sentence, no icon rows, no decorative accent slides. Pages are white with near-black text and one accent color. The only boxes in the whole deck are the steps of the experiment flow.
@@ -55,15 +61,16 @@ skills/academic-paper-slides/
   scripts/check_layout.js           fill, fit and overflow check
   scripts/check_notes.py            read-aloud lint and timing
   scripts/export_pptx.js            editable PowerPoint export
-examples/demo-deck/                 four-slide deck with made-up content, passes both checks
+examples/attention/                 the paper above as two decks: with the skill, and Claude's default style
+docs/compare.png                    the comparison image
 ```
 
-Try the checks on the demo deck:
+Try the scripts on the example deck:
 
 ```bash
-node skills/academic-paper-slides/scripts/check_layout.js examples/demo-deck --shots /tmp/shots
-python3 skills/academic-paper-slides/scripts/check_notes.py examples/demo-deck
-node skills/academic-paper-slides/scripts/export_pptx.js examples/demo-deck /tmp/demo.pptx
+node skills/academic-paper-slides/scripts/check_layout.js examples/attention/with-skill --shots /tmp/shots
+python3 skills/academic-paper-slides/scripts/check_notes.py examples/attention/with-skill --minutes 15
+node skills/academic-paper-slides/scripts/export_pptx.js examples/attention/with-skill /tmp/attention.pptx
 ```
 
 ## Theming

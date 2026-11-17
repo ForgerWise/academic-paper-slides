@@ -1,0 +1,25 @@
+<section id="m3" class="c">
+<h2 class="ttl">Method 3</h2>
+<div class="rule"></div>
+<div class="pnum"></div>
+<div class="split">
+<div class="txt" style="font-size:48px">
+  <div class="grp">
+    <ul class="bl"><li>Multi-head attention: 8 attention layers (heads) in parallel</li></ul>
+    <ul class="bl sub"><li>Each head projects Q, K, V to 64 dimensions with its own weights</li><li>Head outputs are concatenated and projected once more</li></ul>
+  </div>
+  <div class="grp">
+    <ul class="bl"><li>Why several heads</li></ul>
+    <ul class="bl sub"><li>Heads attend to different positions; a single head averages them</li></ul>
+  </div>
+  <div class="grp">
+    <ul class="bl"><li>Total cost is close to one full-size head</li></ul>
+  </div>
+</div>
+<div class="fig" style="width:584px;height:760px">
+  <img src="/project/img/fig2-multi-head.png" alt="Fig. 2 (right) of the paper: multi-head attention, h parallel scaled dot-product attention layers, concatenated and projected" style="width:584px;height:760px;object-fit:contain">
+</div>
+</div>
+<p class="cite">Figure: Vaswani et al., NIPS 2017, Fig. 2 (right), Sec. 3.2.2</p>
+<aside>[≤ 6:31] One attention layer gives one set of weights for each word. The authors found that this is not enough, so they run eight attention layers side by side. Each one is called a head. Every head first projects the queries, keys and values into a smaller space of sixty-four dimensions, with its own learned weights. Then it runs the attention you just saw. At the end the outputs of all heads are joined and projected once more. Why does this help? Different heads can look at different things. A single head has to average everything into one set of weights. And because each head is small, the total cost is about the same as one large head.</aside>
+</section>

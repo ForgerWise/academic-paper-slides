@@ -1,0 +1,1 @@
+{"v": 5, "lists": "css", "format": {"v": 1, "shared": ["project/deck.css"]}, "title": "Attention Is All You Need (default style)", "order": ["cover", "why", "idea", "arch", "sdpa", "mha", "pos", "cmp", "train", "res", "abl", "take"], "cover": "cover", "faces": {"inter": {"family": "Inter", "href": "https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap"}}}

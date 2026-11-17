@@ -1,0 +1,13 @@
+<section id="sdpa">
+<p class="kicker">CORE MECHANISM</p>
+<h2>Scaled dot-product attention</h2>
+<p class="formula">Attention(Q, K, V) = softmax(QKᵀ / √dₖ) V</p>
+<div class="cards">
+<div class="card"><p class="tag">STEP 1</p><h3>Match</h3><p>Take the dot product of each query with every key.</p></div>
+<div class="card teal"><p class="tag">STEP 2</p><h3>Scale</h3><p>Divide by √dₖ so the softmax keeps useful gradients.</p></div>
+<div class="card"><p class="tag">STEP 3</p><h3>Weigh</h3><p>Apply softmax and use the weights to sum the values.</p></div>
+</div>
+<p class="foot">Vaswani et al., Attention Is All You Need, NIPS 2017</p>
+<div class="pg"></div>
+<aside>Explain the formula step by step.</aside>
+</section>

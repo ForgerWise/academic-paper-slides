@@ -1,0 +1,22 @@
+<section id="m2" class="c">
+<h2 class="ttl">Method 2</h2>
+<div class="rule"></div>
+<div class="pnum"></div>
+<div class="split">
+<div class="txt" style="font-size:54px">
+  <div class="grp">
+    <ul class="bl"><li>Scaled dot-product attention: all queries at once, as matrices Q, K, V</li></ul>
+    <ul class="bl sub"><li>Score: dot product of each query with every key</li><li>Divide by √dₖ, then softmax gives the weights</li><li>Output: the weights times the values</li></ul>
+  </div>
+  <div class="grp">
+    <ul class="bl"><li>Why divide by √dₖ</li></ul>
+    <ul class="bl sub"><li>Large dot products leave softmax with very small gradients</li></ul>
+  </div>
+</div>
+<div class="fig" style="width:385px;height:760px">
+  <img src="/project/img/fig2-scaled-dot-product.png" alt="Fig. 2 (left) of the paper: scaled dot-product attention, from MatMul of Q and K up to MatMul with V" style="width:385px;height:760px;object-fit:contain">
+</div>
+</div>
+<p class="cite">Figure: Vaswani et al., NIPS 2017, Fig. 2 (left), Sec. 3.2.1. dₖ: dimension of the keys</p>
+<aside>[≤ 5:35] How is attention computed? The authors call their version scaled dot-product attention, and the figure shows it from bottom to top. All queries are stacked into one matrix, and so are the keys and the values. First the model multiplies the queries with the keys. This gives one score for every pair of words. Then every score is divided by the square root of the key dimension. Then a softmax turns the scores into weights, and the weights are multiplied with the values. Why the division? With large vectors the dot products become very large. The softmax then has very small gradients, and learning slows down. The scaling prevents that.</aside>
+</section>
