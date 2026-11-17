@@ -1,16 +1,16 @@
-<section id="setup" class="c">
+<section id="setup" class="c mid">
 <h2 class="ttl">Experiment setup</h2>
 <div class="rule"></div>
 <div class="pnum"></div>
-<div class="flow" style="font-size:36px">
-  <div class="card" style="font-size:36px"><p class="bd">① Data</p><p>WMT 2014</p><p>English–German: 4.5M sentence pairs</p><p>English–French: 36M sentences</p></div>
+<div class="flow" style="font-size:44px">
+  <div class="card"><p class="bd">① Data</p><p>WMT 2014</p><p>English–German</p><p>4.5M sentence pairs</p><p>English–French</p><p>36M sentences</p></div>
   <p class="arrow">→</p>
-  <div class="card" style="font-size:36px"><p class="bd">② Train</p><p>8 P100 GPUs</p><p>Base: 100K steps, 12 hours</p><p>Big: 300K steps, 3.5 days</p></div>
+  <div class="card"><p class="bd">② Train</p><p>8 P100 GPUs</p><p>Base: 12 hours</p><p>Big: 3.5 days</p></div>
   <p class="arrow">→</p>
-  <div class="card key" style="font-size:36px"><p class="bd">③ Test</p><p>newstest2014</p><p>Score: BLEU</p><p>Beam size 4</p></div>
+  <div class="card key"><p class="bd">③ Test</p><p>newstest2014</p><p>Score: BLEU</p><p>Beam size 4</p></div>
   <p class="arrow">→</p>
-  <div class="card" style="font-size:36px"><p class="bd">④ Compare</p><p>ByteNet, GNMT, ConvS2S, MoE</p><p>Single models and ensembles</p></div>
+  <div class="card"><p class="bd">④ Compare</p><p>GNMT, ConvS2S</p><p>ByteNet, MoE</p><p>Single models and ensembles</p></div>
 </div>
 <p class="cite">Source: Vaswani et al., NIPS 2017, Sec. 5.1, 5.2 and 6.1</p>
-<aside>[≤ 8:22] Here is how the experiments were run. There are two translation tasks from WMT 2014. English to German has about four and a half million sentence pairs. English to French is much larger, with thirty-six million sentences. Training used one machine with eight GPUs. There are two model sizes. The base model trained for twelve hours, and the big model trained for three and a half days. The models were tested on the newstest 2014 set and scored with BLEU, where higher is better. The results are compared with the best recurrent and convolutional models at that time, both single models and ensembles.</aside>
+<aside>[≤ 9:15] Here is how the experiments were run. There are two translation tasks from WMT 2014. English to German has about four and a half million sentence pairs. English to French is much larger, with thirty-six million sentences. Training used one machine with eight GPUs. There are two model sizes. The base model trained for twelve hours, and the big model trained for three and a half days. The models were tested on the newstest 2014 set and scored with BLEU, where higher is better. The results are compared with the best recurrent and convolutional models at that time, both single models and ensembles.</aside>
 </section>

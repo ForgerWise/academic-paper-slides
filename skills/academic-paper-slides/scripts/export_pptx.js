@@ -4,7 +4,7 @@
 // Turns a deck (project/deck.json, project/deck.css, project/slides/*.html) into an
 // editable PowerPoint file. The deck is rendered locally, every element is measured,
 // and each one is written as a native PowerPoint object at the same place:
-//   .txt block      -> ONE text box with real two-level bullets (easy to edit)
+//   .txt block      -> ONE text box with real bullets and numbering (easy to edit)
 //   title, source   -> text boxes        table -> PowerPoint table
 //   figure          -> picture           ring / badge / rule -> shapes
 //   flow box        -> rounded rectangle with its text inside
@@ -46,8 +46,8 @@ const BASE_CSS = [
   'section[hidden], aside, noscript { display: none !important }',
   'h1 { font-size: 96px; font-weight: 600 } h2 { font-size: 64px; font-weight: 600 } h3 { font-size: 44px; font-weight: 600 }',
   'p, li, h1, h2, h3, td, th { overflow-wrap: break-word }',
-  'table { width: 100%; border-collapse: separate; border-spacing: 0 }',
-  'th, td { padding: .35em .6em; text-align: left }',
+  'table { width: 100%; border-collapse: separate; border-spacing: 0; border: solid #0003; border-width: 2px 0 0 2px }',
+  'th, td { padding: .35em .6em; text-align: left; border: solid #0003; border-width: 0 2px 2px 0 }',
   'x-shape, x-icon, x-embed { display: block }',
 ].join('\n');
 const MIME = { '.css': 'text/css', '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg',
@@ -138,7 +138,9 @@ function extract() {
       box.querySelectorAll('li, p, h1, h2, h3').forEach((el) => {
         if (el.closest('table') || (el.tagName !== 'LI' && el.closest('li'))) return;
         const ul = el.tagName === 'LI' ? el.parentElement : null;
-        list.push(para(el, { bullet: !!ul, level: ul && ul.classList.contains('sub') ? 1 : 0,
+        const number = ul && ul.tagName === 'OL'
+          ? (parseInt(ul.getAttribute('start'), 10) || 1) + [...ul.children].indexOf(el) : null;
+        list.push(para(el, { bullet: !!ul, number, level: ul && ul.classList.contains('sub') ? 1 : 0,
           indent: ul ? px(getComputedStyle(ul).paddingLeft) : 0 }));
       });
       list.forEach((p, i) => { p.before = i ? Math.max(0, p.r.y - (list[i - 1].r.y + list[i - 1].r.h)) : 0; });
@@ -281,14 +283,27 @@ function extract() {
     const toRuns = (p, isLast) => {
       if (p.bullet) {            // text starts where the list's padding ends; the marker hangs 0.6em before it
         const left = p.indent || 46;
-        bulletFix[bulletFix.length - 1].push({ marL: left, hang: Math.min(left, 0.6 * p.size) });
+        bulletFix[bulletFix.length - 1].push({ marL: left, hang: Math.min(left, (p.number ? 1.1 : 0.8) * p.size) });   // markers end just before the text
       }
-      const parts = p.runs.length ? p.runs : [{ text: '' }];
+      // A <br> becomes a soft break in front of the run that follows it
+      const parts = [];
+      let brk = false;
+      for (const r of p.runs) {
+        if (r.text === '\n') { brk = true; continue; }
+        parts.push(brk ? { ...r, brk: true } : r);
+        brk = false;
+      }
+      if (!parts.length) parts.push({ text: '' });
       return parts.map((r, i) => {
         const o = { fontFace: font, fontSize: PT(p.size), bold: !!r.bold, italic: !!r.italic,
           color: r.color || s.ink, align: p.align, lineSpacing: PT(p.line), paraSpaceBefore: PT(p.before || 0) };
         if (r.underline) o.underline = { style: 'sng' };
-        if (p.bullet) { o.bullet = { characterCode: '2022', indent: PT(p.indent || 46) }; o.indentLevel = p.level || 0; }
+        if (r.brk) o.softBreakBefore = true;
+        if (p.bullet) {
+          o.bullet = p.number ? { type: 'number', style: 'arabicPeriod', numberStartAt: p.number, indent: PT(p.indent || 64) }
+            : { characterCode: '2022', indent: PT(p.indent || 46) };
+          o.indentLevel = p.level || 0;
+        }
         if (i === parts.length - 1 && !isLast) o.breakLine = true;
         return { text: r.text, options: o };
       });
@@ -340,13 +355,13 @@ function extract() {
         }
         slide.addImage({ path: file, ...box(r) });
       } else if (it.type === 'table') {
-        const none = { type: 'none' };
+        const line = { type: 'solid', pt: 1, color: 'A6A6A6' };   // grid lines, as Slides draws them
         const rows = it.rows.map((row) => row.cells.map((c) => ({
           text: c.runs.map((r) => r.text).join(''),
           options: { fontFace: font, fontSize: PT(it.size), bold: row.head || c.bold, color: c.color || s.ink,
             align: c.align, valign: 'middle', margin: [PT(c.padY), PT(c.padX), PT(c.padY), PT(c.padX)],
             fill: row.fill && row.fill !== s.bg ? { color: row.fill } : undefined,
-            border: [none, none, row.head ? { type: 'solid', pt: 1.5, color: it.ink || s.ink } : none, none] },
+            border: [line, line, line, line] },
         })));
         slide.addTable(rows, { x: IN(it.r.x), y: IN(it.r.y), w: IN(it.r.w),
           colW: it.rows[0].cells.map((c) => IN(c.w)), rowH: it.rows.map((row) => IN(row.h)) });
@@ -365,14 +380,22 @@ function extract() {
     let ok = true;
     for (let i = 0; i < bulletFix.length; i++) {
       const name = `ppt/slides/slide${i + 1}.xml`;
-      const xml = await zip.file(name).async('string');
+      let xml = await zip.file(name).async('string');
+      // A paragraph with several runs (a red or bold span inside a line) must carry its settings once
+      xml = xml.replace(/<a:p>([\s\S]*?)<\/a:p>/g, (m, inner) => {
+        let seen = false;
+        return '<a:p>' + inner.replace(/<a:pPr\b[^>]*?(?:\/>|>[\s\S]*?<\/a:pPr>)/g, (pp) => (seen ? '' : ((seen = true), pp))) + '</a:p>';
+      });
       const found = xml.match(/marL="\d+" indent="-\d+"/g) || [];
       if (found.length !== bulletFix[i].length) { ok = false; break; }
       let k = 0;
+      const face = String(fontArg || slides[i].font || 'Arial').replace(/[<>&"]/g, '');
       zip.file(name, xml.replace(/marL="\d+" indent="-\d+"/g, () => {
         const f = bulletFix[i][k++];
         return `marL="${EMU(f.marL)}" indent="-${EMU(f.hang)}"`;
-      }));
+      // Name the bullet's font, so every bullet is drawn the same size and height as the text
+      }).replace(/(<a:buFont [^>]*\/>)?<a:buChar /g, `<a:buFont typeface="${face}"/><a:buChar `)
+        .replace(/<a:buFont typeface="\+mj-lt"\/>/g, `<a:buFont typeface="${face}"/>`));
     }
     if (ok) data = await zip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE' });
     else console.log('Note: bullet indents were left at the library defaults (unexpected file layout).');

@@ -1,0 +1,30 @@
+<section id="a1" class="c">
+<h2 class="ttl">Architecture ①</h2>
+<div class="rule"></div>
+<div class="pnum"></div>
+<div class="split">
+<div class="txt num" style="font-size:48px">
+  <div class="grp">
+    <ul class="bl"><li>Encoder: 6 identical layers, two sub-layers each</li></ul>
+  </div>
+  <div class="grp">
+    <ol class="bl"><li>Self-attention</li></ol>
+    <ul class="bl sub"><li>Every input word looks at every other input word</li></ul>
+  </div>
+  <div class="grp">
+    <ol class="bl" start="2"><li>Feed-forward network</li></ol>
+    <ul class="bl sub"><li>Applied to each position separately</li></ul>
+  </div>
+  <div class="grp">
+    <ul class="bl"><li>Around each sub-layer</li></ul>
+    <ul class="bl sub"><li>Residual connection, then layer normalization</li></ul>
+  </div>
+</div>
+<div class="fig" style="width:516px;height:760px">
+  <img src="/project/img/fig1-architecture.png" alt="Fig. 1 of the paper: the Transformer architecture, encoder on the left and decoder on the right" style="width:516px;height:760px;object-fit:contain">
+  <x-shape kind="rounded" class="ring box" style="left:9%;top:35.5%;width:40%;height:39%"></x-shape>
+</div>
+</div>
+<p class="cite">Figure: Vaswani et al., NIPS 2017, Fig. 1, Sec. 3.1; orange box added by presenter</p>
+<aside>[≤ 4:42] Part one is the two stacks. The orange box marks the encoder, which reads the input sentence. The encoder is a stack of six identical layers. Each layer has two parts. The first part is self-attention, where every input word looks at every other input word. The second part is a small feed-forward network, which is applied to each word position separately. Around each part there is a residual connection, followed by layer normalization. The last layer gives one vector per input word, and the decoder will read these vectors.</aside>
+</section>

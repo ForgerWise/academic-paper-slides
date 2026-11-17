@@ -5,7 +5,7 @@
 //   - top and bottom edge of the content (must stay inside y = 221..990)
 //   - for every .txt block: how much of its available height it fills, its current
 //     font size, and the largest size between --min and --max that still fits
-//   - rule breaks that are mechanical: wrapped title, colon in title, nested <ul>
+//   - rule breaks that are mechanical: wrapped title, over-long title name, nested <ul>
 // Exit code 0 = clean, 1 = something to fix, 2 = could not run.
 //
 // <deck_root> is the folder that contains project/deck.json.
@@ -55,8 +55,8 @@ const BASE_CSS = [
   'section[hidden], aside, noscript { display: none !important }',
   'h1 { font-size: 96px; font-weight: 600 } h2 { font-size: 64px; font-weight: 600 } h3 { font-size: 44px; font-weight: 600 }',
   'p, li, h1, h2, h3, td, th { overflow-wrap: break-word }',
-  'table { width: 100%; border-collapse: separate; border-spacing: 0 }',
-  'th, td { padding: .35em .6em; text-align: left }',
+  'table { width: 100%; border-collapse: separate; border-spacing: 0; border: solid #0003; border-width: 2px 0 0 2px }',
+  'th, td { padding: .35em .6em; text-align: left; border: solid #0003; border-width: 0 2px 2px 0 }',
   'x-shape, x-icon, x-embed { display: block }',
 ].join('\n');
 
@@ -121,21 +121,52 @@ function measure(cfg) {
     const ttl = sec.querySelector('.ttl');
     if (ttl) {
       if (ttl.scrollWidth > ttl.clientWidth + 1) out.flags.push('TITLE too long for one line');
-      if (/[:：]/.test(ttl.textContent)) out.flags.push('TITLE has a colon: titles are labels only');
+      const t = ttl.textContent.trim();
+      out.title = t;
+      const name = /[:：]/.test(t) ? t.split(/[:：]/).slice(1).join(' ').trim() : t;
+      const cjk = (name.match(/[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uac00-\ud7af]/g) || []).length;
+      const words = name.replace(/[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uac00-\ud7af]/g, ' ').split(/\s+/).filter(Boolean).length;
+      if (words > 4 || cjk > 10) out.flags.push('TITLE is too long: a topic name of one to three words');
+      if (/\s\d{1,2}$/.test(t)) out.flags.push('TITLE number: write it as a circled digit, for example "Architecture ①"');
     }
     if (sec.querySelector('li ul, li ol')) out.flags.push('NESTED list inside <li>: write the second level as a sibling ul.bl.sub');
-    if (!out.cover && sec.querySelector('ul') && ![...sec.querySelectorAll('ul')].every((u) => u.closest('.txt, .card, table')))
+    if (!out.cover && sec.querySelector('ul, ol') && ![...sec.querySelectorAll('ul, ol')].every((u) => u.closest('.txt, .card, table')))
       out.flags.push('LIST outside .txt: wrap the text of the slide in one .txt block');
 
-    // A table or flow with no text block that leaves the lower 40% empty: flag it while its text can still grow
-    if (!out.cover && !sec.querySelector('.txt') && bottom > 0 && bottom < cfg.top + 0.6 * (cfg.bottom - cfg.top)) {
-      const size = (sel) => Math.max(0, ...[...sec.querySelectorAll(sel)].map((e) => px(getComputedStyle(e).fontSize)));
-      const tb = size('table'), card = size('.card');
-      if ((tb && tb < 44) || (card && card < 36))
-        out.flags.push(`UNDERUSED: content ends at y ${out.bottom}. Enlarge the text (tables up to 44px, flow boxes up to 36px)`);
-      else if (tb)
-        out.flags.push(`UNDERUSED: content ends at y ${out.bottom}. Add a .txt block above the table that says what it compares`);
+    // A table with no text block that leaves the lower 40% of the slide empty
+    if (!out.cover && !sec.querySelector('.txt') && sec.querySelector('table') && bottom > 0 && bottom < cfg.top + 0.6 * (cfg.bottom - cfg.top)) {
+      const tb = Math.max(0, ...[...sec.querySelectorAll('table')].map((e) => px(getComputedStyle(e).fontSize)));
+      out.flags.push(tb < 44
+        ? `UNDERUSED: content ends at y ${out.bottom}. Enlarge the table text (up to 44px)`
+        : `UNDERUSED: content ends at y ${out.bottom}. Add a .txt block above the table that says what it compares`);
     }
+
+    // A flow of boxes is sized like a text block: the largest text between 32 and 48px that fits
+    sec.querySelectorAll('.flow').forEach((flow) => {
+      const cur = Math.round(px(getComputedStyle(flow).fontSize));
+      const avail = available(flow);
+      const keep = flow.style.fontSize;
+      let best = null;
+      for (let s = 48; s >= 32; s -= 2) {
+        flow.style.fontSize = s + 'px';
+        // too wide for its box, or a line that wraps more than once
+        const wide = [...flow.querySelectorAll('.card, .card p')].some((el) => el.scrollWidth > el.clientWidth + 1)
+          || [...flow.querySelectorAll('.card p')].some((el) => el.getBoundingClientRect().height > 2.4 * px(getComputedStyle(el).lineHeight));
+        if (flow.getBoundingClientRect().height <= avail * cfg.safety && !wide) { best = s; break; }
+      }
+      flow.style.fontSize = keep;
+      out.txt.push({ cur, best, fill: Math.round(flow.getBoundingClientRect().height / avail * 100), fillBest: null });
+      if (best === null) out.flags.push('FLOW TOO LONG: at 32px a line still wraps more than once or the boxes do not fit. Shorten the lines or use fewer boxes');
+      else if (cur > best) out.flags.push(`FLOW TOO BIG at ${cur}px: set .flow font-size:${best}px`);
+      else if (best - cur >= cfg.step) out.flags.push(`GROW: set .flow font-size:${best}px (now ${cur}px)`);
+    });
+
+    const ems = [...sec.querySelectorAll('.em')].filter((e) => !e.closest(CHROME));
+    if (ems.length > 2) out.flags.push(`EMPHASIS: ${ems.length} red phrases on one slide; keep at most two`);
+    if (ems.some((e) => e.textContent.trim().split(/\s+/).length > 6)) out.flags.push('EMPHASIS: a red phrase is longer than six words; stress only the key number or phrase');
+    if (sec.querySelector('.ttl .em')) out.flags.push('EMPHASIS in the title: titles carry no emphasis');
+    if (sec.querySelector('.bl.sub li b, .bl.sub li strong, .bl.sub li .k, .bl.sub li .bd'))
+      out.flags.push('BOLD inside a level-two line: bold is for sub-headings; stress a key number with red emphasis instead');
 
     sec.querySelectorAll('.txt').forEach((txt) => {
       const pcls = txt.parentElement.classList;
@@ -202,6 +233,17 @@ function measure(cfg) {
     for (const f of r.flags) { bad++; console.log('\t! ' + f); }
   }
   console.log(bad ? `\n${bad} thing(s) to fix. Fix them and run again.` : '\nLayout clean.');
+
+  // "Method 1", "Method 2": a label with only a number says nothing about the slide
+  const KINDS = /^(methods?|results?|background|experiments?|evaluation|approach|analysis|discussion|方法|結果|结果|背景|前提知識|實驗|实验|手法|提案手法|実験|評価)$/i;
+  const bare = {};
+  for (const r of rows) {
+    const m = r.title && !/[:：]/.test(r.title) && /^(.+?)\s*(?:\d+|[\u2460-\u2473])$/.exec(r.title);
+    if (m && KINDS.test(m[1].trim())) (bare[m[1]] = bare[m[1]] || []).push(r.title);
+  }
+  for (const [label, list] of Object.entries(bare)) {
+    if (list.length > 1) console.log(`Note: ${list.length} titles are "${label}" plus a number (${list.join(', ')}). Name each slide by its topic instead, for example "Training cost".`);
+  }
 
   if (shots) {
     fs.mkdirSync(shots, { recursive: true });

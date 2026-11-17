@@ -4,7 +4,7 @@ Two decks made by Claude from the same paper: A. Vaswani et al., "Attention Is A
 
 | Folder | How it was made | Size |
 |---|---|---|
-| `with-skill/` | With this skill | 16 slides for a 15-minute talk, with a read-aloud script (13:05 at 125 words per minute) |
+| `with-skill/` | With this skill | 17 slides for a 15-minute talk, with a read-aloud script (13:55 at 125 words per minute) |
 | `baseline/` | Without the skill, following the default design guidance of Claude's Slides type: cards, an accent slide, big numbers | 12 slides |
 
 The comparison image in the main README shows four matching slides from each deck.

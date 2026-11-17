@@ -14,11 +14,11 @@ The same paper, *Attention Is All You Need*, turned into slides by Claude twice.
 
 **No AI-slop look.** No grids of rounded cards, no colored blocks around every sentence, no icon rows, no decorative accent slides. Pages are white with near-black text and one accent color. The only boxes in the whole deck are the steps of the experiment flow.
 
-**It reads like a deck a careful person would make.** One message per slide. Titles are plain labels ("Problem", "Method 2", "Result 3"). Bullets have two levels that mean something: the point, then its detail. Text sits beside or above the figure it explains, and every slide names its source.
+**It reads like a deck a careful person would make.** The slides follow one line of reasoning, from the background and the problem through the method to the results, and each slide picks up where the last one stopped. One message per slide. Titles are plain labels that name the topic ("Problem", "Positional encoding", "Training cost"). Bullets have two levels that mean something: the point, then its detail; steps in order are numbered. Text sits beside or above the figure it explains, and every slide names its source.
 
 **It is easy to read from the back of the room.** Text is set as large as the slide allows, 36 to 54px, and figures as large as they stay sharp. A script measures every slide and tells Claude the exact size that fits, so a short text block never floats in an empty column and nothing overflows.
 
-**It is easy to edit afterwards.** A slide is plain text and a figure, not a layout of nested boxes, so you can retitle, reword or cut a line in Claude Slides, PowerPoint or Google Slides without breaking the page. The whole look is four variables in one stylesheet.
+**It is easy to edit afterwards.** A slide is plain text and a figure, not a layout of nested boxes, so you can retitle, reword or cut a line in Claude Slides, PowerPoint or Google Slides without breaking the page. The whole look is five variables in one stylesheet.
 
 **The speaker notes are a script, not a summary.** Full sentences in plain words with an adult tone, written so that a listener who is not looking at the screen still follows. They add what the slide does not say (how to read the figure, why the authors did it this way) instead of reading the bullets back. Each slide's notes start with the time you should reach it.
 
@@ -27,7 +27,8 @@ The same paper, *Attention Is All You Need*, turned into slides by Claude twice.
 ## What you get
 
 - **Your choice of output**: a Claude Slides deck, an editable PowerPoint (.pptx) file, or Google Slides. The PowerPoint file is real slides, not pictures: bullets are text boxes, tables are tables, and the script is in the speaker notes.
-- Default structure: cover, problem, background, purpose, related work, method, experiment setup, results, conclusion. About one slide per minute of talk.
+- Default structure: cover, background, problem, preliminaries, related work, method overview, method details, experiment setup, results, conclusion. About one slide per minute of talk.
+- Diagrams explained part by part with the part ringed, formulas centered, tables with grid lines and one highlighted row, and red emphasis kept to the one number that matters.
 - Your template if you have one: set the accent color, font and logo. Without one, a neutral black-and-white theme.
 - Any deck language. The notes can be in a different language from the slides.
 
@@ -56,7 +57,7 @@ Rules alone do not hold: a model drifts back to cards and cautious font sizes. S
 .claude-plugin/plugin.json          plugin manifest
 skills/academic-paper-slides/
   SKILL.md                          the rules and the workflow
-  assets/deck.css                   stylesheet; theme = four variables at the top
+  assets/deck.css                   stylesheet; theme = five variables at the top
   references/patterns.md            HTML for every slide kind
   scripts/check_layout.js           fill, fit and overflow check
   scripts/check_notes.py            read-aloud lint and timing
@@ -75,7 +76,7 @@ node skills/academic-paper-slides/scripts/export_pptx.js examples/attention/with
 
 ## Theming
 
-Edit the four variables at the top of `assets/deck.css`: `--ink` (text), `--accent` (title, rule, page number), `--hl` (highlighted table row) and `--mark` (annotations on figures). A logo and a different font are described at the end of `references/patterns.md`.
+Edit the five variables at the top of `assets/deck.css`: `--ink` (text), `--accent` (title, rule, page number, goal line), `--hl` (highlighted table row), `--mark` (annotations on figures) and `--em` (red emphasis). A logo and a different font are described at the end of `references/patterns.md`.
 
 ## Limits
 

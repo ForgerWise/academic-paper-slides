@@ -1,5 +1,5 @@
 <section id="r2" class="c">
-<h2 class="ttl">Result 2</h2>
+<h2 class="ttl">Training cost</h2>
 <div class="rule"></div>
 <div class="pnum"></div>
 <div class="stack">
@@ -9,7 +9,7 @@
   </div>
   <div class="grp">
     <ul class="bl"><li><span class="k">Result</span></li></ul>
-    <ul class="bl sub"><li>Base model: lowest cost in the table on both tasks</li><li>English–French: big model costs less than 1/4 of the previous best model</li></ul>
+    <ul class="bl sub"><li>Base model: lowest cost in the table on both tasks</li><li>English–French: big model costs <span class="em">less than 1/4</span> of the previous best model</li></ul>
   </div>
 </div>
 <table class="tb" style="font-size:36px">
@@ -17,10 +17,10 @@
 <tr><td>GNMT + RL</td><td class="ctr">2.3·10¹⁹</td><td class="ctr">1.4·10²⁰</td></tr>
 <tr><td>ConvS2S</td><td class="ctr">9.6·10¹⁸</td><td class="ctr">1.5·10²⁰</td></tr>
 <tr><td>MoE</td><td class="ctr">2.0·10¹⁹</td><td class="ctr">1.2·10²⁰</td></tr>
-<tr><td>Transformer (base)</td><td class="ctr">3.3·10¹⁸</td><td class="ctr">3.3·10¹⁸</td></tr>
+<tr class="hl"><td>Transformer (base)</td><td class="ctr">3.3·10¹⁸</td><td class="ctr">3.3·10¹⁸</td></tr>
 <tr><td>Transformer (big)</td><td class="ctr">2.3·10¹⁹</td><td class="ctr">2.3·10¹⁹</td></tr>
 </table>
 </div>
 <p class="cite">Table: Vaswani et al., NIPS 2017, Table 2 (five of ten rows), training cost in FLOPs, and Sec. 6.1</p>
-<aside>[≤ 10:01] Quality is one half of the story. The other half is cost. This table shows the estimated training cost, counted in floating point operations, so lower is better. Look at the base Transformer. Its cost is the lowest in the table on both tasks, and you saw that it still beats the earlier systems on English to German. The big model costs more. But on English to French it needs less than a quarter of the cost of the previous best model. So the Transformer is better and cheaper to train at the same time.</aside>
+<aside>[≤ 10:54] Quality is one half of the story. The other half is cost. This table shows the estimated training cost, counted in floating point operations, so lower is better. Look at the base Transformer. Its cost is the lowest in the table on both tasks, and you saw that it still beats the earlier systems on English to German. The big model costs more. But on English to French it needs less than a quarter of the cost of the previous best model. So the Transformer is better and cheaper to train at the same time.</aside>
 </section>

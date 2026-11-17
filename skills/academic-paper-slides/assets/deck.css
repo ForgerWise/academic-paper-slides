@@ -1,11 +1,12 @@
 /* academic-paper-slides: shared stylesheet for a 16:9 deck (1920x1080 canvas).
-   Copy to project/deck.css. To theme the deck, change only the four variables. */
+   Copy to project/deck.css. To theme the deck, change only the five variables. */
 
 section {
   --ink: #222222;     /* body text, table rules, box borders */
   --accent: #222222;  /* title, title rule, page number (set to a brand color if the user has one) */
-  --hl: #EEEEEE;      /* the one highlighted table row ("this paper") */
+  --hl: #E2E2E2;      /* the one highlighted row of a table */
   --mark: #D55E00;    /* presenter annotations drawn on figures */
+  --em: #C00000;      /* red emphasis text: the one number or phrase not to miss */
   background: #FFFFFF; color: var(--ink);
   font-family: 'Inter', Arial, sans-serif;
   counter-increment: page; line-height: 1.35;
@@ -13,6 +14,7 @@ section {
 
 /* Content slide: content area is x 91-1829, y 221-990 (1738 x 769) */
 section.c { padding: 221px 91px 90px 91px; display: flex; flex-direction: column; gap: 24px; }
+section.c.mid { justify-content: center; }   /* a slide that holds only a flow: the flow sits in the vertical middle */
 
 /* Title bar: label-only title, rule, page number */
 .ttl { position: absolute; left: 91px; top: 46px; width: 1635px; font-size: 84px; font-weight: 700; color: var(--accent); line-height: 1.2; white-space: nowrap; }
@@ -32,8 +34,15 @@ section.lg .ttl { left: 190px; width: 1536px; }
 /* Bullets: same marker and size at both levels, hierarchy by indent only */
 .bl { padding-left: 46px; display: flex; flex-direction: column; gap: 14px; }
 .bl.sub { padding-left: 100px; gap: 6px; }
+/* Numbered level one (<ol class="bl" start="N">): steps in order, parts of a figure, a ranking.
+   A block with numbered lines gets class "num" on its .txt: every level-one line, bulleted or
+   numbered, then starts at the same x, and every level-two line at the same x */
+.txt.num .bl { padding-left: 64px; }
+.txt.num .bl.sub { padding-left: 118px; }
 .k { font-weight: 700; }                 /* bold lead-in such as "Result" */
-.goal { font-size: 48px; font-weight: 700; padding-top: 24px; }  /* last line of the Problem slide */
+.goal { font-size: 64px; font-weight: 700; color: var(--accent); line-height: 1.25; padding-top: 36px; }  /* last line of the Problem slide: the largest text in the body */
+.em { color: var(--em); }                /* use at most twice on a slide */
+.eq { font-size: 60px; text-align: center; padding: 6px 0px 14px 0px; }   /* a formula, centered across the slide */
 
 /* Layouts. .txt must be a direct child of section.c, .split or .stack */
 .split { display: flex; flex: 1; gap: 50px; align-items: center; min-height: 0; }  /* text left, figure right */
@@ -43,19 +52,20 @@ section.lg .ttl { left: 190px; width: 1536px; }
 
 /* Figures and presenter annotations. Always give .fig and its img a px width and height */
 .fig { position: relative; flex: none; }
-.ring { position: absolute; background: transparent; border: 6px solid var(--mark); }
+.ring { position: absolute; background: transparent; border: 6px solid var(--mark); border-radius: 50%; }
+.ring.box { border-radius: 16px; }   /* a block of a diagram: use with <x-shape kind="rounded"> */
 .badge { position: absolute; width: 60px; height: 60px; box-sizing: border-box; border-radius: 30px; background: var(--mark); border: 3px solid #FFFFFF; color: #FFFFFF; font-size: 32px; font-weight: 700; line-height: 54px; text-align: center; }
 .figcap { font-size: 26px; text-align: center; }
 
-/* Tables: white header with a rule under it, no zebra fill */
+/* Tables: grid lines (drawn by Slides and by the PowerPoint export), white bold header, no zebra fill */
 .tb { width: 100%; font-size: 40px; }
-.tb tr.h { background: #FFFFFF; border-bottom: 3px solid var(--ink); }
+.tb tr.h { background: #FFFFFF; }
 .tb th { color: var(--ink); font-weight: 700; }
-.tb tr.hl { background: var(--hl); }
+.tb tr.hl { background: var(--hl); }   /* the one row to stress */
 
 /* Flow boxes (experiment setup). The only boxed text in the deck */
-.flow { display: flex; gap: 20px; align-items: stretch; }
-.card { flex: 1; background: #FFFFFF; border: 2px solid var(--ink); border-radius: 16px; padding: 18px 28px; display: flex; flex-direction: column; gap: 8px; font-size: 34px; }
+.flow { display: flex; gap: 12px; align-items: stretch; font-size: 40px; }   /* ONE font-size, set inline on .flow; check_layout.js fits it */
+.card { flex: 1; background: #FFFFFF; border: 2px solid var(--ink); border-radius: 16px; padding: 22px 24px; display: flex; flex-direction: column; gap: 10px; }
 .card.key { border: 4px solid var(--ink); }
 .arrow { align-self: center; font-size: 48px; }
 

@@ -4,15 +4,15 @@
 <div class="pnum"></div>
 <div class="txt" style="font-size:54px">
   <div class="grp">
-    <ul class="bl"><li>Translation models are built on recurrent networks</li></ul>
+    <ul class="bl"><li>Recurrent networks process a sentence step by step</li></ul>
     <ul class="bl sub"><li>Each step needs the result of the step before</li><li>So one sentence cannot be processed in parallel</li></ul>
   </div>
   <div class="grp">
     <ul class="bl"><li>Distant words are hard to relate</li></ul>
     <ul class="bl sub"><li>The signal passes through every step in between</li></ul>
   </div>
-  <p class="goal">→ Goal: model a sequence with attention only, without recurrence</p>
+  <p class="goal">→ Goal: a model with attention only, no recurrence</p>
 </div>
 <p class="cite">Source: Vaswani et al., NIPS 2017, Sec. 1 and 4</p>
-<aside>[≤ 0:25] Let me start with the problem. In 2017 the best translation models were recurrent networks. A recurrent network reads a sentence one word at a time, and every step needs the result of the step before it. So the words of one sentence cannot be processed in parallel, and training on long sentences is slow. There is a second problem. When two related words are far apart, the signal between them has to pass through every step in between, and that makes the relation hard to learn. So the authors set one goal. They want to model a sequence with attention only, and with no recurrence at all.</aside>
+<aside>[≤ 1:16] This design has two problems, and both come from recurrence. A recurrent network reads a sentence one word at a time, and every step needs the result of the step before it. So the words of one sentence cannot be processed in parallel, and training on long sentences is slow. The second problem is distance. When two related words are far apart, the signal between them has to pass through every step in between, and that makes the relation hard to learn. So the authors set one goal. They want to model a sequence with attention only, and with no recurrence at all.</aside>
 </section>

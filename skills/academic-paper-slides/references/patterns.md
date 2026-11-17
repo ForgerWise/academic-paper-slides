@@ -7,6 +7,9 @@ Each slide is one file, `project/slides/<id>.html`, holding exactly one `<sectio
 - Frame of a content slide
 - Cover
 - Two-level bullets
+- Numbered steps
+- Formula
+- Emphasis
 - Text left, figure right (`.split`)
 - Text on top, figure below (`.stack`)
 - Text only
@@ -19,7 +22,7 @@ Each slide is one file, `project/slides/<id>.html`, holding exactly one `<sectio
 
 ```html
 <section id="r3" class="c">
-<h2 class="ttl">Result 3</h2>
+<h2 class="ttl">Training cost</h2>
 <div class="rule"></div>
 <div class="pnum"></div>
 <!-- one of: .txt | .split | .stack | table | .flow -->
@@ -28,7 +31,7 @@ Each slide is one file, `project/slides/<id>.html`, holding exactly one `<sectio
 </section>
 ```
 
-The title is a label. Number repeated kinds: "Method 1", "Method 2", or with circled digits where the deck language uses them ("方法②").
+The title is a label. Slides of one kind about different things are named by topic, "Training cost"; a topic that continues over several slides keeps its name and adds a circled number, "Architecture ②". SKILL.md section 3 has the rule.
 
 ## Cover
 
@@ -65,6 +68,46 @@ The Slides format turns a `<ul>` nested inside an `<li>` into hollow markers. So
 
 The font size is set once, on `.txt`. `check_layout.js` reads that value and tells you the size that fits.
 
+## Numbered steps
+
+Level one is an `<ol class="bl">` when the lines are steps in order, parts of a figure in the order they are explained, or a ranking. Each `.grp` holds its own list, so give every `<ol>` after the first a `start`. Level two stays a bulleted `ul.bl.sub`. Bulleted and numbered groups can share one `.txt`. Put class `num` on that `.txt`: it gives every level-one line the same left edge whether it has a bullet or a number, and the same for level two.
+
+```html
+<div class="txt num" style="font-size:48px">
+  <div class="grp">
+    <ul class="bl"><li>Decoder: 6 identical layers, three sub-layers each</li></ul>
+  </div>
+  <div class="grp">
+    <ol class="bl"><li>Masked self-attention</li></ol>
+    <ul class="bl sub"><li>A position sees only earlier output positions</li></ul>
+  </div>
+  <div class="grp">
+    <ol class="bl" start="2"><li>Attention over the encoder output</li></ol>
+  </div>
+  <div class="grp">
+    <ol class="bl" start="3"><li>Feed-forward network</li></ol>
+  </div>
+</div>
+```
+
+## Formula
+
+The formula is a centered line (`.eq`) inside the slide's one `.txt`, on a slide without a side figure. On a slide about the formula it comes first and the text below explains it:
+
+```html
+<div class="txt num" style="font-size:48px">
+  <p class="eq">Attention(Q, K, V) = softmax(QKᵀ / √dₖ) V</p>
+  <div class="grp"><ol class="bl"><li>QKᵀ: one score for every pair of words</li></ol></div>
+  <div class="grp"><ol class="bl" start="2"><li>÷ √dₖ: keeps the scores small</li></ol></div>
+</div>
+```
+
+When the formula supports a point, put the group that makes the point above the `.eq` and the groups that explain its terms below it. A formula with fractions, sums or matrices is cropped from the paper and placed as a centered `.fig` in a `.stack`.
+
+## Emphasis
+
+Red is a `<span class="em">` around a few words, at most twice on a slide: `<li>The big model costs <span class="em">less than 1/4</span> of the previous best</li>`. Bold is only for sub-headings such as `<span class="k">Result</span>`.
+
 ## Text left, figure right (`.split`)
 
 For figures narrower than 1.8 : 1. Give `.fig` and the `<img>` the same px width and height. The text column gets `1738 − 50 − figure width`.
@@ -79,7 +122,7 @@ For figures narrower than 1.8 : 1. Give `.fig` and the `<img>` the same px width
 </div>
 ```
 
-`.ring` and `.badge` are positioned in % of the figure box. A badge holds its number as text: `<div class="badge" style="left:12%;top:40%">1</div>`.
+`.ring` and `.badge` are positioned in % of the figure box. To mark a block of a diagram, use a box instead of an ellipse: `<x-shape kind="rounded" class="ring box" style="left:9%;top:35%;width:40%;height:39%"></x-shape>`. When a diagram is explained over several slides, repeat the figure at the same size and move only the ring. A badge holds its number as text: `<div class="badge" style="left:12%;top:40%">1</div>`.
 
 ## Text on top, figure below (`.stack`)
 
@@ -104,7 +147,7 @@ For figures 1.8 : 1 or wider. The figure height is what the text leaves: `769 �
 
 ## Problem slide
 
-A text-only slide whose last line is the goal, inside the same `.txt`:
+A text-only slide whose last line is the goal, inside the same `.txt`. The goal is set at 64px, bold, in the accent color: larger than the body text whatever size that is. Keep it to one or two lines.
 
 ```html
 <p class="goal">→ Goal: locate a phone in a building nobody has surveyed</p>
@@ -124,14 +167,16 @@ Columns: approach, one-line description, then one column per comparison axis. Ma
 <p class="cite">Table compiled by presenter from Author et al., Venue Year, Sec. 2. ✓ yes, ✗ no</p>
 ```
 
-A `text-align` on one cell applies to its whole column. Only the header row is bold.
+A `text-align` on one cell applies to its whole column. Only the header row is bold. Grid lines are drawn by the Slides type itself and by the PowerPoint export, so add no border rules. `class="hl"` gives a row the highlight fill: use it in any table to stress one row, at most one row per table.
 
 ## Experiment-setup flow
 
 One `.flow` row of up to four `.card` boxes with an arrow between them. In each box: a bold first line naming the step, then one or two short lines (what data it uses, what it produces), optionally a small image. The step being evaluated gets `class="card key"`. The flow must explain itself; do not add a paragraph under it.
 
+Set the text size once, inline on `.flow`; `check_layout.js` prints the largest size that fits (32 to 48px), so the boxes fill the slide. Keep every line in a box short: one fact per line, and a line may wrap once at most. A slide that holds only a flow gets `class="c mid"` on its section, which puts the flow in the vertical middle.
+
 ```html
-<div class="flow">
+<div class="flow" style="font-size:40px">
   <div class="card"><p class="bd">① Train the general model</p><p>Uses: 12 surveyed buildings</p><p>Learns: signal strength from floor plan</p></div>
   <p class="arrow">→</p>
   <div class="card"><p class="bd">② Adapt to the new building</p><p>Uses: its floor plan only</p></div>
@@ -144,12 +189,12 @@ One `.flow` row of up to four `.card` boxes with an arrow between them. In each 
 
 ## Logo and theme
 
-- Theme: edit the four variables at the top of `deck.css`. With a brand or lab template, `--accent` is its main color. Keep `--ink` near black and the background white.
+- Theme: edit the five variables at the top of `deck.css`. With a brand or lab template, `--accent` is its theme color, so titles match the template. Keep `--ink` near black and the background white.
 - Font: replace `'Inter'` in the `section` rule and register the family in the deck index as the Slides type describes. For a Chinese, Japanese or Korean deck use a family that covers the script, for example Noto Sans TC, JP, SC or KR.
 - Logo: upload it, add `class="c lg"` to every content section, and put the image first in the section:
 
 ```html
 <section id="r3" class="c lg">
 <img class="logo" src="/_blob/LOGO" alt="">
-<h2 class="ttl">Result 3</h2>
+<h2 class="ttl">Training cost</h2>
 ```

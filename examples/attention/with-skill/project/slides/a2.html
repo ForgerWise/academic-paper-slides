@@ -1,0 +1,31 @@
+<section id="a2" class="c">
+<h2 class="ttl">Architecture ②</h2>
+<div class="rule"></div>
+<div class="pnum"></div>
+<div class="split">
+<div class="txt num" style="font-size:52px">
+  <div class="grp">
+    <ul class="bl"><li>Decoder: 6 identical layers, three sub-layers each</li></ul>
+  </div>
+  <div class="grp">
+    <ol class="bl"><li>Masked self-attention</li></ol>
+    <ul class="bl sub"><li>A position sees only earlier output positions</li></ul>
+  </div>
+  <div class="grp">
+    <ol class="bl" start="2"><li>Attention over the encoder output</li></ol>
+  </div>
+  <div class="grp">
+    <ol class="bl" start="3"><li>Feed-forward network</li></ol>
+  </div>
+  <div class="grp">
+    <ul class="bl"><li>On top: a linear layer and softmax give the next-word probabilities</li></ul>
+  </div>
+</div>
+<div class="fig" style="width:516px;height:760px">
+  <img src="/project/img/fig1-architecture.png" alt="Fig. 1 of the paper: the Transformer architecture, encoder on the left and decoder on the right" style="width:516px;height:760px;object-fit:contain">
+  <x-shape kind="rounded" class="ring box" style="left:51%;top:19%;width:39.5%;height:55.5%"></x-shape>
+</div>
+</div>
+<p class="cite">Figure: Vaswani et al., NIPS 2017, Fig. 1, Sec. 3.1 and 3.4; orange box added by presenter</p>
+<aside>[≤ 5:28] The other stack is the decoder, marked by the orange box on the right. It also has six identical layers, but each layer has three parts. The first part is self-attention over the words written so far. It is masked, so a word can only look at the words before it. The second part attends over the output of the encoder. This is how the decoder reads the input sentence. The third part is the same feed-forward network as in the encoder. At the top, a linear layer and a softmax turn the result into a probability for every possible next word.</aside>
+</section>

@@ -1,0 +1,17 @@
+<section id="background" class="c">
+<h2 class="ttl">Background</h2>
+<div class="rule"></div>
+<div class="pnum"></div>
+<div class="txt" style="font-size:54px">
+  <div class="grp">
+    <ul class="bl"><li>Machine translation uses an encoder and a decoder</li></ul>
+    <ul class="bl sub"><li>Encoder: turns the input sentence into vectors</li><li>Decoder: writes the output one word at a time</li></ul>
+  </div>
+  <div class="grp">
+    <ul class="bl"><li>In 2017 the best models are recurrent networks</li></ul>
+    <ul class="bl sub"><li>Attention is added so the decoder can look at any input word</li><li>It is used only together with recurrence</li></ul>
+  </div>
+</div>
+<p class="cite">Source: Vaswani et al., NIPS 2017, Sec. 1 and 3</p>
+<aside>[≤ 0:25] Let me start with the background. Machine translation turns a sentence in one language into a sentence in another. In 2017 this was done with an encoder and a decoder. The encoder reads the input sentence and turns it into a list of vectors. The decoder then writes the translation one word at a time, and each step uses the words it has already written. Both parts were recurrent networks. The best systems also added attention, which lets the decoder look back at any word of the input. So attention already existed, but only as a helper for the recurrent network.</aside>
+</section>

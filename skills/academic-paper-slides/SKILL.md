@@ -55,24 +55,37 @@ For PowerPoint and Google Slides, set the font in `deck.css` to one that exists 
 
 ## 2. Deck structure
 
-1. Cover
-2. Problem: what is wrong today. The last line is bold: "→ Goal: …"
-3. Background 1, 2, …: only what the audience needs to follow the rest
-4. Purpose: the research question and the paper's aims
-5. Related work: one comparison table, with the row for this paper highlighted
-6. Method 1, 2, 3, …: one step per slide
-7. Experiment setup: a flow of boxes (① → ② → ③ → ④) showing what is trained on what, what is tested, and against which baselines
-8. Result 1, 2, 3, …: one result per slide
-9. Conclusion: what was done, what it achieved, where it applies
+The deck tells one connected story. Each slide follows from the one before it, in this order:
 
-The deck ends at the conclusion. Add strengths, critique, takeaways, a reviewer verdict, references or an appendix only when the user or the rubric asks.
+1. Cover
+2. Background: the situation the problem comes from
+3. Problem: what goes wrong in that situation. The last line is the goal, "→ Goal: …", bold and larger than every other line of the body, because it is the sentence the rest of the talk answers. If the background and the problem are both short, put them on one slide.
+4. Preliminaries: the terms and concepts the audience needs for the rest. Only if they are needed.
+5. Related work: how others approached the problem, as one comparison table with the row for this paper highlighted
+6. Method overview: the approach on one slide, as its parts in order or its overall figure
+7. Method details: one part per slide, with the figure, demonstration or formula that shows it
+8. Experiment setup: data, environment, procedure and baselines. A flow of boxes (① → ② → ③ → ④), plus screenshots or photos of the environment when there are any
+9. Results: one result per slide, with its chart or table
+10. Conclusion: what was done, what it achieved, where it applies
+11. Appendix: only if there is material for it
+
+Test the chain before building: read your one-sentence summaries of the slides in order. Each must follow from the one before with a plain link ("so", "but", "to solve this", "to test this"). If a link is missing, reorder, merge or cut until it is there.
+
+Slides of one kind are titled by their topic, not by a running number (section 3).
+
+Add strengths, critique, takeaways, a reviewer verdict or references only when the user or the rubric asks.
 
 A 15-minute talk is 15 to 17 slides. Scale with the talk length at about one slide per minute.
 
 ## 3. Content rules
 
 - One slide says one thing. Two things means two slides, or the minor one moves to the notes.
-- Titles are labels only: "Problem", "Method 3", "Result 2". Never "Label: content". No claims or figure numbers in titles.
+- Titles are labels, never sentences, claims or figure numbers. Choose the form by what the slide shares with its neighbours:
+  - The only slide of its kind: the kind alone. "Problem", "Related work", "Conclusion".
+  - Several slides of one kind about different things: name each by its topic, in one to three words (three to five characters in Chinese or Japanese). "Architecture", "Positional encoding", "Training cost".
+  - Put the kind in front only when the name alone would not tell the audience where they are in the talk. "Preliminary: Attention" in a talk whose method slides are also about attention; plain "Training cost" needs no "Result:".
+  - One topic that continues because it does not fit on one slide: the same name plus a circled number. "Architecture ①", "Architecture ②". Numbers in titles are always circled digits (① to ⑳), never plain ones.
+  - Avoid a kind with only a number ("Method ①", "Result ②"). It tells the audience nothing.
 - Write only what carries information, but do not abbreviate until it is unreadable.
 - Define a term on the line where it is first needed, in a few words in parentheses, for example "ViT (an image model built from Transformer blocks)". Do not spend an earlier slide on it, and do not explain common knowledge.
 - Use the paper's own terms. In a deck that is not in the paper's language, give the original term once on first use. No metaphors.
@@ -111,6 +124,7 @@ Also:
   - Someone else's paper: "the authors", never "we".
   - The presenter's own paper: first person, and the author list on the paper decides which. Sole author, or a thesis or dissertation: "I". Co-authored paper: "we".
   - Keep one pronoun for the whole script. Do not switch between "I" and "we" from slide to slide.
+- The first sentence of a slide's notes links it to the slide before ("This design has two problems"), so the talk is one story and not a list of slides.
 - Start each slide's notes with the time by which the presenter should reach it, for example `[≤ 7:45]`. It is the one non-spoken token allowed. Take the value from `check_notes.py`, do not estimate it.
 - Pace: 125 words per minute (150 for a native speaker), 260 characters per minute for Chinese, Japanese or Korean, 3 seconds per slide change. Leave one minute of buffer.
 - Notes are plain text, at most 4,000 characters per slide.
@@ -128,8 +142,21 @@ Add `--own` when the presenter is an author. The script catches mechanics. It ca
 **Color and boxes**
 
 - White background, near-black text. Only the title, its rule and the page number use the accent color.
-- Theme = the four variables at the top of `deck.css`: `--ink`, `--accent`, `--hl`, `--mark`. With a user template or brand, set `--accent` (and the font) from it and add the logo (see patterns). Without one, keep the neutral defaults. Do not add colors.
-- No colored blocks or cards that hold text. Two exceptions: the flow boxes on the experiment-setup slide (white, black border, the key step with a thick border) and the highlighted row of the related-work table.
+- Theme = the five variables at the top of `deck.css`: `--ink`, `--accent`, `--hl`, `--mark`, `--em`. With a user template or brand, set `--accent` to its theme color, so the titles match the template, set the font, and add the logo (see patterns). Without one, keep the neutral defaults. Do not add colors.
+- No colored blocks or cards that hold text. Two exceptions: the boxes of a flow (white, black border, the key step with a thick border) and one highlighted row in a table.
+
+**Emphasis**
+
+Use both kinds sparingly. A slide where everything is stressed stresses nothing.
+
+- Bold is for sub-headings inside the body: a level-one lead-in ("**Result**", "**Why waves**"), the goal line, table headers, the first line of a flow box. Do not bold words inside a sentence.
+- Red (`<span class="em">`) is for the one number or phrase the audience must not miss. At most two on a slide, a few words each, never a whole line, never in a title. Most slides have none.
+
+**Formulas**
+
+- One formula per slide, centered across the slide (`.eq`), never beside a figure.
+- When the slide is about the formula, the formula comes first and the text below explains it. When the formula supports a point, the point stands above it and the explanation of its terms below.
+- A formula that needs fractions, sums or matrices is cropped from the paper as a picture and centered the same way.
 
 **Bullets**
 
@@ -137,15 +164,18 @@ Add `--own` when the presenter is an author. The script catches mechanics. It ca
 - Both levels use the same solid marker at the same size. Only the indent differs.
 - Do not put every line on level one. That is a paragraph cut into lines, not a list.
 - Level one may be just a bold lead-in such as "**Result**", with the content on level two.
+- Level one is numbered (1. 2. 3.) when its lines are steps in order, the parts of a figure in the order they are explained, or a ranking. Everything else uses bullets, and level two always uses bullets. Do not number lines that have no order. A block that has numbered lines gets class `num` on its `.txt`, so that bulleted and numbered lines start at the same position.
 
 **Position and size**
 
 - Text goes left or on top. Figures go right or below.
 - Title: 84px, bold, one line.
-- Body text as large as fits: 36 to 54px. Tables 36 to 44px. Flow boxes 32 to 36px. Nothing under 24px.
+- The goal line of the problem slide is the largest text in the body: 64px, bold, on one line if it can be.
+- Body text as large as fits: 36 to 54px. Tables 36 to 44px. Flow boxes as large as fits: 32 to 48px, so that the flow fills the slide instead of sitting in a strip at the top. Nothing under 24px.
 - Figures as large as they stay sharp: at most about 1.3× their native pixel size. A figure that cannot be read is left out and replaced by text.
-- Mark the important part of a figure with a ring (`.ring`) or a numbered badge (`.badge`), and say so in the source line.
-- Tables: white bold header with a rule under it, no zebra fill. Size the columns so the key column does not wrap.
+- Mark the important part of a figure with a ring (`.ring`, or `.ring.box` around a block) or a numbered badge (`.badge`), and say so in the source line.
+- A diagram that is explained in parts gets one slide per part: the same figure on every slide, with the part under discussion ringed. These slides are one topic continued, so they share a title and a running number.
+- Tables: grid lines drawn, white bold header, no zebra fill. To stress one row (this paper, the best result), give that row the highlight fill; at most one row per table. Size the columns so the key column does not wrap.
 
 **Canvas**
 
@@ -156,18 +186,20 @@ Add `--own` when the presenter is an author. The script catches mechanics. It ca
 
 The usual failure is a short text block at a cautious size, floating in a tall column beside a figure. Checking the bottom edge cannot see it, because the row always stretches to the bottom of the slide. So size in this order and let the script choose the number.
 
-1. **Pick the layout from the figure's shape** (width ÷ height). 1.8 or wider: `.stack`, text on top and the figure below at full width. Narrower: `.split`, text left and figure right. Tables and flows are their own full-width blocks.
+1. **Pick the layout from the figure's shape** (width ÷ height). 1.8 or wider: `.stack`, text on top and the figure below at full width. Narrower: `.split`, text left and figure right. Tables and flows are their own full-width blocks. A slide that holds only a flow puts it in the vertical middle (`class="c mid"`).
 2. **Size the figure first, as large as allowed.** In a split: height up to 769, width up to about 1000 so the text keeps at least 690. In a stack: width up to 1738, height is what the text leaves. Never beyond 1.3× native size. Always write the px width and height on both `.fig` and its `<img>`.
-3. **Put all text of the slide in one `.txt` block** and set its size once, inline: `<div class="txt" style="font-size:44px">`. The lists inherit it. Do not set sizes on single lists.
+3. **Put all text of the slide in one `.txt` block** and set its size once, inline: `<div class="txt" style="font-size:44px">`. The lists inherit it. Do not set sizes on single lists. A flow of boxes works the same way: one size, inline on `.flow`.
 4. **Run the check and apply what it prints:**
    ```bash
    node scripts/check_layout.js <deck_root> --shots <empty_temp_dir>
    ```
-   - `GROW: set .txt font-size:NNpx`: set exactly that size.
+   - `GROW: set .txt font-size:NNpx` or `GROW: set .flow font-size:NNpx`: set exactly that size.
    - `TEXT TOO BIG` or `TEXT TOO LONG` or `OVERFLOW`: move detail to the notes or split the slide. Do not go below 36px to make it fit.
+   - `FLOW TOO BIG` or `FLOW TOO LONG`: set the size it names, or shorten the lines in the boxes. A line in a box may wrap once at most.
    - `UNDERFILL`: the text is lost even at 54px. Go to step 5.
-   - `UNDERUSED`: a table or flow leaves the lower part of the slide empty. Enlarge its text within the size limits, or put a `.txt` block above the table that says what it compares.
-   - `TITLE`, `NESTED`, `LIST outside .txt`: fix the markup as the message says.
+   - `UNDERUSED`: a table leaves the lower part of the slide empty. Enlarge its text within the size limits, or put a `.txt` block above it that says what it compares.
+   - `TITLE`, `NESTED`, `LIST outside .txt`, `NUMBERED`, `EMPHASIS`, `BOLD`: fix the slide as the message says.
+   - `Note:` about titles that are a kind plus a number: name each slide by its topic.
 5. **Rebalance an underfilled slide**, first option that applies:
    1. The figure can still grow within step 2: enlarge it, which narrows the text column and makes the text taller.
    2. Switch the layout: a short text over a wide figure usually fills better as a stack.
@@ -179,12 +211,22 @@ The script renders with local fonts, which differ slightly from the deck's fonts
 
 ## 7. Workflow
 
-1. Read the paper. Write one sentence per slide: "this slide says …". Reading only those sentences must tell the whole paper.
+1. Read the paper. Write one sentence per slide: "this slide says …". Reading only those sentences must tell the whole paper, and each must follow from the one before (section 2).
 2. Extract figures: render pages with `pdftoppm -r 300`, crop each figure, and note its native pixel size for the 1.3× limit. Upload them as the Slides type instructs, or save them in `project/img/` for PowerPoint output.
 3. Create the deck as a Slides artifact or in a local folder (section 0). Write the index, `project/deck.css` (from `assets/deck.css`, themed) and the slides (from `references/patterns.md`), then publish.
 4. Run `check_layout.js` and work through section 6 until clean.
 5. Write the notes last, when the slides are final. Run `check_notes.py` and work through section 4 until no `E` remains. Copy the `start-by` column into the `[≤ m:ss]` markers.
-6. Look at the screenshots yourself, slide by slide: markers are the same size, no hollow markers, no wrapped title, no blurry figure, text is left or on top, nothing looks empty.
+6. Look at every screenshot yourself, slide by slide. The scripts cannot judge these, and they are what users send back:
+   - Story: the titles and first lines, read in order, tell the paper. No slide comes out of nowhere.
+   - Titles: named by topic, no bare "Method ①", numbers circled, one line.
+   - Alignment: lines of one level start at the same position whether they have a bullet or a number. Markers are one size, none hollow.
+   - Space: nothing floats in an empty area. Text beside a figure, a table with half a slide under it, a flow in a strip at the top: enlarge it before you accept it.
+   - Goal: on the problem slide the goal line is the largest text in the body.
+   - Tables: grid lines visible, at most one highlighted row, the key column not wrapped.
+   - Figures: sharp. When a diagram is explained in parts, the part is ringed and the figure keeps its size and place from slide to slide.
+   - Formulas: centered, with the text below, or above and below.
+   - Emphasis: at most two red phrases on a slide, bold only on sub-headings.
+   - Layout: text is left or on top, figures right or below.
 7. If subagents are available, have one that has not seen your work check the deck against the paper (numbers, figure numbers, claims) and against these rules. Reviewers make mistakes too: verify each finding in the paper before changing anything.
 8. For PowerPoint or Google Slides, export with `export_pptx.js` and look at the result (section 0).
 9. Deliver in one sentence, plus the inputs that are still missing (date, logo, presenter).
@@ -194,5 +236,5 @@ The script renders with local fonts, which differ slightly from the deck's fonts
 - The user may edit slides directly. Before every publish, read the live version of each file you change and edit that, never an old local copy.
 - If a publish is refused because the deck changed, reread the files it names, redo your change on the new version, and publish again.
 - Feedback left as a comment on the deck is answered in that comment thread. In chat, one line.
-- When feedback on one slide is really a deck-wide rule ("no 'Label: content' titles", "make the text bigger"), apply it to every slide.
+- When feedback on one slide is really a deck-wide rule ("name the result slides", "make the text bigger"), apply it to every slide.
 - Do not rewrite text the user typed onto a slide. If something there looks wrong, ask.
