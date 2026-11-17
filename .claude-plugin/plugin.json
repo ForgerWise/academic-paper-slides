@@ -1,7 +1,7 @@
 {
   "name": "academic-paper-slides",
   "displayName": "Academic Paper Slides",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Claude skill that turns your paper into presentation slides without the AI-slop look: clean, readable decks that look like a person made them and are easy to edit.",
   "author": {
     "name": "ForgerWise"

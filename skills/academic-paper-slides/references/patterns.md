@@ -34,7 +34,7 @@ The title is a label. Number repeated kinds: "Method 1", "Method 2", or with cir
 
 ```html
 <section id="cover" class="cover">
-<p class="cv-event">Paper seminar · 2026-01-15</p>
+<p class="cv-event">Conference or meeting name · 2026-01-15</p>
 <h1 class="cv-title">Title of the paper, as published</h1>
 <p class="cv-paper">First Author, Second Author, Last Author · Venue Year</p>
 <div class="cv-rule"></div>

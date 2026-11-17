@@ -1,11 +1,11 @@
 ---
 name: academic-paper-slides
-description: Build a slide deck that presents an academic paper (paper seminar, journal club, reading group, lab meeting, 論文輪講, 論文紹介) with Claude's Slides artifact type. One message per slide, label-only titles, plain white pages, two-level bullets, text beside or above each figure and sized by a script to fill the slide, plus speaker notes written to be read aloud word for word. Use it whenever the user wants slides to explain or present a research paper, even if they only say "make slides for this paper".
+description: Turn an academic paper into presentation slides with Claude's Slides artifact type. One message per slide, label-only titles, plain white pages, two-level bullets, text beside or above each figure and sized by a script to fill the slide, plus speaker notes written to be read aloud word for word. Use it whenever the user wants slides to present or explain a paper, whether it is their own paper for a conference talk, thesis defense or lab meeting, or someone else's for a journal club or reading group (論文發表, 論文紹介, 輪講), even if they only say "make slides for this paper".
 ---
 
 # Academic paper slides
 
-Turn one research paper into a seminar deck that a listener can follow, and a script the presenter can read aloud.
+Turn one research paper into presentation slides that a listener can follow, and a script the presenter can read aloud.
 
 **Needs:** a Claude surface that offers the Slides artifact type. Create the deck from that type and follow its own instructions for the file format, uploads and publishing. This skill decides content, structure and look. Where it disagrees with the type's general design advice (accent slides, cards, statement slides, margins), this skill wins, because choosing it is the user's explicit instruction. The type's hard format limits always hold.
 
@@ -34,7 +34,7 @@ If the clone fails, say so and stop before building: the stylesheet and patterns
   - date, presenter name and affiliation (default: bracketed placeholders on the cover)
   - template or brand: logo, colors, font (default: the neutral theme in `deck.css`)
   - grading rubric or required sections (default: none)
-  - whether the presenter is an author of the paper (default: no)
+  - whether the presenter is an author of the paper ("my paper", "our paper" means yes; default: no)
 - With a rubric, follow its sections and order. Without one, use the structure below.
 
 ## 2. Deck structure
@@ -91,7 +91,7 @@ Rewrite, do not patch:
 
 Also:
 
-- If the presenter did not write the paper, say "the authors", not "we".
+- If the presenter did not write the paper, say "the authors", not "we". An author presenting their own paper says "we".
 - Start each slide's notes with the time by which the presenter should reach it, for example `[≤ 7:45]`. It is the one non-spoken token allowed. Take the value from `check_notes.py`, do not estimate it.
 - Pace: 125 words per minute (150 for a native speaker), 260 characters per minute for Chinese, Japanese or Korean, 3 seconds per slide change. Leave one minute of buffer.
 - Notes are plain text, at most 4,000 characters per slide.
