@@ -1,13 +1,13 @@
 ---
 name: academic-paper-slides
-description: Turn an academic paper into presentation slides with Claude's Slides artifact type. One message per slide, label-only titles, plain white pages, two-level bullets, text beside or above each figure and sized by a script to fill the slide, plus speaker notes written to be read aloud word for word. Use it whenever the user wants slides to present or explain a paper, whether it is their own paper for a conference talk, thesis defense or lab meeting, or someone else's for a journal club or reading group (論文發表, 論文紹介, 輪講), even if they only say "make slides for this paper".
+description: Turn an academic paper into presentation slides, as a Claude Slides artifact, an editable PowerPoint (.pptx) file or Google Slides. One message per slide, label-only titles, plain white pages, two-level bullets, text beside or above each figure and sized by a script to fill the slide, plus speaker notes written to be read aloud word for word. Use it whenever the user wants slides to present or explain a paper, whether it is their own paper for a conference talk, thesis defense or lab meeting, or someone else's for a journal club or reading group (論文發表, 論文紹介, 輪講), even if they only say "make slides for this paper".
 ---
 
 # Academic paper slides
 
 Turn one research paper into presentation slides that a listener can follow, and a script the presenter can read aloud.
 
-**Needs:** a Claude surface that offers the Slides artifact type. Create the deck from that type and follow its own instructions for the file format, uploads and publishing. This skill decides content, structure and look. Where it disagrees with the type's general design advice (accent slides, cards, statement slides, margins), this skill wins, because choosing it is the user's explicit instruction. The type's hard format limits always hold.
+**Output:** a Claude Slides artifact, an editable PowerPoint file, or Google Slides (section 0). This skill decides content, structure and look. Where it disagrees with the Slides artifact type's general design advice (accent slides, cards, statement slides, margins), this skill wins, because choosing it is the user's explicit instruction. The type's hard format limits always hold.
 
 **Bundled files**
 
@@ -15,6 +15,7 @@ Turn one research paper into presentation slides that a listener can follow, and
 - `references/patterns.md`: the HTML for every slide kind. Read it before writing the first slide and copy from it. Do not invent markup.
 - `scripts/check_layout.js`: measures every slide and says which text size fits.
 - `scripts/check_notes.py`: checks the speaker notes as spoken text and prints the timing.
+- `scripts/export_pptx.js`: turns the deck into an editable PowerPoint file (also the way to Google Slides).
 
 If these files are not beside this `SKILL.md` (the skill was installed as a single file), get them once per session and use them from the clone:
 
@@ -25,16 +26,31 @@ git clone --depth 1 https://github.com/ForgerWise/academic-paper-slides /tmp/aps
 
 If the clone fails, say so and stop before building: the stylesheet and patterns are required.
 
+## 0. Choose the output
+
+The deck is always the same set of files: `project/deck.json`, `project/deck.css` and one `project/slides/<id>.html` per slide. What changes is where they live and what the user receives.
+
+- **Claude Slides artifact** (default when the Slides artifact type is available and the user named no format): create the deck from that type and follow its own instructions for the index file, uploads and publishing. Pictures are uploaded and referenced by the URL the type returns. The artifact itself exports to PowerPoint and PDF.
+- **PowerPoint (.pptx)** (the user asks for PowerPoint or a file, or there is no Slides type here, for example in a terminal agent): write the same files into a local folder `<deck_root>/project/`. The index is just `{"title": "...", "order": ["cover", "problem", ...]}`. Put pictures in `project/img/` and reference them as `src="/project/img/<name>.png"`. Run both checks, then export:
+  ```bash
+  node scripts/export_pptx.js <deck_root> <name>.pptx
+  ```
+  The result is editable, not pictures of slides: each `.txt` block is one text box with real two-level bullets, tables are PowerPoint tables, flow boxes and rings are shapes, the notes are speaker notes.
+- **Google Slides**: export the PowerPoint file as above. If a Google Drive tool that can convert on upload is connected, upload it as a Google Slides presentation and give the link. Otherwise deliver the .pptx and tell the user to upload it to Drive and open it with Google Slides.
+
+For PowerPoint and Google Slides, set the font in `deck.css` to one that exists where the file will be opened, because a substituted font changes the line breaks: Arial for Latin text; for Chinese, Japanese or Korean, a Noto Sans family for Google Slides, or ask which system the user presents on. If LibreOffice is available, convert the .pptx to PDF and look at the pages before delivering.
+
 ## 1. Before you start
 
 - Read the whole paper: convert the PDF to text and look at every page with a figure. Every number, figure number and section number on a slide is checked against the paper, never written from memory.
 - Settle these inputs. Use the default when the user has not said, and list what was missing in one line when you deliver:
   - talk length (default 15 minutes)
+  - output: Slides artifact, PowerPoint or Google Slides (default: section 0)
   - deck language (default: the language of the request) and notes language (default: same)
   - date, presenter name and affiliation (default: bracketed placeholders on the cover)
   - template or brand: logo, colors, font (default: the neutral theme in `deck.css`)
   - grading rubric or required sections (default: none)
-  - whether the presenter is an author of the paper ("my paper", "our paper" means yes; default: no)
+  - whether the presenter is an author of the paper, and if so the only author ("my paper", "our paper" means author; default: not an author)
 - With a rubric, follow its sections and order. Without one, use the structure below.
 
 ## 2. Deck structure
@@ -91,7 +107,10 @@ Rewrite, do not patch:
 
 Also:
 
-- If the presenter did not write the paper, say "the authors", not "we". An author presenting their own paper says "we".
+- Who did the work:
+  - Someone else's paper: "the authors", never "we".
+  - The presenter's own paper: first person, and the author list on the paper decides which. Sole author, or a thesis or dissertation: "I". Co-authored paper: "we".
+  - Keep one pronoun for the whole script. Do not switch between "I" and "we" from slide to slide.
 - Start each slide's notes with the time by which the presenter should reach it, for example `[≤ 7:45]`. It is the one non-spoken token allowed. Take the value from `check_notes.py`, do not estimate it.
 - Pace: 125 words per minute (150 for a native speaker), 260 characters per minute for Chinese, Japanese or Korean, 3 seconds per slide change. Leave one minute of buffer.
 - Notes are plain text, at most 4,000 characters per slide.
@@ -156,18 +175,19 @@ The usual failure is a short text block at a cautious size, floating in a tall c
    4. The message is complete as it is: accept it. One short statement at 54px, centered beside a large figure, is a good slide.
 6. Run again until it prints `Layout clean.` The target is a text block that fills 75 to 96% of its available height.
 
-The script renders with local fonts, which differ slightly from the deck's fonts, so it keeps a 4% margin and ignores gains under 4px. Figures appear as empty boxes locally; that is expected. If Playwright is not available, say so, size by the rules above, and check the published deck by eye.
+The script renders with local fonts, which differ slightly from the deck's fonts, so it keeps a 4% margin and ignores gains under 4px. Pictures in `project/img/` are shown; uploaded pictures appear as empty boxes locally, which is expected. If Playwright is not available, say so, size by the rules above, and check the published deck by eye.
 
 ## 7. Workflow
 
 1. Read the paper. Write one sentence per slide: "this slide says …". Reading only those sentences must tell the whole paper.
-2. Extract figures: render pages with `pdftoppm -r 300`, crop each figure, and note its native pixel size for the 1.3× limit. Upload them as the Slides type instructs.
-3. Create the deck from the Slides type. Write the index, `project/deck.css` (from `assets/deck.css`, themed) and the slides (from `references/patterns.md`), then publish.
+2. Extract figures: render pages with `pdftoppm -r 300`, crop each figure, and note its native pixel size for the 1.3× limit. Upload them as the Slides type instructs, or save them in `project/img/` for PowerPoint output.
+3. Create the deck as a Slides artifact or in a local folder (section 0). Write the index, `project/deck.css` (from `assets/deck.css`, themed) and the slides (from `references/patterns.md`), then publish.
 4. Run `check_layout.js` and work through section 6 until clean.
 5. Write the notes last, when the slides are final. Run `check_notes.py` and work through section 4 until no `E` remains. Copy the `start-by` column into the `[≤ m:ss]` markers.
 6. Look at the screenshots yourself, slide by slide: markers are the same size, no hollow markers, no wrapped title, no blurry figure, text is left or on top, nothing looks empty.
 7. If subagents are available, have one that has not seen your work check the deck against the paper (numbers, figure numbers, claims) and against these rules. Reviewers make mistakes too: verify each finding in the paper before changing anything.
-8. Deliver in one sentence, plus the inputs that are still missing (date, logo, presenter).
+8. For PowerPoint or Google Slides, export with `export_pptx.js` and look at the result (section 0).
+9. Deliver in one sentence, plus the inputs that are still missing (date, logo, presenter).
 
 ## 8. Working with the user
 

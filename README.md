@@ -1,6 +1,6 @@
 # Academic Paper Slides
 
-A Claude skill for when you need to turn your paper into presentation slides, without the AI-slop look. The deck looks like a person made it: clean, easy to read and easy to edit. It also writes a script you can read aloud.
+A Claude skill for when you need to turn your paper into presentation slides, without the AI-slop look. The deck looks like a person made it: clean, easy to read and easy to edit. You get it as a Claude Slides deck, an editable PowerPoint file or Google Slides, with a script you can read aloud.
 
 **[Download the skill (zip)](https://github.com/ForgerWise/academic-paper-slides/releases/latest/download/academic-paper-slides.zip)** and upload it to Claude as a custom skill. Then attach a paper and ask: *"Make slides for a 15-minute presentation of this paper."*
 
@@ -12,52 +12,36 @@ A Claude skill for when you need to turn your paper into presentation slides, wi
 
 **It is easy to read from the back of the room.** Text is set as large as the slide allows, 36 to 54px, and figures as large as they stay sharp. A script measures every slide and tells Claude the exact size that fits, so a short text block never floats in an empty column and nothing overflows.
 
-**It is easy to edit afterwards.** A slide is plain text and a figure, not a layout of nested boxes, so you can retitle, reword or cut a line in the Slides editor without breaking the page. The whole look is four variables in one stylesheet.
+**It is easy to edit afterwards.** A slide is plain text and a figure, not a layout of nested boxes, so you can retitle, reword or cut a line in Claude Slides, PowerPoint or Google Slides without breaking the page. The whole look is four variables in one stylesheet.
 
 **The speaker notes are a script, not a summary.** Full sentences in plain words with an adult tone, written so that a listener who is not looking at the screen still follows. They add what the slide does not say (how to read the figure, why the authors did it this way) instead of reading the bullets back. Each slide's notes start with the time you should reach it.
 
 **It stays faithful to the paper.** Every number, figure number and section number on a slide is checked against the paper, and result slides report results without editorial judgement.
 
-## How it keeps those promises
-
-Rules alone do not hold: a model drifts back to cards and cautious font sizes. So the skill ships two checks that run on the finished deck and print exactly what to change.
-
-`check_layout.js` renders the deck locally, measures how much of its column each text block fills, and prints the largest font size that still fits. It also flags overflow, wrapped titles, "Label: content" titles and nested lists.
-
-```
-#   id       top  bottom  size  best  fill
-3   m1       276  936     36    54    56%
-    ! GROW: set .txt font-size:54px (now 36px, fill 56% -> 91%)
-```
-
-`check_notes.py` rejects anything in the notes that cannot be spoken as written, warns about written style, childish wording and notes that repeat the slide, and prints the timing of every slide.
-
-```
-3   m1   52   0:25   1:04
-    E label-colon: a label such as 'Result: ...' or 'A: ...' cannot be spoken. Turn it into a sentence  «Method: we propose a general map»
-    W reads-the-slide: 2 slide lines are repeated word for word. Say them in your own words
-```
-
 ## What you get
 
-- A deck built with Claude's **Slides** artifact type: editable, shareable, and exportable to PowerPoint or PDF.
+- **Your choice of output**: a Claude Slides deck, an editable PowerPoint (.pptx) file, or Google Slides. The PowerPoint file is real slides, not pictures: bullets are text boxes, tables are tables, and the script is in the speaker notes.
 - Default structure: cover, problem, background, purpose, related work, method, experiment setup, results, conclusion. About one slide per minute of talk.
 - Your template if you have one: set the accent color, font and logo. Without one, a neutral black-and-white theme.
 - Any deck language. The notes can be in a different language from the slides.
 
-This is one opinionated style for research talks, not the only good one. If your group prefers assertion-style titles, fork it and change the rules in `SKILL.md`; the two checks keep working.
+This is one opinionated style for research talks, not the only good one. If your group prefers assertion-style titles, fork it and change the rules in `SKILL.md`.
 
 ## Install
 
 - **Claude apps:** download [academic-paper-slides.zip](https://github.com/ForgerWise/academic-paper-slides/releases/latest/download/academic-paper-slides.zip) and upload it as a custom skill. If you install only `SKILL.md`, the skill clones this repository at run time to get its stylesheet, patterns and scripts.
 - **Claude Code:** unzip it into `~/.claude/skills/` (or a project's `.claude/skills/`), or load this repository as a plugin.
 
-Tell Claude the talk length, the language, and your template or brand color if you have one.
+Tell Claude the talk length, the language, the output you want (Claude Slides, PowerPoint or Google Slides), and your template or brand color if you have one.
+
+## How it works
+
+Rules alone do not hold: a model drifts back to cards and cautious font sizes. So the skill ships three small scripts. `check_layout.js` measures every slide and prints the font size that fills it. `check_notes.py` rejects notes that cannot be spoken as written and prints the timing. `export_pptx.js` writes the PowerPoint file. They run locally, without the network.
 
 ## Requirements
 
-- A Claude app or tool where the Slides artifact type is available.
-- For `check_layout.js`: Node.js with Playwright and its Chromium. For `check_notes.py`: Python 3, standard library only. Claude's own workspace usually has both. Neither script uses the network, and the layout check runs with page scripts off.
+- Claude with the Slides artifact type for a Claude Slides deck. For PowerPoint or Google Slides output, any Claude tool that can write files and run scripts.
+- For the scripts: Node.js with Playwright and its Chromium, `pptxgenjs` for the export, and Python 3. Claude's own workspace usually has all of them.
 - `pdftoppm` (poppler) to extract figures from the paper.
 
 ## Repository layout
@@ -70,6 +54,7 @@ skills/academic-paper-slides/
   references/patterns.md            HTML for every slide kind
   scripts/check_layout.js           fill, fit and overflow check
   scripts/check_notes.py            read-aloud lint and timing
+  scripts/export_pptx.js            editable PowerPoint export
 examples/demo-deck/                 four-slide deck with made-up content, passes both checks
 ```
 
@@ -78,6 +63,7 @@ Try the checks on the demo deck:
 ```bash
 node skills/academic-paper-slides/scripts/check_layout.js examples/demo-deck --shots /tmp/shots
 python3 skills/academic-paper-slides/scripts/check_notes.py examples/demo-deck
+node skills/academic-paper-slides/scripts/export_pptx.js examples/demo-deck /tmp/demo.pptx
 ```
 
 ## Theming
@@ -87,9 +73,9 @@ Edit the four variables at the top of `assets/deck.css`: `--ink` (text), `--acce
 ## Limits
 
 - 16:9 decks only.
-- The layout check uses local fallback fonts, so it keeps a small safety margin; a final look at the published deck is still part of the workflow.
+- The scripts measure with the fonts on the machine they run on. If the deck's font is missing where the file is opened, line breaks can shift, so a final look at the result is part of the workflow.
+- Google Slides output goes through the PowerPoint file; Google's own conversion decides the last details.
 - The notes check catches mechanics (labels, symbols, abbreviations, timing). Whether a script is clear to a listener is still judged by reading it.
-- The Slides file format belongs to Anthropic and may change; the skill defers to the type's own instructions for it.
 
 ## License
 

@@ -9,8 +9,9 @@
 // Exit code 0 = clean, 1 = something to fix, 2 = could not run.
 //
 // <deck_root> is the folder that contains project/deck.json.
-// Images are not available locally. That is fine: every figure has a px width and
-// height, so the layout boxes are still correct.
+// Pictures kept in project/img/ are shown. Uploaded pictures (/_blob/...) are not
+// available locally; that is fine: every figure has a px width and height, so the
+// layout boxes are still correct.
 
 const fs = require('fs');
 const path = require('path');
@@ -173,11 +174,17 @@ function measure(cfg) {
       first = false;
       return route.fulfill({ body: html, contentType: 'text/html; charset=utf-8' });
     }
-    if (u.pathname === '/project/deck.css')
-      return route.fulfill({ body: fs.readFileSync(path.join(root, 'project', 'deck.css')), contentType: 'text/css' });
-    return route.abort('aborted'); // images and fonts are not served locally
+    // Deck files (the stylesheet, and pictures kept in project/img/) are served; nothing else is
+    const MIME = { '.css': 'text/css', '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg',
+      '.gif': 'image/gif', '.webp': 'image/webp', '.svg': 'image/svg+xml' };
+    const projectDir = path.resolve(root, 'project');
+    const f = u.pathname.startsWith('/project/') ? path.resolve(root, '.' + decodeURIComponent(u.pathname)) : null;
+    const type = f && MIME[path.extname(f).toLowerCase()];
+    if (type && f.startsWith(projectDir + path.sep) && fs.existsSync(f) && fs.statSync(f).isFile())
+      return route.fulfill({ body: fs.readFileSync(f), contentType: type });
+    return route.abort('aborted'); // uploaded pictures (/_blob/...) and web fonts are not available locally
   });
-  await page.goto('http://deck.local/', { waitUntil: 'domcontentloaded' });
+  await page.goto('http://deck.local/', { waitUntil: 'load' });
   await page.waitForTimeout(300);
 
   const rows = await page.evaluate(measure, cfg);
@@ -197,7 +204,7 @@ function measure(cfg) {
       await secs[i].scrollIntoViewIfNeeded();
       await secs[i].screenshot({ path: path.join(shots, String(i + 1).padStart(2, '0') + '-' + rows[i].id + '.png'), animations: 'disabled' });
     }
-    console.log(`Screenshots: ${shots} (figures show as empty boxes locally)`);
+    console.log(`Screenshots: ${shots} (uploaded pictures show as empty boxes locally)`);
   }
   await browser.close();
   process.exit(bad ? 1 : 0);
