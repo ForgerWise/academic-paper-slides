@@ -2,7 +2,7 @@
   "name": "academic-paper-slides",
   "displayName": "Academic Paper Slides",
   "version": "1.0.0",
-  "description": "Claude skill for paper-seminar slides without the AI-slop look: clean, readable decks that look like a person made them and are easy to edit.",
+  "description": "Claude skill that turns your paper into presentation slides without the AI-slop look: clean, readable decks that look like a person made them and are easy to edit.",
   "author": {
     "name": "ForgerWise"
   },
@@ -11,10 +11,10 @@
     "slides",
     "academic",
     "paper",
-    "seminar",
     "journal-club",
     "presentation",
-    "speaker-notes"
+    "speaker-notes",
+    "research-talk"
   ],
   "homepage": "https://github.com/ForgerWise/academic-paper-slides",
   "repository": "https://github.com/ForgerWise/academic-paper-slides"

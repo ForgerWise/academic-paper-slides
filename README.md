@@ -1,8 +1,8 @@
 # Academic Paper Slides
 
-A Claude skill for paper-seminar slides without the AI-slop look. It turns a research paper into a deck that looks like a person made it: clean, easy to read and easy to edit. It also writes a script you can read aloud.
+A Claude skill for when you need to turn your paper into presentation slides, without the AI-slop look. The deck looks like a person made it: clean, easy to read and easy to edit. It also writes a script you can read aloud.
 
-**[Download the skill (zip)](https://github.com/ForgerWise/academic-paper-slides/releases/latest/download/academic-paper-slides.zip)** and upload it to Claude as a custom skill. Then attach a paper and ask: *"Make a 15-minute seminar deck for this paper."*
+**[Download the skill (zip)](https://github.com/ForgerWise/academic-paper-slides/releases/latest/download/academic-paper-slides.zip)** and upload it to Claude as a custom skill. Then attach a paper and ask: *"Make slides for a 15-minute presentation of this paper."*
 
 ## Why use it
 
@@ -45,7 +45,7 @@ Rules alone do not hold: a model drifts back to cards and cautious font sizes. S
 - Your template if you have one: set the accent color, font and logo. Without one, a neutral black-and-white theme.
 - Any deck language. The notes can be in a different language from the slides.
 
-This is one opinionated style for technical seminars, not the only good one. If your group prefers assertion-style titles, fork it and change the rules in `SKILL.md`; the two checks keep working.
+This is one opinionated style for research talks, not the only good one. If your group prefers assertion-style titles, fork it and change the rules in `SKILL.md`; the two checks keep working.
 
 ## Install
 
