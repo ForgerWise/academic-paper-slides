@@ -1,16 +1,18 @@
 # Academic Paper Slides
 
-A Claude skill that turns a research paper into a seminar deck that looks like a person made it, and a script you can read aloud.
+A Claude skill for paper-seminar slides without the AI-slop look. It turns a research paper into a deck that looks like a person made it: clean, easy to read and easy to edit. It also writes a script you can read aloud.
 
 **[Download the skill (zip)](https://github.com/ForgerWise/academic-paper-slides/releases/latest/download/academic-paper-slides.zip)** and upload it to Claude as a custom skill. Then attach a paper and ask: *"Make a 15-minute seminar deck for this paper."*
 
 ## Why use it
 
-**The deck does not look AI-generated.** No grids of rounded cards, no colored blocks around every sentence, no icon rows, no decorative accent slides. Pages are white with near-black text and one accent color. The only boxes in the whole deck are the steps of the experiment flow.
+**No AI-slop look.** No grids of rounded cards, no colored blocks around every sentence, no icon rows, no decorative accent slides. Pages are white with near-black text and one accent color. The only boxes in the whole deck are the steps of the experiment flow.
 
 **It reads like a deck a careful person would make.** One message per slide. Titles are plain labels ("Problem", "Method 2", "Result 3"). Bullets have two levels that mean something: the point, then its detail. Text sits beside or above the figure it explains, and every slide names its source.
 
 **It is easy to read from the back of the room.** Text is set as large as the slide allows, 36 to 54px, and figures as large as they stay sharp. A script measures every slide and tells Claude the exact size that fits, so a short text block never floats in an empty column and nothing overflows.
+
+**It is easy to edit afterwards.** A slide is plain text and a figure, not a layout of nested boxes, so you can retitle, reword or cut a line in the Slides editor without breaking the page. The whole look is four variables in one stylesheet.
 
 **The speaker notes are a script, not a summary.** Full sentences in plain words with an adult tone, written so that a listener who is not looking at the screen still follows. They add what the slide does not say (how to read the figure, why the authors did it this way) instead of reading the bullets back. Each slide's notes start with the time you should reach it.
 

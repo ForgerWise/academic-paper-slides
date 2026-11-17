@@ -2,7 +2,7 @@
   "name": "academic-paper-slides",
   "displayName": "Academic Paper Slides",
   "version": "1.0.0",
-  "description": "Paper-seminar slide decks from an academic paper, built with Claude's Slides artifact type: one message per slide, text sized by a script to fill the slide, and speaker notes checked as read-aloud scripts.",
+  "description": "Claude skill for paper-seminar slides without the AI-slop look: clean, readable decks that look like a person made them and are easy to edit.",
   "author": {
     "name": "ForgerWise"
   },
