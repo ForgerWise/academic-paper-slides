@@ -1,17 +1,20 @@
 ---
 name: academic-paper-slides
-description: Turn an academic paper into presentation slides, as a Claude Slides artifact, an editable PowerPoint (.pptx) file or Google Slides. One message per slide, label-only titles, plain white pages, two-level bullets, text beside or above each figure and sized by a script to fill the slide, plus speaker notes written to be read aloud word for word. Use it whenever the user wants slides to present or explain a paper, whether it is their own paper for a conference talk, thesis defense or lab meeting, or someone else's for a journal club or reading group (論文發表, 論文紹介, 輪講), even if they only say "make slides for this paper".
+description: Turn an academic paper into presentation slides, as a Claude Slides artifact, an editable PowerPoint (.pptx) file or Google Slides. Short text plus a visual on every slide (figures, tables, formulas with named terms, diagrams drawn from boxes, icons and arrows), topic titles, plain white pages, text sized by a script to fill the slide, and speaker notes written to be read aloud. Use whenever the user wants slides to present or explain a paper, their own or someone else's.
 ---
 
 # Academic paper slides
 
 Turn one research paper into presentation slides that a listener can follow, and a script the presenter can read aloud.
 
+**What a good deck looks like.** The model is a talk a careful researcher builds by hand: a short text at the top of each slide and, under or beside it, something to look at that explains the text, such as a photo, the paper's figure, a chart with the key value marked, a table, a formula with its terms named, or a small diagram drawn from boxes, icons and arrows. Most slides have such a visual. A deck that is slide after slide of bullets has failed, however correct the bullets are.
+
 **Output:** a Claude Slides artifact, an editable PowerPoint file, or Google Slides (section 0). This skill decides content, structure and look. Where it disagrees with the Slides artifact type's general design advice (accent slides, cards, statement slides, margins), this skill wins, because choosing it is the user's explicit instruction. The type's hard format limits always hold.
 
 **Bundled files**
 
 - `assets/deck.css`: the stylesheet. Copy it to `project/deck.css` and change only the theme variables.
+- `assets/icons/*.png`: 22 plain line icons for diagrams (observer, building, house, drone, car, sun, glare, model, computer, server, database, cloud, camera, sensor, satellite, phone, person, document, chart, clock, gear, wall). Upload the ones a diagram uses.
 - `references/patterns.md`: the HTML for every slide kind. Read it before writing the first slide and copy from it. Do not invent markup.
 - `scripts/check_layout.js`: measures every slide and says which text size fits.
 - `scripts/check_notes.py`: checks the speaker notes as spoken text and prints the timing.
@@ -35,7 +38,7 @@ The deck is always the same set of files: `project/deck.json`, `project/deck.css
   ```bash
   node scripts/export_pptx.js <deck_root> <name>.pptx
   ```
-  The result is editable, not pictures of slides: each `.txt` block is one text box with real two-level bullets, tables are PowerPoint tables, flow boxes, rings and circled numbers are shapes, the notes are speaker notes.
+  The result is editable, not pictures of slides: each `.txt` block is one text box with real two-level bullets, tables are PowerPoint tables, flow boxes, the boxes and arrows of a diagram, rings and circled numbers are shapes, the notes are speaker notes.
 - **Google Slides**: export the PowerPoint file as above. If a Google Drive tool that can convert on upload is connected, upload it as a Google Slides presentation and give the link. Otherwise deliver the .pptx and tell the user to upload it to Drive and open it with Google Slides.
 
 For PowerPoint and Google Slides, set the font in `deck.css` to one that exists where the file will be opened, because a substituted font changes the line breaks: Arial for Latin text; for Chinese, Japanese or Korean, a Noto Sans family for Google Slides, or ask which system the user presents on. If LibreOffice is available, convert the .pptx to PDF and look at the pages before delivering.
@@ -62,11 +65,11 @@ The deck tells one connected story. Each slide follows from the one before it, i
 3. Problem: what goes wrong in that situation. The last line is the goal, "→ Goal: …", bold and larger than every other line of the body, because it is the sentence the rest of the talk answers. If the background and the problem are both short, put them on one slide.
 4. Preliminaries: the terms and concepts the audience needs for the rest. Only if they are needed.
 5. Related work: how others approached the problem, as one comparison table with the row for this paper highlighted
-6. Method overview: the approach on one slide, as its parts in order or its overall figure
-7. Method details: one part per slide, with the figure, demonstration or formula that shows it
+6. Method overview: the approach on one slide, as a diagram of its parts. When the method has two or three named parts, letter them here ("A | Encoder and decoder stacks", "B | Attention")
+7. Method details: one idea per slide, with the figure, demonstration or formula that shows it. Every slide of a lettered part carries that part's name as a small section label above its title, so the audience always knows which part they are in
 8. Experiment setup: data, environment, procedure and baselines. A flow of boxes (① → ② → ③ → ④), plus screenshots or photos of the environment when there are any
 9. Results: one result per slide, with its chart or table
-10. Conclusion: what was done, what it achieved, where it applies
+10. Conclusion: one line each for the background, the problem and the solution, then the results with their key numbers
 11. Appendix: only if there is material for it
 
 Test the chain before building: read your one-sentence summaries of the slides in order. Each must follow from the one before with a plain link ("so", "but", "to solve this", "to test this"). If a link is missing, reorder, merge or cut until it is there.
@@ -80,12 +83,12 @@ A 15-minute talk is 15 to 17 slides. Scale with the talk length at about one sli
 ## 3. Content rules
 
 - One slide says one thing. Two things means two slides, or the minor one moves to the notes.
-- Titles are labels, never sentences, claims or figure numbers. Choose the form by what the slide shares with its neighbours:
-  - The only slide of its kind: the kind alone. "Problem", "Related work", "Conclusion".
-  - Several slides of one kind about different things: name each by its topic, in one to three words (three to five characters in Chinese or Japanese). "Architecture", "Positional encoding", "Training cost".
-  - Put the kind in front only when the name alone would not tell the audience where they are in the talk. "Preliminary: Attention" in a talk whose method slides are also about attention; plain "Training cost" needs no "Result:".
-  - One topic that continues because it does not fit on one slide: the same name plus a circled number. "Architecture ①", "Architecture ②". Numbers in titles are always circled, never plain. Write the number as `<span class="circ">1</span>`: it draws a circle about as tall as the capital letters of the title. Do not type the characters ① ②, because fonts draw them at very different sizes, some far taller than the title.
-  - Avoid a kind with only a number ("Method ①", "Result ②"). It tells the audience nothing.
+- Titles name the topic of the slide in a short phrase, at most five words, in title case: "Scaled Dot-Product Attention", "Training Cost". Never a sentence, a claim or a figure number. The title must fit on one line and stay clear of the page number.
+  - The only slide of its kind takes the kind as its title: "Related Work", "Conclusion".
+  - Slides of one kind about different things are each named by their own topic, not "Method 1", "Result 2".
+  - Put the kind in front only when the name alone would not tell the audience where they are in the talk: "Preliminary: Attention" in a talk whose method slides are also about attention.
+  - A slide that belongs to a lettered part of the method gets a section label above the title: `<p class="sec">B | Attention</p>`.
+  - One topic that continues because it does not fit on one slide keeps its title and adds a circled number, written as a block beside the title (patterns, "Frame of a content slide"). Do not type the characters ① ②: fonts draw them at very different sizes.
 - Write only what carries information, but do not abbreviate until it is unreadable.
 - Define a term on the line where it is first needed, in a few words in parentheses, for example "ViT (an image model built from Transformer blocks)". Do not spend an earlier slide on it, and do not explain common knowledge.
 - Use the paper's own terms. In a deck that is not in the paper's language, give the original term once on first use. No metaphors.
@@ -95,17 +98,21 @@ A 15-minute talk is 15 to 17 slides. Scale with the talk length at about one sli
 - No cross-slide references such as "(p. 7)" or "see slide 4".
 - Every number on a slide can be found in the paper. Mark invented example values "values are illustrative".
 - Detail cut from a slide goes into its notes, not into smaller type.
-- Show the shape of the content. Before you write a list, ask what shape the content has, and draw that shape instead of describing it line by line:
-  - steps or a pipeline (input → model → output, train → test) → a flow of boxes
+- Every slide earns a visual. Before you write a list, ask what the content looks like, and show that:
+  - what a thing is or looks like → a photo or the paper's figure, with a caption
+  - steps or a pipeline (input → model → output, train → test) → a flow of boxes, or boxes joined by arrows
+  - how an idea works → a small diagram from boxes, icons and arrows, carrying ONE concrete example through it (a query word, three scores, the weights they turn into, the output). A worked number explains a method faster than any sentence
   - the same properties of several things → a table
-  - one thing that splits into cases, or causes and their effects → boxes joined by arrows (`.dia`)
-  - a formula → the formula itself, with its terms named under it
-  - a comparison of numbers → the paper's chart or table, with the key value marked
+  - a formula → the formula itself, the terms the slide is about boxed, each with its name and a panel below that says what it is
+  - a result → the paper's chart or table, with the key value written on it in red
+  - two areas of one picture → outline each area in its own colour and write the words that name it in the same colour
 
-  A figure, a table or a flow is read in seconds; three numbered sentences that describe the same thing are not. Keep a numbered list for content that has no such shape. Diagrams stay plain: white boxes with a thin border, arrows, a few words in each box. The notes carry the explanation.
+  The text above the visual is two to four short lines that say what to look for. A numbered list is for content that has no such shape. Text-only slides are for the conclusion and little else: `check_layout.js` lists them, and fails the deck when more than a third of its slides have no visual.
+- Diagrams are drawn on the slide, not pasted as a picture, so the presenter can edit them: white boxes with a thin outline, grey arrows, black line icons from `assets/icons/`, a few words per box, red for the one value or word that matters. No fills, no shadows, no gradients. A diagram or example you made up to explain the paper says so in the source line ("diagram drawn by presenter", "example values chosen by presenter").
 - Pictures from outside the paper. When a picture the paper does not have would make a slide clearer (a photo of the device or the place, the scene of the problem), look on the web for one that may be reused: public domain or CC0, CC BY or CC BY-SA (Wikimedia Commons, Openverse, agencies such as NASA), or a site whose license allows reuse (Unsplash, Pexels). Read the license on the picture's own page, not in a search result, and credit the picture in the source line: "Photo: Author, CC BY 4.0, via Wikimedia Commons". Do not use a picture whose license you cannot find, and never one that only decorates. If nothing reusable turns up, build the slide without it and say so when you deliver.
 - Sources.
   - Someone else's paper: every content slide ends with a source line (`.cite`): "Source: Author et al., Venue Year, Sec. 3" or "Figure: Author et al., Venue Year, Fig. 4; orange ring added by presenter". A table you compiled says "Table compiled by presenter".
+  - Several sources on one slide: mark each claim with [1], [2] in the line and list them in the source block at the bottom, one per line, shortened to authors, title, venue and year ("cite two", "cite three" in patterns).
   - Your own paper (the presenter is an author): its text, figures, tables and results carry no source line and no citation. The cover already says whose work it is. A source line appears only on a slide that shows something from elsewhere: another paper's method, result or figure, a statistic, a picture from the web.
 
 ## 4. Speaker notes
@@ -152,22 +159,23 @@ Add `--own` when the presenter is an author. The script catches mechanics. It ca
 
 **Color and boxes**
 
-- White background, near-black text. Only the title, its rule and the page number use the accent color.
-- Theme = the five variables at the top of `deck.css`: `--ink`, `--accent`, `--hl`, `--mark`, `--em`. With a user template or brand, set `--accent` to its theme color, so the titles match the template, set the font, and add the logo (see patterns). Without one, keep the neutral defaults. Do not add colors.
-- No colored blocks or cards that hold text. Two exceptions: the boxes of a flow (white, black border, the key step with a thick border) and one highlighted row in a table.
+- White background, near-black text. The accent color for the title bar and the outlines of diagram boxes and panels, grey for arrows, red for emphasis. Nothing else.
+- Theme = the variables at the top of `deck.css`: `--ink`, `--accent`, `--line`, `--hl`, `--head`, `--mark`, `--em`. With a user template or brand, set `--accent` to its theme color, so the titles and boxes match the template, set the font, and add the logo (see patterns). Without one, keep the neutral defaults. Do not add colors.
+- Boxes are for diagrams: nodes, panels, flow steps, a boxed term of a formula. They are white with an outline, never filled. Ordinary text is never put in a box or a card to decorate it.
+- Slides keeps only colour, bold, italic and underline on words inside a line. Anything that needs its own size, border or position is a block of its own: no `<sub>`, `<sup>`, badges or pills inside a sentence. `check_layout.js` reports these as `INLINE`.
 
 **Emphasis**
 
 Use both kinds sparingly. A slide where everything is stressed stresses nothing.
 
-- Bold is for sub-headings inside the body: a level-one lead-in ("**Result**", "**Why waves**"), the goal line, table headers, the first line of a flow box. Do not bold words inside a sentence.
-- Red (`<span class="em">`) is for the one number or phrase the audience must not miss. At most two on a slide, a few words each, never a whole line, never in a title. Most slides have none.
+- Bold is for sub-headings inside the body: a level-one lead-in ("**Result**", "**Why waves**"), the goal line, table headers, the name line of a box or panel. Do not bold words inside a sentence.
+- Red (`<span class="em">`) marks the key terms and key numbers: the two things being contrasted, the result to remember, the value a diagram arrives at. At most three on a slide, a few words each, never a whole sentence, never in a title.
 
 **Formulas**
 
-- One formula per slide, centered across the slide (`.eq`), on one line, never beside a figure. A long formula gets a smaller size inline on `.eq` (the check names it, not under 36px).
-- When the slide is about the formula, the formula comes first and the text below explains it. When the formula supports a point, the point stands above it and the explanation of its terms below.
-- A formula that needs fractions, sums or matrices is cropped from the paper as a picture and centered the same way.
+- One formula per slide, centered across the slide, on one line, never beside a figure. It is a row of pieces (`.eq`, patterns "Formula"): each subscript is its own piece, the parts the slide does not discuss are grey, and the terms it does discuss are boxed with their names above.
+- Under the formula, one panel per boxed term says what the term is, in the same left-to-right order, joined to its term by a line.
+- A long formula gets a smaller size inline on `.eq` (the check names it, not under 36px). A formula that needs fractions, sums or matrices is cropped from the paper as a picture and centered the same way.
 
 **Bullets**
 
@@ -175,18 +183,20 @@ Use both kinds sparingly. A slide where everything is stressed stresses nothing.
 - Both levels use the same solid marker at the same size. Only the indent differs.
 - Do not put every line on level one. That is a paragraph cut into lines, not a list.
 - Level one may be just a bold lead-in such as "**Result**", with the content on level two.
+- When each point is a name plus one sentence, the name is a bold item and the sentence follows as an explanation paragraph (`.ex`) that starts under the item's text, without a marker of its own.
 - Level one is numbered (1. 2. 3.) when its lines are steps in order, the parts of a figure in the order they are explained, or a ranking. Everything else uses bullets, and level two always uses bullets. Do not number lines that have no order. A block that has numbered lines gets class `num` on its `.txt`, so that bulleted and numbered lines start at the same position.
 
 **Position and size**
 
 - Text goes left or on top. Figures go right or below.
-- Title: 84px, bold, one line.
+- Title: 72px, bold, one line. Section label above it: 40px.
 - The goal line of the problem slide is the largest text in the body: 64px, bold, on one line if it can be.
 - Body text as large as fits: 36 to 54px. Tables 36 to 44px. Flow boxes as large as fits: 32 to 48px, so that the flow fills the slide instead of sitting in a strip at the top. Nothing under 24px.
 - Figures as large as they stay sharp: at most about 1.3× their native pixel size. A figure that cannot be read is left out and replaced by text.
 - Mark the important part of a figure with a ring (`.ring`, or `.ring.box` around a block) or a numbered badge (`.badge`), and say so in the source line when the slide has one.
 - A diagram that is explained in parts gets one slide per part: the same figure on every slide, with the part under discussion ringed. These slides are one topic continued, so they share a title and a running number.
-- Tables: grid lines drawn, white bold header, no zebra fill. To stress one row (this paper, the best result), give that row the highlight fill; at most one row per table. Size the columns so the key column does not wrap.
+- Tables: grid lines drawn, grey bold header, no zebra fill. To stress one row (this paper, the best result), give that row the highlight fill and, if it helps, red text; at most one row per table. Size the columns so the key column does not wrap. A short table gets class `roomy` so that it does not leave the slide half empty.
+- Diagrams fill the space under the text: icons 160 to 220px, box text 40 to 52px, the lowest element ending near y 960. A diagram squeezed into a strip under the text reads as unfinished.
 
 **Canvas**
 
@@ -212,7 +222,13 @@ The usual failure is a short text block at a cautious size, floating in a tall c
    - `ORPHAN`: a line wraps for its last word alone. This is what enlarged text does to a layout. Set the size the message names if it names one. Otherwise give the line more width (narrow the figure beside it, widen the column of the table or the box) or shorten the wording. Do not leave it.
    - `FORMULA too wide`: set the size it names on `.eq`.
    - `OVERLAP`, `OFF THE SLIDE`, `OVERFLOW: text is wider than its box`: a block grew into its neighbour or out of its box. Give it room or make its text shorter or smaller.
+   - `DIAGRAM`: a part lies outside its host, or the host holds more than 24 pinned parts. Enlarge the host, move the part, or split the diagram.
+   - `LIST: a <br> inside a list item`: use an explanation paragraph (`.ex`) instead.
+   - `INLINE`: something inside a line that Slides drops (`<sub>`, `<sup>`, a circled number in a sentence). Make it a block as the message says.
+   - `TEXT ONLY`: too many slides without a visual. Give them one (section 3, "Every slide earns a visual").
    - `TITLE`, `NESTED`, `LIST outside .txt`, `NUMBERED`, `EMPHASIS`, `BOLD`, `LOGO`: fix the slide as the message says.
+
+   To place connectors and labels, ask the script where things are: `--where ".term, .panel"` prints the box of every match (left, top, width, height, and the middle of its top and bottom edge) in slide coordinates. Connectors that are direct children of the slide use these numbers as they are; inside a `.host`, subtract the host's left and top.
    - `Note:` about titles that are a kind plus a number: name each slide by its topic.
 5. **Rebalance an underfilled slide**, first option that applies:
    1. The figure can still grow within step 2: enlarge it, which narrows the text column and makes the text taller.
@@ -222,7 +238,7 @@ The usual failure is a short text block at a cautious size, floating in a tall c
 6. Run again until it prints `Layout clean.` The target is a text block that fills 75 to 96% of its available height.
 7. **Check last, every time.** Any later change (a size, a width, a word, a new slide, a fix the user asked for) can break a line or push a block. After the last change of all, run the check once more and look at the screenshots of that run. A deck is finished only when its final state has been checked, not an earlier one.
 
-The script renders with local fonts, which differ slightly from the deck's fonts, so it keeps a 4% margin and ignores gains under 4px. Pictures in `project/img/` are shown; uploaded pictures appear as empty boxes locally, which is expected. If Playwright is not available, say so, size by the rules above, and check the published deck by eye.
+Slides draws `<x-connector>` itself; the script draws the same lines for its screenshots, so a diagram can be judged locally. The script renders with local fonts, which differ slightly from the deck's fonts, so it keeps a 4% margin and ignores gains under 4px. Pictures in `project/img/` are shown; uploaded pictures appear as empty boxes locally, which is expected. If Playwright is not available, say so, size by the rules above, and check the published deck by eye.
 
 ## 7. Workflow
 
@@ -242,6 +258,7 @@ The script renders with local fonts, which differ slightly from the deck's fonts
    - Formulas: centered, with the text below, or above and below.
    - Emphasis: at most two red phrases on a slide, bold only on sub-headings.
    - Layout: text is left or on top, figures right or below.
+   - Visuals: almost every slide has one, it explains the text above it, and it fills the space under the text. A diagram's arrows start and end on the boxes and icons they join.
    - Lines: no line ends in a single word, no table cell or box wraps for one word, nothing touches or covers its neighbour. Look hardest at the text you enlarged.
    - Shape: a slide that lists steps, cases or properties as sentences is redrawn as a flow, a diagram or a table.
 7. If subagents are available, have one that has not seen your work check the deck against the paper (numbers, figure numbers, claims) and against these rules. Reviewers make mistakes too: verify each finding in the paper before changing anything.

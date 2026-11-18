@@ -2,20 +2,21 @@
 <h2 class="ttl">Conclusion</h2>
 <div class="rule"></div>
 <div class="pnum"></div>
-<div class="txt" style="font-size:54px">
+<div class="txt" style="font-size:52px">
   <div class="grp">
-    <ul class="bl"><li><span class="k">What was done</span></li></ul>
-    <ul class="bl sub"><li>First translation model built on attention alone: no recurrence, no convolution</li></ul>
+    <ul class="bl"><li><span class="k">Background</span>: recurrent translation models, attention as a helper</li></ul>
   </div>
   <div class="grp">
-    <ul class="bl"><li><span class="k">What it achieved</span></li></ul>
-    <ul class="bl sub"><li>Best BLEU on both translation tasks, at a fraction of the cost</li></ul>
+    <ul class="bl"><li><span class="k">Problem</span>: recurrence is slow to train and weak over long distances</li></ul>
   </div>
   <div class="grp">
-    <ul class="bl"><li><span class="k">Where it applies</span></li></ul>
-    <ul class="bl sub"><li>Also works for parsing; planned for images, audio and video</li></ul>
+    <ul class="bl"><li><span class="k">Solution</span>: the Transformer, built on attention alone</li></ul>
+  </div>
+  <div class="grp">
+    <ul class="bl"><li><span class="k">Results</span></li></ul>
+    <ul class="bl sub"><li><span class="em">28.4 BLEU</span> on English–German, 2 above the best ensemble</li><li>Training cost a fraction of earlier models</li><li>Also works for parsing</li></ul>
   </div>
 </div>
-<p class="cite">Source: Vaswani et al., NIPS 2017, Sec. 7</p>
-<aside>[≤ 13:11] Let me summarize. The Transformer is the first translation model built on attention alone. It has no recurrence and no convolution. In the experiments it set a new best score on both translation tasks, and it trained at a fraction of the cost of earlier models. It also worked for parsing. At the end of the paper the authors say they want to apply the model to other kinds of data, such as images, audio and video. That is all from me. Thank you for listening.</aside>
+<p class="cite">Source: Vaswani et al., NIPS 2017, Sec. 6 and 7</p>
+<aside>[≤ 13:12] Let me summarize. Translation models were recurrent networks, and attention was only a helper. Recurrence made them slow to train and weak over long distances. The Transformer is the first translation model built on attention alone. In the experiments it set a new best score on both translation tasks, and it trained at a fraction of the cost of earlier models. At the end of the paper the authors say they want to apply the model to other kinds of data, such as images, audio and video. Thank you for listening.</aside>
 </section>

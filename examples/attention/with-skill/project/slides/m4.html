@@ -1,5 +1,6 @@
 <section id="m4" class="c">
-<h2 class="ttl">Positional encoding</h2>
+<p class="sec">C | Positional Encoding</p>
+<h2 class="ttl">Positional Encoding</h2>
 <div class="rule"></div>
 <div class="pnum"></div>
 <div class="split">
@@ -22,5 +23,5 @@
 </div>
 </div>
 <p class="cite">Figure: Vaswani et al., NIPS 2017, Fig. 1, Sec. 3.5; orange box added by presenter</p>
-<aside>[≤ 8:18] Part four. One thing is still missing. Attention treats the sentence as a set, so the model has no idea about word order. The authors fix this at the input, and the orange box in the figure shows where. They add a position vector to every word embedding. The position vector is built from sine and cosine waves with many different frequencies. Why waves and not a learned table? The authors give two reasons. With waves, a shift by a fixed number of words is a linear function of the encoding, so relative positions should be easy to learn. And waves may also work for sentences longer than any sentence in the training data.</aside>
+<aside>[≤ 8:23] Part C. One thing is still missing. Attention treats the sentence as a set, so the model has no idea about word order. The authors fix this at the input, and the orange box in the figure shows where. They add a position vector to every word embedding. The position vector is built from sine and cosine waves with many different frequencies. Why waves and not a learned table? With waves, a shift by a fixed number of words is a linear function of the encoding, so relative positions should be easy to learn. And waves may also work for sentences longer than any sentence in the training data.</aside>
 </section>

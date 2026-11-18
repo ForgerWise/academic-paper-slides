@@ -2,16 +2,30 @@
 <h2 class="ttl">Background</h2>
 <div class="rule"></div>
 <div class="pnum"></div>
-<div class="txt" style="font-size:54px">
+<div class="txt" style="font-size:50px">
   <div class="grp">
-    <ul class="bl"><li>Machine translation uses an encoder and a decoder</li></ul>
-    <ul class="bl sub"><li>Encoder: turns the input sentence into vectors</li><li>Decoder: writes the output one word at a time</li></ul>
+    <ul class="bl"><li><span class="k">Translation uses an encoder and a decoder</span></li></ul>
+    <p class="ex">One reads the input sentence, the other writes the output word by word</p>
   </div>
   <div class="grp">
-    <ul class="bl"><li>In 2017 the best models are recurrent networks</li></ul>
-    <ul class="bl sub"><li>Attention is added so the decoder can look at any input word</li><li>It is used only together with recurrence</li></ul>
+    <ul class="bl"><li><span class="k">In 2017 both are <span class="em">recurrent networks</span></span></li></ul>
+    <p class="ex">Attention only helps the decoder look back at the input</p>
   </div>
 </div>
-<p class="cite">Source: Vaswani et al., NIPS 2017, Sec. 1 and 3</p>
-<aside>[≤ 0:25] Let me start with the background. Machine translation turns a sentence in one language into a sentence in another. In 2017 this was done with an encoder and a decoder. The encoder reads the input sentence and turns it into a list of vectors. The decoder then writes the translation one word at a time, and each step uses the words it has already written. Both parts were recurrent networks. The best systems also added attention, which lets the decoder look back at any word of the input. So attention already existed, but only as a helper for the recurrent network.</aside>
+<div class="host" style="width:1738px;height:330px;font-size:44px">
+  <p class="lbl ctr em" style="left:430px;top:0px;width:760px">attention: look at any input word</p>
+  <div class="node" style="left:0px;top:130px;width:330px;height:120px"><p>Input sentence</p></div>
+  <div class="node" style="left:430px;top:130px;width:330px;height:120px"><p class="bd">Encoder</p></div>
+  <div class="node" style="left:860px;top:130px;width:330px;height:120px"><p class="bd">Decoder</p></div>
+  <div class="node" style="left:1290px;top:130px;width:448px;height:120px"><p>Output sentence</p></div>
+  <p class="lbl ctr" style="left:430px;top:266px;width:760px">recurrent networks</p>
+  <x-connector x1="330" y1="190" x2="430" y2="190" style="color:#555555;border-width:4px"></x-connector>
+  <x-connector x1="760" y1="190" x2="860" y2="190" style="color:#555555;border-width:4px"></x-connector>
+  <x-connector x1="1190" y1="190" x2="1290" y2="190" style="color:#555555;border-width:4px"></x-connector>
+  <x-connector x1="1025" y1="130" x2="1025" y2="74" head="none" style="color:#C00000;border-width:4px;border-style:dashed"></x-connector>
+  <x-connector x1="1025" y1="74" x2="595" y2="74" head="none" style="color:#C00000;border-width:4px;border-style:dashed"></x-connector>
+  <x-connector x1="595" y1="74" x2="595" y2="130" style="color:#C00000;border-width:4px;border-style:dashed"></x-connector>
+</div>
+<p class="cite">Source: Vaswani et al., NIPS 2017, Sec. 1 and 3; diagram drawn by presenter</p>
+<aside>[≤ 0:25] Let me start with the background. In 2017 machine translation was done with an encoder and a decoder, the two boxes in the middle of the diagram. The encoder reads the input sentence and turns it into a list of vectors. The decoder then writes the translation one word at a time. Both parts were recurrent networks. The best systems also added attention, the red dashed arrow. It lets the decoder look back at any word of the input. So attention already existed, but only as a helper for the recurrent network.</aside>
 </section>

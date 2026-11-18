@@ -1,26 +1,18 @@
 <section id="m2" class="c">
-<h2 class="ttl">Scaled dot-product attention</h2>
+<p class="sec">B | Attention</p>
+<h2 class="ttl">Scaled Dot-Product Attention</h2>
 <div class="rule"></div>
 <div class="pnum"></div>
-<div class="txt num" style="font-size:52px">
-  <p class="eq">Attention(Q, K, V) = softmax(QKᵀ / √dₖ) V</p>
-  <div class="grp">
-    <ol class="bl"><li>QKᵀ: one score for every pair of words</li></ol>
-  </div>
-  <div class="grp">
-    <ol class="bl" start="2"><li>÷ √dₖ: keeps the scores small</li></ol>
-  </div>
-  <div class="grp">
-    <ol class="bl" start="3"><li>softmax: turns the scores into weights</li></ol>
-  </div>
-  <div class="grp">
-    <ol class="bl" start="4"><li>× V: the weighted sum of the values</li></ol>
-  </div>
-  <div class="grp">
-    <ul class="bl"><li>Why divide by √dₖ</li></ul>
-    <ul class="bl sub"><li>Large dot products leave softmax with very small gradients</li></ul>
-  </div>
+<div class="eq" style="font-size:60px"><p>Attention(Q, K, V) = softmax(</p><div class="tcol"><p class="tl">Scores</p><div class="term"><p>QKᵀ</p></div></div><p>/</p><div class="tcol"><p class="tl">Scaling</p><div class="term"><p>√d</p><p class="sb">k</p></div></div><p>) V</p></div>
+<div class="cols" style="font-size:46px;flex:none;height:300px">
+  <div class="panel" style="flex:1"><p class="bd">One score for every pair of words</p><p>Each query times each key</p></div>
+  <div class="panel" style="flex:1"><p class="bd">Keeps the scores small</p><p>Large dot products leave softmax with <span class="em">very small gradients</span></p></div>
 </div>
+<div class="txt" style="font-size:54px">
+  <div class="grp"><ul class="bl"><li>softmax turns the scores into weights</li><li>Multiplying by V gives the weighted sum of the values</li></ul></div>
+</div>
+<x-connector x1="1247" y1="357" x2="511" y2="459" head="none" style="color:#222222;border-width:3px"></x-connector>
+<x-connector x1="1435" y1="357" x2="1410" y2="459" head="none" style="color:#222222;border-width:3px"></x-connector>
 <p class="cite">Source: Vaswani et al., NIPS 2017, Eq. 1, Sec. 3.2.1. Q, K, V: matrices of queries, keys and values; dₖ: dimension of the keys</p>
-<aside>[≤ 6:20] Part two is the attention function itself. The authors call it scaled dot-product attention, and the formula on the slide is all of it. Read it from the inside out. All queries are stacked into one matrix, and so are the keys and the values. First the queries are multiplied with the keys, which gives one score for every pair of words. Then every score is divided by the square root of the key dimension. Then a softmax turns the scores into weights. Finally the weights are multiplied with the values. Why the division? With large vectors the dot products become very large. The softmax then has very small gradients, and learning slows down.</aside>
+<aside>[≤ 6:21] Part B starts with the attention function itself. The authors call it scaled dot-product attention, and the formula on the slide is all of it. Read it from the inside out. All queries are stacked into one matrix, and so are the keys and the values. The first boxed term multiplies the queries with the keys. That gives a score for each pair of words. The second boxed term divides every score by the square root of the key dimension. After that a softmax makes weights out of the scores, and the weights are multiplied with the values. Why the division? With large vectors the dot products become very large. The softmax then has very small gradients, and learning slows down.</aside>
 </section>

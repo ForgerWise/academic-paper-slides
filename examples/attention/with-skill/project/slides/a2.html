@@ -1,5 +1,6 @@
 <section id="a2" class="c">
-<h2 class="ttl">Architecture <span class="circ">2</span></h2>
+<p class="sec">A | Encoder and Decoder Stacks</p>
+<div class="tbar"><h2 class="ttl">Architecture</h2><p class="circ">2</p></div>
 <div class="rule"></div>
 <div class="pnum"></div>
 <div class="split">
@@ -27,5 +28,5 @@
 </div>
 </div>
 <p class="cite">Figure: Vaswani et al., NIPS 2017, Fig. 1, Sec. 3.1 and 3.4; orange box added by presenter</p>
-<aside>[≤ 5:28] The other stack is the decoder, marked by the orange box on the right. It also has six identical layers, but each layer has three parts. The first part is self-attention over the words written so far. It is masked, so a word can only look at the words before it. The second part attends over the output of the encoder. This is how the decoder reads the input sentence. The third part is the same feed-forward network as in the encoder. At the top, a linear layer and a softmax turn the result into a probability for every possible next word.</aside>
+<aside>[≤ 5:29] The other stack is the decoder, marked by the orange box on the right. It also has six identical layers, but each layer has three parts. The first part is self-attention over the words written so far. It is masked, so a word can only look at the words before it. The second part attends over the output of the encoder. This is how the decoder reads the input sentence. The third part is the same feed-forward network as in the encoder. At the top, a linear layer and a softmax turn the result into a probability for every possible next word.</aside>
 </section>

@@ -1,12 +1,16 @@
 /* academic-paper-slides: shared stylesheet for a 16:9 deck (1920x1080 canvas).
-   Copy to project/deck.css. To theme the deck, change only the five variables. */
+   Copy to project/deck.css. To theme the deck, change only the variables below.
+   Slides keeps only colour, bold, italic and underline on words inside a line, so everything
+   that needs a size, a border or a position of its own is a block here (a <p> or a <div>). */
 
 section {
-  --ink: #222222;     /* body text, table rules, box borders */
-  --accent: #222222;  /* title, title rule, page number (set to a brand color if the user has one) */
+  --ink: #222222;     /* body text */
+  --accent: #222222;  /* titles, rules, page number, box outlines (set to a brand color if the user has one) */
+  --line: #555555;    /* arrows and connectors in diagrams */
   --hl: #E2E2E2;      /* the one highlighted row of a table */
+  --head: #D9D9D9;    /* table header fill */
   --mark: #D55E00;    /* presenter annotations drawn on figures */
-  --em: #C00000;      /* red emphasis text: the one number or phrase not to miss */
+  --em: #C00000;      /* red emphasis text: key terms and key numbers */
   background: #FFFFFF; color: var(--ink);
   font-family: 'Inter', Arial, sans-serif;
   counter-increment: page; line-height: 1.35;
@@ -14,65 +18,100 @@ section {
 
 /* Content slide: content area is x 91-1829, y 221-990 (1738 x 769) */
 section.c { padding: 221px 91px 90px 91px; display: flex; flex-direction: column; gap: 24px; }
-section.c.mid { justify-content: center; }   /* a slide that holds only a flow: the flow sits in the vertical middle */
+section.c.mid { justify-content: center; }   /* a slide that holds only a diagram or a flow: it sits in the vertical middle */
 
-/* Title bar: label-only title, rule, page number */
-.ttl { position: absolute; left: 91px; top: 46px; width: 1635px; font-size: 84px; font-weight: 700; color: var(--accent); line-height: 1.2; white-space: nowrap; }
+/* Title bar: optional section label, title, rule, page number */
+.ttl { position: absolute; left: 91px; top: 58px; width: 1635px; font-size: 72px; font-weight: 700; color: var(--accent); line-height: 1.2; white-space: nowrap; }
+.sec { position: absolute; left: 91px; top: 9px; width: 1635px; font-size: 40px; font-weight: 700; color: var(--accent); line-height: 1.2; white-space: nowrap; }   /* "A | Neural surrogate model": the part of the method this slide belongs to */
 .rule { position: absolute; left: 0px; top: 170px; width: 1739px; height: 6px; background: var(--accent); }
-/* Circled number: <span class="circ">1</span>. Drawn here, not typed as the character "\2460", because fonts draw that
-   character at very different sizes. The circle is about as tall as the capital letters of the text around it. */
-.circ { display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box; width: 1.46em; height: 1.46em; border: 0.11em solid currentColor; border-radius: 50%; font-size: 0.56em; font-weight: 700; line-height: 1; letter-spacing: -0.04em; vertical-align: 0.28em; }
 .pnum { position: absolute; left: 1746px; top: 26px; width: 151px; height: 64px; text-align: center; font-size: 48px; font-weight: 700; color: var(--accent); }
 .pnum::before { content: counter(page); }
+/* A title with a running number: <div class="tbar"><h2 class="ttl">Architecture</h2><p class="circ">1</p></div> */
+.tbar { position: absolute; left: 91px; top: 58px; width: 1635px; display: flex; align-items: center; gap: 22px; font-size: 72px; }
+.tbar .ttl { position: relative; left: 0px; top: 0px; width: auto; }
 /* Optional logo: add class "lg" to the section and put <img class="logo"> first */
 .logo { position: absolute; left: 0px; top: 0px; width: 170px; height: 170px; object-fit: contain; }
 section.lg .ttl { left: 190px; width: 1536px; }
-/* Source line at the bottom of every content slide */
-.cite { position: absolute; left: 91px; top: 1030px; width: 1728px; font-size: 24px; color: var(--ink); line-height: 1.3; }
+section.lg .sec { left: 190px; width: 1536px; }
+section.lg .tbar { left: 190px; width: 1536px; }
+/* Circled number: a block of its own (<p class="circ">1</p>), about as tall as the capital letters beside it */
+.circ { box-sizing: border-box; flex: none; width: 1.5em; height: 1.5em; border: 5px solid var(--accent); border-radius: 99px; font-size: 0.56em; font-weight: 700; line-height: 1.25; text-align: center; color: var(--accent); }
+/* Sources of other people's work, at the bottom. Two or three lines: class "cite two" / "cite three" */
+.cite { position: absolute; left: 91px; top: 1030px; width: 1738px; font-size: 24px; color: var(--ink); line-height: 1.3; }
+.cite.two { top: 999px; } .cite.three { top: 968px; }
 
 /* Text block: ONE font-size per slide, set inline on .txt; lists inherit it.
    check_layout.js reads and fits this single value. */
-.txt { display: flex; flex-direction: column; gap: 22px; font-size: 44px; }
+.txt { display: flex; flex-direction: column; gap: 22px; font-size: 48px; }
 .grp { display: flex; flex-direction: column; gap: 6px; }
 /* Bullets: same marker and size at both levels, hierarchy by indent only */
 .bl { padding-left: 46px; display: flex; flex-direction: column; gap: 14px; }
 .bl.sub { padding-left: 100px; gap: 6px; }
-/* Numbered level one (<ol class="bl" start="N">): steps in order, parts of a figure, a ranking.
-   A block with numbered lines gets class "num" on its .txt: every level-one line, bulleted or
-   numbered, then starts at the same x, and every level-two line at the same x */
 .txt.num .bl { padding-left: 64px; }
 .txt.num .bl.sub { padding-left: 118px; }
-.k { font-weight: 700; }                 /* bold lead-in such as "Result" */
-.goal { font-size: 64px; font-weight: 700; color: var(--accent); line-height: 1.25; padding-top: 36px; }  /* last line of the Problem slide: the largest text in the body */
-.em { color: var(--em); }                /* use at most twice on a slide */
-.eq { font-size: 60px; text-align: center; white-space: nowrap; padding: 6px 0px 14px 0px; }   /* a formula, centered across the slide, on one line; a long one gets a smaller inline size */
+/* The explanation under a bold lead-in: a paragraph that starts where the item's text starts.
+   Not a <br> inside the <li>: Slides then drops the item's hanging indent */
+.ex { font-size: 1em; padding-left: 46px; }
+.txt.num .ex { padding-left: 64px; }
+.k { font-weight: 700; }                 /* bold lead-in; the explanation follows after a <br> or on level two */
+.goal { font-size: 64px; font-weight: 700; color: var(--accent); line-height: 1.25; padding-top: 36px; }
+.em { color: var(--em); }                /* key terms and key numbers: at most three on a slide */
+
+/* Formula: a centered row of pieces. Each piece is a <p>; a subscript is <p class="sb">;
+   a term the slide explains is boxed with <div class="term">. One size, inline on .eq */
+.eq { display: flex; justify-content: center; align-items: flex-end; gap: 0.16em; font-size: 60px; font-weight: 700; padding: 6px 0px 14px 0px; }
+.eq p { font-size: 1em; line-height: 1.2; white-space: nowrap; }
+.eq .sb { font-size: 0.6em; line-height: 1; margin-left: -8px; }
+.eq .dim { color: #7F7F7F; }             /* the parts of the formula the slide does not talk about */
+.tcol { display: flex; flex-direction: column; align-items: center; gap: 2px; }   /* a boxed term with its name above it */
+.eq .tl { font-size: 0.66em; font-weight: 700; color: var(--accent); line-height: 1.2; }
+.term { display: flex; align-items: flex-end; gap: 0.06em; box-sizing: border-box; border: 4px solid var(--accent); border-radius: 18px; padding: 0px 12px; }
 
 /* Layouts. .txt must be a direct child of section.c, .split or .stack */
-.split { display: flex; flex: 1; gap: 50px; align-items: center; min-height: 0; }  /* text left, figure right */
+.split { display: flex; flex: 1; gap: 50px; align-items: center; min-height: 0; }
 .split > .txt { flex: 1; }
-.stack { display: flex; flex-direction: column; flex: 1; gap: 24px; min-height: 0; }  /* text top, figure bottom */
-.stack > .fig { align-self: center; }
+.stack { display: flex; flex-direction: column; flex: 1; gap: 24px; min-height: 0; }
+.stack > .fig, .stack > .host { align-self: center; }
+.row { display: flex; gap: 30px; align-items: flex-start; justify-content: center; }   /* pictures side by side, each a .fig with its caption */
 
 /* Figures and presenter annotations. Always give .fig and its img a px width and height */
 .fig { position: relative; flex: none; }
 .ring { position: absolute; background: transparent; border: 6px solid var(--mark); border-radius: 50%; }
-.ring.box { border-radius: 16px; }   /* a block of a diagram: use with <x-shape kind="rounded"> */
+.ring.box { border-radius: 16px; }
+.ring.red { border-color: var(--em); }   /* a second colour, when the text names two areas of one picture */
 .badge { position: absolute; width: 60px; height: 60px; box-sizing: border-box; border-radius: 30px; background: var(--mark); border: 3px solid #FFFFFF; color: #FFFFFF; font-size: 32px; font-weight: 700; line-height: 54px; text-align: center; }
-.figcap { font-size: 26px; text-align: center; }
+.figcap { font-size: 30px; text-align: center; line-height: 1.25; }
+.note { position: absolute; font-size: 34px; font-weight: 700; color: var(--em); line-height: 1.2; white-space: nowrap; }   /* a value written on a chart, such as "+76%" */
 
-/* Tables: grid lines (drawn by Slides and by the PowerPoint export), white bold header, no zebra fill */
+/* Diagram drawn on the slide: a host of fixed size holding boxes, icons, labels and connectors.
+   Every child is pinned with left/top/width/height. At most 24 pinned children in one host. */
+.host { position: relative; flex: none; align-self: center; font-size: 44px; }
+.node { position: absolute; box-sizing: border-box; background: #FFFFFF; border: 3px solid var(--accent); border-radius: 22px; display: flex; flex-direction: column; justify-content: center; gap: 6px; padding: 10px 18px; }
+.node p { font-size: 1em; line-height: 1.25; text-align: center; }
+.panel { position: absolute; box-sizing: border-box; background: #FFFFFF; border: 3px solid var(--accent); border-radius: 44px; display: flex; flex-direction: column; justify-content: center; gap: 8px; padding: 18px 28px; }
+.panel p, .panel li { font-size: 1em; line-height: 1.3; }
+/* Panels side by side in the flow of the slide (not pinned): <div class="cols"><div class="panel" style="flex:1">...</div>...</div> */
+.cols { display: flex; gap: 60px; align-items: stretch; flex: 1; margin-top: 64px; font-size: 44px; }
+.cols .panel { position: relative; }
+.lbl { position: absolute; font-size: 1em; line-height: 1.25; }
+.ico { position: absolute; object-fit: contain; }
+
+/* Tables: grid lines (drawn by Slides and by the PowerPoint export), grey bold header */
 .tb { width: 100%; font-size: 40px; }
-.tb tr.h { background: #FFFFFF; }
+.tb tr.h { background: var(--head); }
 .tb th { color: var(--ink); font-weight: 700; }
 .tb tr.hl { background: var(--hl); }   /* the one row to stress */
+.tb.roomy th, .tb.roomy td { padding: 0.7em 0.6em; }   /* taller rows, when a short table would leave the slide half empty */
 
-/* Flow boxes (experiment setup). The only boxed text in the deck */
-.flow { display: flex; gap: 12px; align-items: stretch; font-size: 40px; }   /* ONE font-size, set inline on .flow; check_layout.js fits it */
-.card { flex: 1; background: #FFFFFF; border: 2px solid var(--ink); border-radius: 16px; padding: 22px 24px; display: flex; flex-direction: column; gap: 10px; }
-.card.key { border: 4px solid var(--ink); }
-.arrow { align-self: center; font-size: 48px; }
+/* Flow of boxes. ONE font-size, set inline on .flow; check_layout.js fits it */
+.flow { display: flex; gap: 12px; align-items: stretch; font-size: 40px; }
+.card { flex: 1; background: #FFFFFF; border: 3px solid var(--accent); border-radius: 22px; padding: 22px 24px; display: flex; flex-direction: column; gap: 10px; }
+.card.key { border: 6px solid var(--accent); }
+.card .hd { display: flex; align-items: center; gap: 12px; }   /* a step's number and name: <div class="hd"><p class="circ">1</p><p class="bd">Train</p></div> */
+.card .circ { border: 3px solid var(--ink); color: var(--ink); line-height: 1.2; }
+.arrow { align-self: center; font-size: 48px; color: var(--line); }
 
-/* Small diagram: rows of "box, arrow, outcome" in a three-column grid. ONE font-size, set inline on .dia */
+/* Small diagram in rows: box, arrow, outcome. ONE font-size, set inline on .dia */
 .dia { display: grid; grid-template-columns: 1fr auto auto; gap: 24px 22px; align-items: center; font-size: 40px; flex: 1; }
 .dia .card { flex: none; text-align: center; justify-content: center; }
 .dia .arrow { font-size: 1.2em; }

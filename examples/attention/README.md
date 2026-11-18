@@ -4,7 +4,7 @@ Two decks made by Claude from the same paper: A. Vaswani et al., "Attention Is A
 
 | Folder | How it was made | Size |
 |---|---|---|
-| `with-skill/` | With this skill | 17 slides for a 15-minute talk, with a read-aloud script (13:55 at 125 words per minute) |
+| `with-skill/` | With this skill | 17 slides for a 15-minute talk, with a read-aloud script (13:59 at 125 words per minute) |
 | `baseline/` | Without the skill, following the default design guidance of Claude's Slides type: cards, an accent slide, big numbers | 12 slides |
 
 The comparison image in the main README shows four matching slides from each deck.
@@ -29,6 +29,6 @@ The layout report flags many things in `baseline/`. That is expected: it was not
 
 ## Figures
 
-The pictures in `project/img/` are Fig. 1 and Fig. 2 of the paper. The arXiv version carries a notice from Google that allows its tables and figures to be reproduced in journalistic or scholarly works when proper attribution is given. They appear here in a presentation of the paper, with the source named on every slide. All slide text and speaker notes were written for this example.
+The diagrams on the background, problem, attention and overview slides were drawn for this deck, and the numbers in the attention example (scores 2, 1, 0 and their softmax weights) were chosen by the presenter; the source lines say so. The pictures in `project/img/` are Fig. 1 and Fig. 2 of the paper. The arXiv version carries a notice from Google that allows its tables and figures to be reproduced in journalistic or scholarly works when proper attribution is given. They appear here in a presentation of the paper, with the source named on every slide. All slide text and speaker notes were written for this example.
 
 One detail for readers who check the numbers: the paper's abstract and Table 2 give 41.8 BLEU for English–French, while the text of Section 6.1 says 41.0. The slides use the table.

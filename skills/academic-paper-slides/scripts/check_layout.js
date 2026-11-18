@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// check_layout.js <deck_root> [--shots <dir>] [--min 36] [--max 54]
+// check_layout.js <deck_root> [--shots <dir>] [--min 36] [--max 54] [--where "<css selector>"]
 //
 // Renders a Slides deck locally (no network, page scripts off) and reports per slide:
 //   - top and bottom edge of the content (must stay inside y = 221..990)
@@ -47,6 +47,7 @@ const cfg = {
   step: 4,         // ignore size gains smaller than this; real fonts shift line breaks a little
 };
 const shots = opt('--shots', null);
+const where = opt('--where', null);   // print the boxes of these elements, to place connectors and labels by
 
 // Same base rules the Slides preview uses, so local boxes match the real page closely.
 const BASE_CSS = [
@@ -62,6 +63,37 @@ const BASE_CSS = [
   'x-shape, x-icon, x-embed { display: block }',
 ].join('\n');
 
+// Slides draws <x-connector> itself; a plain browser shows nothing. Replace each one that has
+// coordinates by a line drawn in SVG, so the screenshots show the diagram as Slides will.
+function drawConnectors(html) {
+  return html.replace(/<x-connector\b([^>]*)>\s*<\/x-connector>/g, (all, attrs) => {
+    const at = (k) => { const m = new RegExp('\\b' + k + '="([^"]*)"').exec(attrs); return m ? m[1] : null; };
+    const [x1, y1, x2, y2] = ['x1', 'y1', 'x2', 'y2'].map((k) => parseFloat(at(k)));
+    if ([x1, y1, x2, y2].some((v) => Number.isNaN(v))) return all;
+    const st = at('style') || '';
+    const css = (k, d) => { const m = new RegExp('(?:^|;)\\s*' + k + '\\s*:\\s*([^;]+)').exec(st); return m ? m[1].trim() : d; };
+    const color = /^#[0-9a-fA-F]{3,8}$/.test(css('color', '')) ? css('color', '') : '#222222';
+    const w = parseFloat(css('border-width', '2')) || 2;
+    const dash = /dash|dot/.test(css('border-style', '')) ? ` stroke-dasharray="${w * 3} ${w * 2.5}"` : '';
+    const route = at('route') || 'straight', head = at('head') || 'end';
+    let pts = [[x1, y1], [x2, y2]];
+    if (route === 'hv') pts = [[x1, y1], [x2, y1], [x2, y2]];
+    if (route === 'vh') pts = [[x1, y1], [x1, y2], [x2, y2]];
+    if (route === 'elbow') pts = Math.abs(x2 - x1) >= Math.abs(y2 - y1)
+      ? [[x1, y1], [(x1 + x2) / 2, y1], [(x1 + x2) / 2, y2], [x2, y2]]
+      : [[x1, y1], [x1, (y1 + y2) / 2], [x2, (y1 + y2) / 2], [x2, y2]];
+    const tip = (a, b) => {          // a filled head at b, pointing away from a
+      const L = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1, ux = (b[0] - a[0]) / L, uy = (b[1] - a[1]) / L;
+      const len = 4.2 * w, half = 1.9 * w, bx = b[0] - ux * len, by = b[1] - uy * len;
+      return `<path d="M${b[0]} ${b[1]} L${bx - uy * half} ${by + ux * half} L${bx + uy * half} ${by - ux * half} Z" fill="${color}"/>`;
+    };
+    let heads = '';
+    if (head === 'end' || head === 'both') heads += tip(pts[pts.length - 2], pts[pts.length - 1]);
+    if (head === 'both') heads += tip(pts[1], pts[0]);
+    return `<svg class="xconn" width="1" height="1" style="position:absolute;left:0;top:0;overflow:visible"><path d="M${pts.map((q) => q.join(' ')).join(' L')}" fill="none" stroke="${color}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"${dash}/>${heads}</svg>`;
+  });
+}
+
 function buildPage() {
   const deck = JSON.parse(fs.readFileSync(path.join(root, 'project', 'deck.json'), 'utf8'));
   const parts = ["<!doctype html><html><head><meta charset='utf-8'><style>" + BASE_CSS + '</style>',
@@ -69,7 +101,7 @@ function buildPage() {
   for (const id of deck.order || []) {
     if (!/^[A-Za-z0-9_-]{1,64}$/.test(id)) continue;
     const f = path.join(root, 'project', 'slides', id + '.html');
-    if (fs.existsSync(f)) parts.push(fs.readFileSync(f, 'utf8'));
+    if (fs.existsSync(f)) parts.push(drawConnectors(fs.readFileSync(f, 'utf8')));
   }
   parts.push('</body></html>');
   return parts.join('\n');
@@ -77,7 +109,7 @@ function buildPage() {
 
 // Runs inside the page.
 function measure(cfg) {
-  const CHROME = '.cite,.ttl,.pnum,.logo,.rule,aside';
+  const CHROME = '.cite,.ttl,.sec,.tbar,.pnum,.logo,.rule,aside,.xconn';
   const px = (v) => parseFloat(v) || 0;
   const contentHeight = (el) => {
     const kids = [...el.children].filter((k) => k.getBoundingClientRect().height > 0);
@@ -132,7 +164,11 @@ function measure(cfg) {
     if (ls.length < 2) return null;
     const last = ls[ls.length - 1];
     const few = cjkOnly.test(last.text) ? last.n <= 2 : last.n === 1;
-    if (!few || last.width >= 0.34 * Math.max(...ls.map((l) => l.width))) return null;
+    // One word left over from a line of three or more words. Two words split over two lines are not an orphan
+    const total = ls.reduce((n, l) => n + l.n, 0);
+    // In a box of a diagram, where text is centered, a short last line is normal: only a very short one counts there
+    const boxed = el.closest('.node, .panel, .lbl') || getComputedStyle(el).textAlign === 'center';
+    if (!few || total < 3 || last.width >= (boxed ? 0.34 : 0.6) * Math.max(...ls.map((l) => l.width))) return null;
     const all = ls.map((l) => l.text).join(' ');
     return { el, word: last.text, line: all.length > 48 ? all.slice(0, 45) + '...' : all };
   }).filter(Boolean);
@@ -149,7 +185,7 @@ function measure(cfg) {
     const out = { n: i + 1, id: sec.id, cover: sec.classList.contains('cover'), flags: [], txt: [] };
 
     let top = Infinity, bottom = 0;
-    sec.querySelectorAll('p,li,img,table,h1,h2,h3,svg,x-shape,.fig,.card').forEach((el) => {
+    sec.querySelectorAll('p,li,img,table,h1,h2,h3,svg,x-shape,.fig,.card,.node,.panel,.host').forEach((el) => {
       if (el.closest(CHROME)) return;
       const r = el.getBoundingClientRect();
       if (!r.width || !r.height) return;
@@ -165,20 +201,37 @@ function measure(cfg) {
 
     const ttl = sec.querySelector('.ttl');
     if (ttl) {
-      if (ttl.scrollWidth > ttl.clientWidth + 1) out.flags.push('TITLE too long for one line');
+      const bar = ttl.closest('.tbar') || ttl;
+      if (bar.scrollWidth > bar.clientWidth + 1) out.flags.push('TITLE too long for one line');
+      if (bar.getBoundingClientRect().right - sr.left > 1740) out.flags.push('TITLE reaches the page number: shorten it');
       const t = ttl.textContent.trim();
-      out.title = t;
+      const num = bar !== ttl ? bar.querySelector('.circ') : null;
+      out.title = num ? t + ' ' + num.textContent.trim() : t;
       const name = /[:：]/.test(t) ? t.split(/[:：]/).slice(1).join(' ').trim() : t;
       const cjk = (name.match(/[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uac00-\ud7af]/g) || []).length;
       const words = name.replace(/[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uac00-\ud7af]/g, ' ').split(/\s+/).filter(Boolean).length;
-      if (words > 4 || cjk > 10) out.flags.push('TITLE is too long: a topic name of one to three words');
-      const last = ttl.lastElementChild;
-      const circled = last && last.classList.contains('circ') && /^\d{1,2}$/.test(last.textContent.trim());
-      if (/\s\d{1,2}$/.test(t) && !circled) out.flags.push('TITLE number: put it in a circle, <span class="circ">1</span>');
-      if (/[\u2460-\u2473]/.test(t)) out.flags.push('TITLE number: do not type the character ①, fonts draw it at very different sizes; write <span class="circ">1</span>');
+      if (words > 6 || cjk > 14) out.flags.push('TITLE is too long: a topic name of at most five words');
+      const HOW = 'write <div class="tbar"><h2 class="ttl">Name</h2><p class="circ">1</p></div>';
+      if (/\s\d{1,2}$/.test(t)) out.flags.push('TITLE number: put it in a circle; ' + HOW);
+      if (/[\u2460-\u2473]/.test(t)) out.flags.push('TITLE number: do not type the character ①, fonts draw it at very different sizes; ' + HOW);
     }
+    // Slides keeps only colour, bold, italic and underline on words inside a line
+    if (sec.querySelector('sub, sup')) out.flags.push('INLINE: Slides drops <sub> and <sup>. In a formula use <p class="sb"> pieces; elsewhere type the characters ¹ ² ³');
+    if (sec.querySelector('li br')) out.flags.push('LIST: a <br> inside a list item loses its hanging indent in Slides. Put the second line in <p class="ex"> right after the list, inside the same .grp');
+    if (sec.querySelector('span.circ, h1 .circ, h2 .circ, li .circ')) out.flags.push('INLINE: a circled number inside a line is dropped by Slides. Make it a block: <p class="circ">1</p> in a .tbar or a .hd row');
+    sec.querySelectorAll('.host').forEach((h) => {
+      const pinned = [...h.children].filter((k) => getComputedStyle(k).position === 'absolute' || k.tagName === 'X-CONNECTOR').length;
+      if (pinned > 24) out.flags.push(`DIAGRAM: ${pinned} pinned elements in one .host; Slides shows at most 24. Split it into two hosts side by side or simplify`);
+      const hr = h.getBoundingClientRect();
+      [...h.children].forEach((k) => {
+        const r = k.getBoundingClientRect();
+        if (k.classList.contains('xconn') || !r.width) return;
+        if (r.left < hr.left - 1 || r.top < hr.top - 1 || r.right > hr.right + 1 || r.bottom > hr.bottom + 1)
+          out.flags.push(`DIAGRAM: "${(k.textContent.trim() || k.getAttribute('alt') || k.className).slice(0, 24)}" lies outside its .host; enlarge the host or move it`);
+      });
+    });
     if (sec.querySelector('li ul, li ol')) out.flags.push('NESTED list inside <li>: write the second level as a sibling ul.bl.sub');
-    if (!out.cover && sec.querySelector('ul, ol') && ![...sec.querySelectorAll('ul, ol')].every((u) => u.closest('.txt, .card, table')))
+    if (!out.cover && sec.querySelector('ul, ol') && ![...sec.querySelectorAll('ul, ol')].every((u) => u.closest('.txt, .card, .panel, .node, table')))
       out.flags.push('LIST outside .txt: wrap the text of the slide in one .txt block');
 
     // A table with no text block that leaves the lower 40% of the slide empty
@@ -226,8 +279,8 @@ function measure(cfg) {
 
     // Blocks that overlap, or that run off the side of the slide
     if (!out.cover) {
-      const blocks = [...sec.querySelectorAll('.txt, .fig, table, .flow, .dia, .cite, .ttl')]
-        .filter((el) => !el.parentElement.closest('.txt, .fig, table, .flow, .dia') && el.getBoundingClientRect().height > 0);
+      const blocks = [...sec.querySelectorAll('.txt, .fig, table, .flow, .dia, .host, .eq, .cite, .ttl')]
+        .filter((el) => !el.parentElement.closest('.txt, .fig, table, .flow, .dia, .host, .eq, .tbar') && el.getBoundingClientRect().height > 0);
       const name = (el) => el.tagName === 'TABLE' ? 'the table' : 'the .' + el.classList[0] + ' block';
       for (let a = 0; a < blocks.length; a++) {
         const ra = blocks[a].getBoundingClientRect();
@@ -239,8 +292,9 @@ function measure(cfg) {
           if (w > 4 && h > 4) out.flags.push(`OVERLAP: ${name(blocks[a])} and ${name(blocks[b])} cover each other by ${Math.round(w)} x ${Math.round(h)}px`);
         }
       }
-      sec.querySelectorAll('.card, td, th').forEach((el) => {
-        if (el.scrollWidth > el.clientWidth + 1) out.flags.push(`OVERFLOW: text is wider than its ${el.classList.contains('card') ? 'box' : 'table cell'} ("${el.textContent.trim().slice(0, 30)}")`);
+      sec.querySelectorAll('.card, .node, .panel, td, th').forEach((el) => {
+        if (el.scrollWidth > el.clientWidth + 1 || (el.matches('.node, .panel') && el.scrollHeight > el.clientHeight + 1))
+          out.flags.push(`OVERFLOW: text does not fit its ${el.matches('td, th') ? 'table cell' : 'box'} ("${el.textContent.trim().slice(0, 30)}"): enlarge the box or shorten the text`);
       });
       // A formula stays on one line
       sec.querySelectorAll('.eq').forEach((el) => {
@@ -253,11 +307,11 @@ function measure(cfg) {
       });
       // A template that requires its logo says so in deck.css: section { --logo: required }
       if (getComputedStyle(sec).getPropertyValue('--logo').trim() === 'required' && !sec.querySelector('img.logo'))
-        out.flags.push('LOGO missing: every content slide starts with <img class="logo"> and has class "lg" (assets/logo.png)');
+        out.flags.push('LOGO missing: every content slide starts with <img class="logo"> (assets/logo.png)');
     }
 
     const ems = [...sec.querySelectorAll('.em')].filter((e) => !e.closest(CHROME));
-    if (ems.length > 2) out.flags.push(`EMPHASIS: ${ems.length} red phrases on one slide; keep at most two`);
+    if (ems.length > 3) out.flags.push(`EMPHASIS: ${ems.length} red phrases on one slide; keep at most three`);
     if (ems.some((e) => e.textContent.trim().split(/\s+/).length > 6)) out.flags.push('EMPHASIS: a red phrase is longer than six words; stress only the key number or phrase');
     if (sec.querySelector('.ttl .em')) out.flags.push('EMPHASIS in the title: titles carry no emphasis');
     if (sec.querySelector('.bl.sub li b, .bl.sub li strong, .bl.sub li .k, .bl.sub li .bd'))
@@ -297,6 +351,16 @@ function measure(cfg) {
       if (best !== null && cur <= best && fillFit < (txt.parentElement === sec ? cfg.lowFillSolo : cfg.lowFill))
         out.flags.push(`UNDERFILL: only ${Math.round(fillFit * 100)}% even at ${fit}px. Rebalance the layout (see "Fill the slide", step 5)`);
     });
+    if (cfg.where) {
+      try {
+        out.where = [...sec.querySelectorAll(cfg.where)].map((el) => {
+          const r = el.getBoundingClientRect();
+          return { what: (el.className || el.tagName).toString().split(' ')[0] + ' "' + el.textContent.trim().replace(/\s+/g, ' ').slice(0, 22) + '"',
+            x: Math.round(r.left - sr.left), y: Math.round(r.top - sr.top), w: Math.round(r.width), h: Math.round(r.height) };
+        });
+      } catch (e) { out.where = []; }
+    }
+    out.visual = !!sec.querySelector('img:not(.logo), table, .flow, .dia, .host, .eq, svg:not(.xconn)');
     return out;
   });
 }
@@ -328,13 +392,24 @@ function measure(cfg) {
   await page.goto('http://deck.local/', { waitUntil: 'load' });
   await page.waitForTimeout(300);
 
-  const rows = await page.evaluate(measure, cfg);
+  const rows = await page.evaluate(measure, { ...cfg, where });
   let bad = 0;
   console.log(['#', 'id', 'top', 'bottom', 'size', 'best', 'fill'].join('\t'));
   for (const r of rows) {
     const t = r.txt[0];
     console.log([r.n, r.id, r.top ?? '-', r.bottom || '-', t ? t.cur : '-', t && t.best ? t.best : '-', t ? t.fill + '%' : '-'].join('\t'));
     for (const f of r.flags) { bad++; console.log('\t! ' + f); }
+    // Slide coordinates: left, top, width, height, then the middle of the top and of the bottom edge
+    for (const b of r.where || []) console.log(`\t@ ${b.what}: x ${b.x} y ${b.y} w ${b.w} h ${b.h} | top-mid ${b.x + Math.round(b.w / 2)},${b.y} bottom-mid ${b.x + Math.round(b.w / 2)},${b.y + b.h}`);
+  }
+  // Slides that are text only: fine for a few, a sign of a wall of bullets when there are many
+  const content = rows.filter((r) => !r.cover);
+  const plain = content.filter((r) => !r.visual);
+  if (content.length >= 6 && plain.length > content.length / 3) {
+    bad++;
+    console.log(`\n! TEXT ONLY: ${plain.length} of ${content.length} content slides have no figure, table, formula or diagram (${plain.map((r) => r.id).join(', ')}). Give most of them one: see "Show the shape of the content"`);
+  } else if (plain.length) {
+    console.log(`\nNote: text-only slides: ${plain.map((r) => r.id).join(', ')}. Check that none of them would be clearer as a diagram, a table or a figure.`);
   }
   console.log(bad ? `\n${bad} thing(s) to fix. Fix them and run again.` : '\nLayout clean.');
 

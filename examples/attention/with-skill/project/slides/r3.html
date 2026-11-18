@@ -1,16 +1,26 @@
 <section id="r3" class="c">
-<h2 class="ttl">Model variations</h2>
+<h2 class="ttl">Model Variations</h2>
 <div class="rule"></div>
 <div class="pnum"></div>
-<div class="txt" style="font-size:52px">
+<div class="stack">
+<div class="txt" style="font-size:46px">
   <div class="grp">
-    <ul class="bl"><li>Changes one setting of the base model at a time (English–German development set, BLEU)</li></ul>
+    <ul class="bl"><li>Changes one setting of the base model at a time</li></ul>
   </div>
   <div class="grp">
     <ul class="bl"><li><span class="k">Result</span></li></ul>
-    <ul class="bl sub"><li>Heads: 1 head 24.9, 8 heads 25.8, 32 heads 25.4</li><li>Dropout: none 24.6, rate 0.1 gives 25.8</li><li>Position: learned embeddings 25.7, sinusoids 25.8</li></ul>
+    <ul class="bl sub"><li>The base settings are best; <span class="em">dropout</span> matters most</li></ul>
   </div>
 </div>
-<p class="cite">Source: Vaswani et al., NIPS 2017, Table 3 rows (A), (D), (E), Sec. 6.2</p>
-<aside>[≤ 11:42] Which parts of the model matter? The authors changed one setting at a time and measured BLEU on the development set. Three findings are on this slide. First, the number of heads. One head is clearly worse than eight, but thirty-two heads is also worse, so more is not always better. Second, dropout. Without dropout the score falls by more than one point. Third, the position vectors. A learned table gives almost the same score as the sine and cosine waves. So the choice of waves is not what makes the model work.</aside>
+<table class="tb" style="font-size:40px">
+<tr class="h"><th style="width:60%">Change to the base model</th><th class="ctr">BLEU (English–German, dev)</th></tr>
+<tr class="hl"><td>None (8 heads, dropout 0.1, sinusoids)</td><td class="ctr">25.8</td></tr>
+<tr><td>1 head</td><td class="ctr">24.9</td></tr>
+<tr><td>32 heads</td><td class="ctr">25.4</td></tr>
+<tr><td>No dropout</td><td class="ctr">24.6</td></tr>
+<tr><td>Learned position embeddings</td><td class="ctr">25.7</td></tr>
+</table>
+</div>
+<p class="cite">Table: Vaswani et al., NIPS 2017, Table 3 rows (A), (D), (E), Sec. 6.2</p>
+<aside>[≤ 11:36] Which parts of the model matter? The authors changed one setting at a time and measured BLEU on the development set. The first row is the base model, with 25.8. Now look at the heads. One head is clearly worse than eight, but thirty-two heads is also worse, so more is not always better. Next, dropout. Without dropout the score falls by more than one point, the largest drop in this table. Last, the position vectors. A learned table gives almost the same score as the sine and cosine waves. So the choice of waves is not what makes the model work.</aside>
 </section>

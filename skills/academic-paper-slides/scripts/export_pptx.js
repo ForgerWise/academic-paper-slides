@@ -173,11 +173,25 @@ function extract() {
       const list = [];
       box.querySelectorAll('li, p, h1, h2, h3').forEach((el) => {
         if (el.closest('table') || (el.tagName !== 'LI' && el.closest('li'))) return;
+        if (el.classList.contains('circ')) {     // a circled number: its own shape, not a line of text
+          const cs = getComputedStyle(el);
+          circs.push({ type: 'circ', r: rect(el), text: el.textContent.trim(), color: hex(cs.color), size: px(cs.fontSize), linePx: px(cs.borderTopWidth) });
+          return;
+        }
+        if (el.classList.contains('ex') && list.length) {
+          // The explanation under a lead-in: a second line of the same bulleted paragraph, so it hangs under the text
+          const prev = list[list.length - 1], more = para(el, {});
+          prev.runs.push({ ...more.runs[0], text: '\n' }, ...more.runs);
+          prev.r.h = more.r.y + more.r.h - prev.r.y;
+          return;
+        }
         const ul = el.tagName === 'LI' ? el.parentElement : null;
         const number = ul && ul.tagName === 'OL'
           ? (parseInt(ul.getAttribute('start'), 10) || 1) + [...ul.children].indexOf(el) : null;
-        list.push(para(el, { bullet: !!ul, number, level: ul && ul.classList.contains('sub') ? 1 : 0,
-          indent: ul ? px(getComputedStyle(ul).paddingLeft) : 0 }));
+        const q = para(el, { bullet: !!ul, number, level: ul && ul.classList.contains('sub') ? 1 : 0,
+          indent: ul ? px(getComputedStyle(ul).paddingLeft) : 0 });
+        if (el.parentElement.classList.contains('hd')) q.own = true;   // the name beside a circled number: its own text box
+        list.push(q);
       });
       list.forEach((p, i) => { p.before = i ? Math.max(0, p.r.y - (list[i - 1].r.y + list[i - 1].r.h)) : 0; });
       return list;
@@ -241,7 +255,37 @@ function extract() {
           line: px(cs.borderTopWidth) ? hex(cs.borderTopColor) : null, linePx: px(cs.borderTopWidth) });
         return;
       }
+      if (tag === 'X-CONNECTOR') {
+        // Coordinates are measured from the padding box of the element the connector sits in
+        const host = el.parentElement, hr = host.getBoundingClientRect(), hs = getComputedStyle(host);
+        const ox = hr.left - sr.left + px(hs.borderLeftWidth), oy = hr.top - sr.top + px(hs.borderTopWidth);
+        const num = (k) => parseFloat(el.getAttribute(k));
+        const x1 = num('x1'), y1 = num('y1'), x2 = num('x2'), y2 = num('y2');
+        if ([x1, y1, x2, y2].some((v) => Number.isNaN(v))) return;
+        const route = el.getAttribute('route') || 'straight';
+        let pts = [[x1, y1], [x2, y2]];
+        if (route === 'hv') pts = [[x1, y1], [x2, y1], [x2, y2]];
+        if (route === 'vh') pts = [[x1, y1], [x1, y2], [x2, y2]];
+        if (route === 'elbow') {
+          pts = Math.abs(x2 - x1) >= Math.abs(y2 - y1)
+            ? [[x1, y1], [(x1 + x2) / 2, y1], [(x1 + x2) / 2, y2], [x2, y2]]
+            : [[x1, y1], [x1, (y1 + y2) / 2], [x2, (y1 + y2) / 2], [x2, y2]];
+        }
+        const head = el.getAttribute('head') || 'end';
+        // The stroke is written as border-width and border-style; with no border drawn, the computed width is 0
+        const st = el.getAttribute('style') || '';
+        const bw = /border-width\s*:\s*([\d.]+)px/.exec(st);
+        items.push({ type: 'conn', pts: pts.map(([x, y]) => [x + ox, y + oy]), head,
+          color: hex(cs.color), w: bw ? parseFloat(bw[1]) : 2, dash: /border-style\s*:\s*(dashed|dotted)/.test(st) });
+        return;
+      }
+      if (tag === 'P' && cl.contains('circ')) {
+        circs.push({ type: 'circ', r, text: el.textContent.trim(), color: hex(cs.color), size: px(cs.fontSize), linePx: px(cs.borderTopWidth) });
+        return;
+      }
       if (/^(P|H1|H2|H3)$/.test(tag)) {
+        if (px(cs.borderTopWidth) > 0) items.push({ type: 'box', r, fill: hex(cs.backgroundColor), line: hex(cs.borderTopColor),
+          linePx: px(cs.borderTopWidth), radius: px(cs.borderTopLeftRadius) });
         const p = para(el, {});
         if (p.runs.length) items.push({ type: 'text', r: p.r, para: p, nowrap: cs.whiteSpace === 'nowrap', fill: hex(cs.backgroundColor) });
         return;
@@ -251,9 +295,11 @@ function extract() {
         if (ps.length) items.push({ type: 'textblock', r, paras: ps });
         return;
       }
-      if (el !== sec) {
-        const fill = hex(cs.backgroundColor);
-        if (fill && r.w > 0 && r.h > 0) items.push({ type: 'rect', r, fill });
+      if (el !== sec && r.w > 0 && r.h > 0) {
+        const fill = hex(cs.backgroundColor), lw = px(cs.borderTopWidth);
+        // A painted or outlined container: the boxes and panels of a diagram, a boxed term of a formula
+        if (lw > 0) items.push({ type: 'box', r, fill, line: hex(cs.borderTopColor), linePx: lw, radius: px(cs.borderTopLeftRadius) });
+        else if (fill) items.push({ type: 'rect', r, fill });
       }
       [...el.children].forEach(visit);
     };
@@ -361,6 +407,25 @@ function extract() {
       } else if (it.type === 'pnum') {
         slide.slideNumber = { ...box(it.r), fontFace: font, fontSize: PT(it.size), color: it.color || s.ink,
           bold: it.bold, align: 'center' };
+      } else if (it.type === 'box') {
+        const h = it.linePx / 2;   // a shape's line is centered on its edge; a CSS border lies inside it
+        const r = { x: it.r.x + h, y: it.r.y + h, w: it.r.w - it.linePx, h: it.r.h - it.linePx };
+        const round = it.radius > 1;
+        slide.addShape(round ? 'roundRect' : 'rect', { ...box(r), fill: it.fill ? { color: it.fill } : { type: 'none' },
+          line: { color: it.line || s.ink, width: PT(it.linePx) },
+          ...(round ? { rectRadius: IN(Math.min(it.radius, Math.min(r.w, r.h) / 2)) } : {}) });
+      } else if (it.type === 'conn') {
+        // One line per leg; only the last leg carries the arrow head
+        for (let k = 0; k + 1 < it.pts.length; k++) {
+          const [ax, ay] = it.pts[k], [bx, by] = it.pts[k + 1];
+          const last = k + 2 === it.pts.length, first = k === 0;
+          const line = { color: it.color || s.ink, width: PT(it.w) };
+          if (it.dash) line.dashType = 'dash';
+          if (last && (it.head === 'end' || it.head === 'both')) line.endArrowType = 'triangle';
+          if (first && it.head === 'both') line.beginArrowType = 'triangle';
+          slide.addShape('line', { x: IN(Math.min(ax, bx)), y: IN(Math.min(ay, by)), w: IN(Math.abs(bx - ax)), h: IN(Math.abs(by - ay)),
+            flipH: bx < ax, flipV: by < ay, line });
+        }
       } else if (it.type === 'card') {
         slide.addShape('roundRect', { ...box(it.r), fill: { color: it.fill },
           line: { color: it.line || s.ink, width: PT(it.linePx) }, rectRadius: IN(it.radius) });
@@ -373,7 +438,9 @@ function extract() {
         });
         groups.forEach((g, k) => {
           const f = g.ps[0], l = g.ps[g.ps.length - 1];
-          const r = g.own ? f.r : { x: inner.x, y: k ? f.r.y : inner.y, w: inner.w, h: l.r.y + l.r.h - (k ? f.r.y : inner.y) };
+          // A line beside a circled number runs to the right edge of the box, so a slightly wider font does not wrap it
+          const r = g.own ? { x: f.r.x, y: f.r.y, w: inner.x + inner.w - f.r.x, h: f.r.h }
+            : { x: inner.x, y: k ? f.r.y : inner.y, w: inner.w, h: l.r.y + l.r.h - (k ? f.r.y : inner.y) };
           slide.addText(body(g.ps.map((p, j) => (j ? p : { ...p, before: 0 }))), { ...box(r), margin: 0, valign: 'top', fit: 'none' });
         });
       } else if (it.type === 'badge') {

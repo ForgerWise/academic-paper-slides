@@ -2,16 +2,39 @@
 <h2 class="ttl">Preliminary: Attention</h2>
 <div class="rule"></div>
 <div class="pnum"></div>
-<div class="txt" style="font-size:54px">
+<div class="txt" style="font-size:48px">
   <div class="grp">
-    <ul class="bl"><li>Attention: answer a query from key–value pairs</li></ul>
-    <ul class="bl sub"><li>Weight: how well the query matches each key</li><li>Output: the weighted sum of the values</li></ul>
+    <ul class="bl"><li>Attention answers a query from key–value pairs</li></ul>
   </div>
   <div class="grp">
-    <ul class="bl"><li>Self-attention: the queries, keys and values all come from the same sentence</li></ul>
-    <ul class="bl sub"><li>Every word looks at every other word</li></ul>
+    <ul class="bl"><li>Self-attention: queries, keys and values are the words of one sentence</li></ul>
   </div>
 </div>
-<p class="cite">Source: Vaswani et al., NIPS 2017, Sec. 2 and 3.2</p>
-<aside>[≤ 2:09] To follow the method you need one concept, and that is attention. Think of attention as a lookup. You have a query, and you have a set of keys, each with a value. For every key the model computes how well it matches the query. That gives a weight. The output is the sum of all values, each multiplied by its weight. So the output is mostly made of the values whose keys match best. Self-attention is the special case where the queries, keys and values all come from the same sentence. Every word asks every other word the same question. Which of you matters to me?</aside>
+<div class="host" style="width:1738px;height:540px;font-size:44px">
+  <p class="lbl bd ctr" style="left:470px;top:0px;width:300px">Key</p>
+  <p class="lbl bd ctr" style="left:800px;top:0px;width:200px">Score</p>
+  <p class="lbl bd ctr" style="left:1080px;top:0px;width:240px">Weight</p>
+  <div class="node" style="left:0px;top:240px;width:300px;height:110px"><p>Query: “it”</p></div>
+  <div class="node" style="left:470px;top:76px;width:300px;height:100px"><p>“cat”</p></div>
+  <div class="node" style="left:470px;top:245px;width:300px;height:100px"><p>“mat”</p></div>
+  <div class="node" style="left:470px;top:414px;width:300px;height:100px"><p>“sat”</p></div>
+  <p class="lbl ctr" style="left:800px;top:98px;width:200px">2.0</p>
+  <p class="lbl ctr" style="left:800px;top:267px;width:200px">1.0</p>
+  <p class="lbl ctr" style="left:800px;top:436px;width:200px">0.0</p>
+  <p class="lbl ctr bd em" style="left:1080px;top:98px;width:240px">0.67</p>
+  <p class="lbl ctr" style="left:1080px;top:267px;width:240px">0.24</p>
+  <p class="lbl ctr" style="left:1080px;top:436px;width:240px">0.09</p>
+  <div class="node" style="left:1400px;top:165px;width:338px;height:260px"><p class="bd">Output</p><p>0.67 “cat”<br>+ 0.24 “mat”<br>+ 0.09 “sat”</p></div>
+  <x-connector x1="300" y1="295" x2="470" y2="126" style="color:#555555;border-width:4px"></x-connector>
+  <x-connector x1="300" y1="295" x2="470" y2="295" style="color:#555555;border-width:4px"></x-connector>
+  <x-connector x1="300" y1="295" x2="470" y2="464" style="color:#555555;border-width:4px"></x-connector>
+  <x-connector x1="990" y1="126" x2="1090" y2="126" style="color:#555555;border-width:4px"></x-connector>
+  <x-connector x1="990" y1="295" x2="1090" y2="295" style="color:#555555;border-width:4px"></x-connector>
+  <x-connector x1="990" y1="464" x2="1090" y2="464" style="color:#555555;border-width:4px"></x-connector>
+  <x-connector x1="1300" y1="126" x2="1400" y2="250" style="color:#555555;border-width:4px"></x-connector>
+  <x-connector x1="1300" y1="295" x2="1400" y2="295" style="color:#555555;border-width:4px"></x-connector>
+  <x-connector x1="1300" y1="464" x2="1400" y2="340" style="color:#555555;border-width:4px"></x-connector>
+</div>
+<p class="cite">Source: Vaswani et al., NIPS 2017, Sec. 2 and 3.2; example sentence and values chosen by presenter</p>
+<aside>[≤ 2:07] To follow the method you need one concept, and that is attention. Think of attention as a lookup, like the one in the diagram. Take the sentence, the cat sat on the mat because it was tired. The query is the word it. Every other word is a key with a value. For every key the model computes a score, how well it matches the query. Here cat gets the highest score. A softmax turns the scores into weights that add up to one. So cat gets 0.67. The output is the weighted sum of the values, so it is mostly made of cat. When the queries, keys and values all come from the same sentence, as they do here, this is called self-attention.</aside>
 </section>
