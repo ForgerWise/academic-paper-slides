@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// check_layout.js <deck_root> [--shots <dir>] [--min 36] [--max 54] [--where "<css selector>"]
+// check_layout.js <deck_root> [--shots <dir>] [--min 36] [--max 54] [--where "<css selector>"] [--font "Arial"]
 //
 // Renders a Slides deck locally (no network, page scripts off) and reports per slide:
 //   - top and bottom edge of the content (must stay inside y = 221..990)
@@ -33,7 +33,7 @@ const opt = (name, dflt) => {
   return i > 0 && argv[i + 1] ? argv[i + 1] : dflt;
 };
 if (!root || !fs.existsSync(path.join(root, 'project', 'deck.json'))) {
-  console.error('usage: check_layout.js <deck_root> [--shots <dir>] [--min 36] [--max 54]');
+  console.error('usage: check_layout.js <deck_root> [--shots <dir>] [--min 36] [--max 54] [--where "<css selector>"] [--font "Arial"]');
   process.exit(2);
 }
 const cfg = {
@@ -48,6 +48,9 @@ const cfg = {
 };
 const shots = opt('--shots', null);
 const where = opt('--where', null);   // print the boxes of these elements, to place connectors and labels by
+// --font checks the deck as it will be laid out in that font: the one export_pptx.js --font writes into the file
+const fontSafe = (opt('--font', '') || '').replace(/[^\p{L}\p{N} _-]/gu, '').trim();
+const withFont = (text) => (fontSafe ? text.replace(/font-family\s*:\s*/g, (m) => `${m}'${fontSafe}', `) : text);
 
 // Same base rules the Slides preview uses, so local boxes match the real page closely.
 const BASE_CSS = [
@@ -377,7 +380,7 @@ function measure(cfg) {
     if (req.isNavigationRequest()) {
       if (!first) return route.abort('aborted');
       first = false;
-      return route.fulfill({ body: html, contentType: 'text/html; charset=utf-8' });
+      return route.fulfill({ body: withFont(html), contentType: 'text/html; charset=utf-8' });
     }
     // Deck files (the stylesheet, and pictures kept in project/img/) are served; nothing else is
     const MIME = { '.css': 'text/css', '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg',
@@ -386,7 +389,7 @@ function measure(cfg) {
     const f = u.pathname.startsWith('/project/') ? path.resolve(root, '.' + decodeURIComponent(u.pathname)) : null;
     const type = f && MIME[path.extname(f).toLowerCase()];
     if (type && f.startsWith(projectDir + path.sep) && fs.existsSync(f) && fs.statSync(f).isFile())
-      return route.fulfill({ body: fs.readFileSync(f), contentType: type });
+      return route.fulfill({ body: type === 'text/css' ? withFont(fs.readFileSync(f, 'utf8')) : fs.readFileSync(f), contentType: type });
     return route.abort('aborted'); // uploaded pictures (/_blob/...) and web fonts are not available locally
   });
   await page.goto('http://deck.local/', { waitUntil: 'load' });

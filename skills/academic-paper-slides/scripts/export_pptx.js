@@ -1,6 +1,9 @@
 #!/usr/bin/env node
 // export_pptx.js <deck_root> <out.pptx> [--font "Arial"]
 //
+// --font lays the deck out again in that font before measuring it, so the file is correct where the
+// deck's own font is not installed (PowerPoint replaces a missing font and the lines break differently).
+//
 // Turns a deck (project/deck.json, project/deck.css, project/slides/*.html) into an
 // editable PowerPoint file. The deck is rendered locally, every element is measured,
 // and each one is written as a native PowerPoint object at the same place:
@@ -37,6 +40,11 @@ if (!root || !out || !fs.existsSync(path.join(root, 'project', 'deck.json'))) {
   process.exit(2);
 }
 const projectDir = path.resolve(root, 'project');
+// With --font, every font-family in the deck starts with that font, so the layout that is measured is the one the file gets
+const fontSafe = fontArg ? fontArg.replace(/[^\p{L}\p{N} _-]/gu, '').trim() : null;
+const withFont = (text) => (fontSafe ? text.replace(/font-family\s*:\s*/g, (m) => `${m}'${fontSafe}', `) : text);
+// Fonts that come with PowerPoint on both Windows and macOS
+const COMMON_FONTS = ['arial', 'calibri', 'cambria', 'georgia', 'times new roman', 'verdana', 'tahoma', 'trebuchet ms', 'courier new'];
 
 const BASE_CSS = [
   '* { margin: 0 }',
@@ -71,7 +79,7 @@ function buildPage() {
     if (fs.existsSync(f)) parts.push(fs.readFileSync(f, 'utf8'));
   }
   parts.push('</body></html>');
-  return parts.join('\n');
+  return withFont(parts.join('\n'));
 }
 
 // Runs inside the page: describe every slide as a flat list of drawable items.
@@ -165,7 +173,7 @@ function extract() {
       const rr = runs(el, el.tagName !== 'LI'), box = inner(el);
       // Text after a circled number gets its own box, starting where that text starts
       if (rr.lead !== null) { box.w -= rr.lead - box.x; box.x = rr.lead; }
-      return { runs: rr.list, own: rr.lead !== null, size: px(cs.fontSize), line: lh, r: box,
+      return { runs: rr.list, own: rr.lead !== null, size: px(cs.fontSize), line: lh, r: box, color: hex(cs.color),
         align: a === 'center' ? 'center' : (a === 'right' || a === 'end') ? 'right' : 'left', ...extra };
     };
     // Paragraphs of a text container, in reading order, with the measured gap before each
@@ -300,6 +308,19 @@ function extract() {
         // A painted or outlined container: the boxes and panels of a diagram, a boxed term of a formula
         if (lw > 0) items.push({ type: 'box', r, fill, line: hex(cs.borderTopColor), linePx: lw, radius: px(cs.borderTopLeftRadius) });
         else if (fill) items.push({ type: 'rect', r, fill });
+        // A box that centres its lines (a node or panel of a diagram) becomes ONE text box over its inside, anchored
+        // in the middle. Its lines then stay centred when another font breaks them differently, and it is one box to edit.
+        const kids = [...el.children];
+        const plain = (k) => k.tagName === 'P' && !k.classList.contains('circ') && px(getComputedStyle(k).borderTopWidth) === 0;
+        if (lw > 0 && kids.length && kids.every(plain) && cs.display === 'flex' && cs.flexDirection === 'column' && cs.justifyContent === 'center') {
+          const ps = paras(el);
+          if (ps.length) {
+            const pl = px(cs.paddingLeft) + lw, pt = px(cs.paddingTop) + lw;
+            items.push({ type: 'textblock', valign: 'middle', paras: ps,
+              r: { x: r.x + pl, y: r.y + pt, w: r.w - pl - px(cs.paddingRight) - lw, h: r.h - pt - px(cs.paddingBottom) - lw } });
+            return;
+          }
+        }
       }
       [...el.children].forEach(visit);
     };
@@ -329,6 +350,7 @@ function extract() {
     }
     const f = deckFile(u.pathname);
     const type = f && MIME[path.extname(f).toLowerCase()];
+    if (f && type === 'text/css') return route.fulfill({ body: withFont(fs.readFileSync(f, 'utf8')), contentType: 'text/css; charset=utf-8' });
     if (f && type) return route.fulfill({ body: fs.readFileSync(f), contentType: type });
     return route.abort('aborted');
   });
@@ -366,7 +388,8 @@ function extract() {
     const toRuns = (p, isLast) => {
       if (p.bullet) {            // text starts where the list's padding ends; the marker hangs 0.6em before it
         const left = p.indent || 46;
-        bulletFix[bulletFix.length - 1].push({ marL: left, hang: Math.min(left, (p.number ? 1.1 : 0.8) * p.size) });   // markers end just before the text
+        bulletFix[bulletFix.length - 1].push({ marL: left, hang: Math.min(left, (p.number ? 1.1 : 0.8) * p.size),   // markers end just before the text
+          color: p.color || s.ink });
       }
       // A <br> becomes a soft break in front of the run that follows it
       const parts = [];
@@ -403,7 +426,7 @@ function extract() {
         if (it.fill && it.fill !== s.bg) o.fill = { color: it.fill };
         slide.addText(toRuns(it.para, true), o);
       } else if (it.type === 'textblock') {
-        slide.addText(body(it.paras), { ...box(it.r), margin: 0, valign: 'top', fit: 'none' });
+        slide.addText(body(it.paras), { ...box(it.r), margin: 0, valign: it.valign || 'top', fit: 'none' });
       } else if (it.type === 'pnum') {
         slide.slideNumber = { ...box(it.r), fontFace: font, fontSize: PT(it.size), color: it.color || s.ink,
           bold: it.bold, align: 'center' };
@@ -518,6 +541,18 @@ function extract() {
       // Name the bullet's font, so every bullet is drawn the same size and height as the text
       }).replace(/(<a:buFont [^>]*\/>)?<a:buChar /g, `<a:buFont typeface="${face}"/><a:buChar `)
         .replace(/<a:buFont typeface="\+mj-lt"\/>/g, `<a:buFont typeface="${face}"/>`));
+      // A bullet or number takes the colour of the first word after it unless it is given its own: keep it the colour of the line
+      const marked = /(<a:pPr\b[^>]*marL="\d+" indent="-\d+"[^>]*>)([\s\S]*?)(<\/a:pPr>)/g;
+      xml = await zip.file(name).async('string');
+      if ((xml.match(marked) || []).length === bulletFix[i].length) {
+        let j = 0;
+        zip.file(name, xml.replace(marked, (m, open, inner, close) => {
+          const clr = `<a:buClr><a:srgbClr val="${bulletFix[i][j++].color}"/></a:buClr>`;
+          if (/<a:buClr/.test(inner)) return m;
+          const at = inner.search(/<a:bu(SzPct|SzTx|SzPts|Font|FontTx|Char|AutoNum|None)\b/);
+          return at < 0 ? m : open + inner.slice(0, at) + clr + inner.slice(at) + close;
+        }));
+      }
     }
     if (ok) data = await zip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE' });
     else console.log('Note: bullet indents were left at the library defaults (unexpected file layout).');
@@ -526,5 +561,11 @@ function extract() {
   }
   fs.writeFileSync(path.resolve(out), data);
   console.log(`Wrote ${out}: ${slides.length} slides.`);
+  const used = [...new Set(slides.map((s) => fontArg || s.font || 'Arial'))];
+  const rare = used.filter((f) => !COMMON_FONTS.includes(f.toLowerCase()));
+  if (rare.length && !fontArg) {
+    console.log(`Note: the text is set in ${rare.join(', ')}. PowerPoint replaces a font that is not installed, and the lines then break differently.`
+      + ' For PowerPoint, export again with --font "Arial" (the deck is laid out in that font first). Google Slides has its own font list: check that this font is in it.');
+  }
   if (missing) console.log(`${missing} picture(s) were not local files and became placeholders. Put them in project/img/ and use src="/project/img/<name>".`);
 })().catch((e) => { console.error(e.message); process.exit(2); });
