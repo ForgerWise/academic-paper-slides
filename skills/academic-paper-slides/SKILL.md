@@ -103,12 +103,12 @@ A 15-minute talk is 15 to 17 slides. Scale with the talk length at about one sli
   - steps or a pipeline (input → model → output, train → test) → a flow of boxes, or boxes joined by arrows
   - how an idea works → a small diagram from boxes, icons and arrows, carrying ONE concrete example through it (a query word, three scores, the weights they turn into, the output). A worked number explains a method faster than any sentence
   - the same properties of several things → a table
-  - a formula → the formula itself, the terms the slide is about boxed, each with its name and a panel below that says what it is
+  - a formula → the formula itself, large and easy to read, the terms the slide is about boxed with room around them, and under each a panel that starts with the term's name
   - a result → the paper's chart or table, with the key value written on it in red
   - two areas of one picture → outline each area in its own colour and write the words that name it in the same colour
 
   The text above the visual is two to four short lines that say what to look for. A numbered list is for content that has no such shape. Text-only slides are for the conclusion and little else: `check_layout.js` lists them, and fails the deck when more than a third of its slides have no visual.
-- Diagrams are drawn on the slide, not pasted as a picture, so the presenter can edit them: white boxes with a thin outline, grey arrows, black line icons from `assets/icons/`, a few words per box, red for the one value or word that matters. No fills, no shadows, no gradients. A diagram or example you made up to explain the paper says so in the source line ("diagram drawn by presenter", "example values chosen by presenter").
+- Diagrams are drawn on the slide, not pasted as a picture, so the presenter can edit them: white boxes with a thin outline, dark arrows thick enough to see from the back row, black line icons from `assets/icons/`, a few words per box, red for the one value or word that matters. No fills, no shadows, no gradients. A diagram or example you made up to explain the paper says so in the source line ("diagram drawn by presenter", "example values chosen by presenter").
 - Pictures from outside the paper. When a picture the paper does not have would make a slide clearer (a photo of the device or the place, the scene of the problem), look on the web for one that may be reused: public domain or CC0, CC BY or CC BY-SA (Wikimedia Commons, Openverse, agencies such as NASA), or a site whose license allows reuse (Unsplash, Pexels). Read the license on the picture's own page, not in a search result, and credit the picture in the source line: "Photo: Author, CC BY 4.0, via Wikimedia Commons". Do not use a picture whose license you cannot find, and never one that only decorates. If nothing reusable turns up, build the slide without it and say so when you deliver.
 - Sources.
   - Someone else's paper: every content slide ends with a source line (`.cite`): "Source: Author et al., Venue Year, Sec. 3" or "Figure: Author et al., Venue Year, Fig. 4; orange ring added by presenter". A table you compiled says "Table compiled by presenter".
@@ -159,7 +159,7 @@ Add `--own` when the presenter is an author. The script catches mechanics. It ca
 
 **Color and boxes**
 
-- White background, near-black text. The accent color for the title bar and the outlines of diagram boxes and panels, grey for arrows, red for emphasis. Nothing else.
+- White background, near-black text. The accent color for the title bar and the outlines of diagram boxes and panels, dark grey for arrows, red for emphasis. Nothing else.
 - Theme = the variables at the top of `deck.css`: `--ink`, `--accent`, `--line`, `--hl`, `--head`, `--mark`, `--em`. With a user template or brand, set `--accent` to its theme color, so the titles and boxes match the template, set the font, and add the logo (see patterns). Without one, keep the neutral defaults. Do not add colors.
 - Boxes are for diagrams: nodes, panels, flow steps, a boxed term of a formula. They are white with an outline, never filled. Ordinary text is never put in a box or a card to decorate it.
 - Slides keeps only colour, bold, italic and underline on words inside a line. Anything that needs its own size, border or position is a block of its own: no `<sub>`, `<sup>`, badges or pills inside a sentence. `check_layout.js` reports these as `INLINE`.
@@ -173,8 +173,9 @@ Use both kinds sparingly. A slide where everything is stressed stresses nothing.
 
 **Formulas**
 
-- One formula per slide, centered across the slide, on one line, never beside a figure. It is a row of pieces (`.eq`, patterns "Formula"): each subscript is its own piece, the parts the slide does not discuss are grey, and the terms it does discuss are boxed with their names above.
-- Under the formula, one panel per boxed term says what the term is, in the same left-to-right order, joined to its term by a line.
+- One formula per slide, centered across the slide, on one line, never beside a figure. First it has to read well as a formula: large (60 to 72px), with a clear gap between its pieces and real subscripts and superscripts. It is a row of pieces (`.eq`, patterns "Formula"): a symbol and its subscript or superscript form a group, and the parts the slide does not discuss can be grey.
+- The terms the slide discusses are boxed. A box has room inside and a gap outside: its outline never touches or covers a character, and no more than three terms are boxed.
+- Under the formula, one panel per boxed term, in the same left-to-right order. Each panel starts with the name of its term as a title, larger than its lines, then one or two short lines on what the term does. A line joins term and panel, straight down or in right angles, never diagonal.
 - A long formula gets a smaller size inline on `.eq` (the check names it, not under 36px). A formula that needs fractions, sums or matrices is cropped from the paper as a picture and centered the same way.
 
 **Bullets**
@@ -191,12 +192,16 @@ Use both kinds sparingly. A slide where everything is stressed stresses nothing.
 - Text goes left or on top. Figures go right or below.
 - Title: 72px, bold, one line. Section label above it: 40px.
 - The goal line of the problem slide is the largest text in the body: 64px, bold, on one line if it can be.
-- Body text as large as fits: 36 to 54px. Tables 36 to 44px. Flow boxes as large as fits: 32 to 48px, so that the flow fills the slide instead of sitting in a strip at the top. Nothing under 24px.
+- Use the height. A block with empty bands above and below it is too small: the text beside a figure starts near the top of its column and ends near the bottom, and a flow or a diagram alone on a slide takes most of the slide. Enlarge the text first; when a line's wording is what keeps it small, reword that line.
+- Body text as large as fits: 36 to 60px. Tables 36 to 44px. Nothing under 24px.
+- Flow boxes are tall, with text as large as fits (32 to 56px) and each step's name larger than its lines. Keep the lines in a box short so that the text can grow. Between two boxes sits a block arrow, not a typed "→".
+- Arrows are easy to see: connectors in a diagram are dark and 6px wide, never under 4px.
 - Figures as large as they stay sharp: at most about 1.3× their native pixel size. A figure that cannot be read is left out and replaced by text.
 - Mark the important part of a figure with a ring (`.ring`, or `.ring.box` around a block) or a numbered badge (`.badge`), and say so in the source line when the slide has one.
 - A diagram that is explained in parts gets one slide per part: the same figure on every slide, with the part under discussion ringed. These slides are one topic continued, so they share a title and a running number.
 - Tables: grid lines drawn, grey bold header, no zebra fill. To stress one row (this paper, the best result), give that row the highlight fill and, if it helps, red text; at most one row per table. Size the columns so the key column does not wrap. A short table gets class `roomy` so that it does not leave the slide half empty.
-- Diagrams fill the space under the text: icons 160 to 220px, box text 40 to 52px, the lowest element ending near y 960. A diagram squeezed into a strip under the text reads as unfinished.
+- Diagrams fill the space under the text: icons 160 to 220px, tall boxes with text of 44 to 52px, the lowest element ending near y 960. A diagram squeezed into a strip under the text reads as unfinished.
+- A box that explains something (a panel, a step of a flow) starts with a title that is larger than its lines. Panels in a row start their titles on one line.
 
 **Canvas**
 
@@ -215,10 +220,13 @@ The usual failure is a short text block at a cautious size, floating in a tall c
    node scripts/check_layout.js <deck_root> --shots <empty_temp_dir>
    ```
    - `GROW: set .txt font-size:NNpx` or `GROW: set .flow font-size:NNpx`: set exactly that size.
+   - `GROW: the text fits at NNpx, but "word" would then stand alone…`: there is room for larger text and one line's wording is in the way. Reword that line so that it fits on one line or breaks evenly, then set the size. Do not leave the text small.
    - `TEXT TOO BIG` or `TEXT TOO LONG` or `OVERFLOW`: move detail to the notes or split the slide. Do not go below 36px to make it fit.
    - `FLOW TOO BIG` or `FLOW TOO LONG`: set the size it names, or shorten the lines in the boxes. A line in a box may wrap once at most.
-   - `UNDERFILL`: the text is lost even at 54px. Go to step 5.
-   - `UNDERUSED`: a table leaves the lower part of the slide empty. Enlarge its text within the size limits, or put a `.txt` block above it that says what it compares.
+   - `UNDERFILL`: the text is lost even at 60px. Go to step 5.
+   - `UNDERUSED`: a table leaves the lower part of the slide empty, or a flow sits in a strip with empty bands above and below. Table: enlarge its text within the size limits, or put a `.txt` block above it that says what it compares. Flow: shorten the line the message names, so that the text of every box can grow.
+   - `ARROW`: a typed arrow between boxes. Use the block arrow the message gives.
+   - `FORMULA: … panel(s) … have no title` or `FORMULA: the outline … touches …`: give each panel the name of its term as its title, and give the boxed term back its room (patterns, "Formula").
    - `ORPHAN`: a line wraps for its last word alone. This is what enlarged text does to a layout. Set the size the message names if it names one. Otherwise give the line more width (narrow the figure beside it, widen the column of the table or the box) or shorten the wording. Do not leave it.
    - `FORMULA too wide`: set the size it names on `.eq`.
    - `OVERLAP`, `OFF THE SLIDE`, `OVERFLOW: text is wider than its box`: a block grew into its neighbour or out of its box. Give it room or make its text shorter or smaller.
@@ -227,6 +235,7 @@ The usual failure is a short text block at a cautious size, floating in a tall c
    - `INLINE`: something inside a line that Slides drops (`<sub>`, `<sup>`, a circled number in a sentence). Make it a block as the message says.
    - `TEXT ONLY`: too many slides without a visual. Give them one (section 3, "Every slide earns a visual").
    - `TITLE`, `NESTED`, `LIST outside .txt`, `NUMBERED`, `EMPHASIS`, `BOLD`, `LOGO`: fix the slide as the message says.
+   - A line that starts with `~` is not a fault. It says what stops a block from growing, such as the longest line of a flow. Act on it when the slide still has empty space.
 
    To place connectors and labels, ask the script where things are: `--where ".term, .panel"` prints the box of every match (left, top, width, height, and the middle of its top and bottom edge) in slide coordinates. Connectors that are direct children of the slide use these numbers as they are; inside a `.host`, subtract the host's left and top.
    - `Note:` about titles that are a kind plus a number: name each slide by its topic.
@@ -234,7 +243,7 @@ The usual failure is a short text block at a cautious size, floating in a tall c
    1. The figure can still grow within step 2: enlarge it, which narrows the text column and makes the text taller.
    2. Switch the layout: a short text over a wide figure usually fills better as a stack.
    3. Bring back one second-level detail from the notes that helps the audience read the figure. Never add filler.
-   4. The message is complete as it is: accept it. One short statement at 54px, centered beside a large figure, is a good slide.
+   4. The message is complete as it is: accept it. One short statement at 60px, centered beside a large figure, is a good slide.
 6. Run again until it prints `Layout clean.` The target is a text block that fills 75 to 96% of its available height.
 7. **Check last, every time.** Any later change (a size, a width, a word, a new slide, a fix the user asked for) can break a line or push a block. After the last change of all, run the check once more and look at the screenshots of that run. A deck is finished only when its final state has been checked, not an earlier one.
 
@@ -251,11 +260,12 @@ Slides draws `<x-connector>` itself; the script draws the same lines for its scr
    - Story: the titles and first lines, read in order, tell the paper. No slide comes out of nowhere.
    - Titles: named by topic, no bare "Method ①", one line. A number sits in a circle no taller than the capital letters beside it.
    - Alignment: lines of one level start at the same position whether they have a bullet or a number. Markers are one size, none hollow.
-   - Space: nothing floats in an empty area. Text beside a figure, a table with half a slide under it, a flow in a strip at the top: enlarge it before you accept it.
+   - Space: nothing floats in an empty area, and no block has empty bands above and below it. Text beside a figure that starts halfway down, a table with half a slide under it, a flow or a row of boxes in a strip: enlarge it, and reword the line that stops it, before you accept it.
+   - Arrows: every arrow is seen at a glance from the back of the room. Block arrows between the boxes of a flow, thick dark connectors in a diagram.
    - Goal: on the problem slide the goal line is the largest text in the body.
    - Tables: grid lines visible, at most one highlighted row, the key column not wrapped.
    - Figures: sharp. When a diagram is explained in parts, the part is ringed and the figure keeps its size and place from slide to slide.
-   - Formulas: centered, with the text below, or above and below.
+   - Formulas: centered and easy to read on their own, with the text below, or above and below. The outline of a boxed term touches no character. Every panel under the formula starts with the name of its term.
    - Emphasis: at most three red phrases on a slide, bold only on sub-headings.
    - Layout: text is left or on top, figures right or below.
    - Visuals: almost every slide has one, it explains the text above it, and it fills the space under the text. A diagram's arrows start and end on the boxes and icons they join.

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// check_layout.js <deck_root> [--shots <dir>] [--min 36] [--max 54] [--where "<css selector>"] [--font "Arial"]
+// check_layout.js <deck_root> [--shots <dir>] [--min 36] [--max 60] [--where "<css selector>"] [--font "Arial"]
 //
 // Renders a Slides deck locally (no network, page scripts off) and reports per slide:
 //   - top and bottom edge of the content (must stay inside y = 221..990)
@@ -33,12 +33,12 @@ const opt = (name, dflt) => {
   return i > 0 && argv[i + 1] ? argv[i + 1] : dflt;
 };
 if (!root || !fs.existsSync(path.join(root, 'project', 'deck.json'))) {
-  console.error('usage: check_layout.js <deck_root> [--shots <dir>] [--min 36] [--max 54] [--where "<css selector>"] [--font "Arial"]');
+  console.error('usage: check_layout.js <deck_root> [--shots <dir>] [--min 36] [--max 60] [--where "<css selector>"] [--font "Arial"]');
   process.exit(2);
 }
 const cfg = {
   min: Number(opt('--min', 36)),
-  max: Number(opt('--max', 54)),
+  max: Number(opt('--max', 60)),
   top: 221,        // first usable y of a content slide
   bottom: 990,     // last usable y of a content slide
   safety: 0.96,    // local fallback fonts differ a little from the deck's fonts
@@ -64,6 +64,12 @@ const BASE_CSS = [
   'table { width: 100%; border-collapse: separate; border-spacing: 0; border: solid #0003; border-width: 2px 0 0 2px }',
   'th, td { padding: .35em .6em; text-align: left; border: solid #0003; border-width: 0 2px 2px 0 }',
   'x-shape, x-icon, x-embed { display: block }',
+  // Slides draws each kind of <x-shape> itself; these only make the local screenshots look the same
+  'x-shape[kind="arrow-right"] { clip-path: polygon(0 28%, 60% 28%, 60% 0, 100% 50%, 60% 100%, 60% 72%, 0 72%) }',
+  'x-shape[kind="arrow-left"] { clip-path: polygon(100% 28%, 40% 28%, 40% 0, 0 50%, 40% 100%, 40% 72%, 100% 72%) }',
+  'x-shape[kind="arrow-down"] { clip-path: polygon(28% 0, 72% 0, 72% 60%, 100% 60%, 50% 100%, 0 60%, 28% 60%) }',
+  'x-shape[kind="arrow-up"] { clip-path: polygon(28% 100%, 72% 100%, 72% 40%, 100% 40%, 50% 0, 0 40%, 28% 40%) }',
+  'x-shape[kind="ellipse"] { border-radius: 50% }',
 ].join('\n');
 
 // Slides draws <x-connector> itself; a plain browser shows nothing. Replace each one that has
@@ -185,7 +191,7 @@ function measure(cfg) {
 
   return [...document.querySelectorAll('body > section')].map((sec, i) => {
     const sr = sec.getBoundingClientRect();
-    const out = { n: i + 1, id: sec.id, cover: sec.classList.contains('cover'), flags: [], txt: [] };
+    const out = { n: i + 1, id: sec.id, cover: sec.classList.contains('cover'), flags: [], notes: [], txt: [] };
 
     let top = Infinity, bottom = 0;
     sec.querySelectorAll('p,li,img,table,h1,h2,h3,svg,x-shape,.fig,.card,.node,.panel,.host').forEach((el) => {
@@ -245,20 +251,29 @@ function measure(cfg) {
         : `UNDERUSED: content ends at y ${out.bottom}. Add a .txt block above the table that says what it compares`);
     }
 
-    // A flow of boxes is sized like a text block: the largest text between 32 and 48px that fits
+    // A flow of boxes is sized like a text block: the largest text between 32 and 56px that fits
     sec.querySelectorAll('.flow').forEach((flow) => {
       const cur = Math.round(px(getComputedStyle(flow).fontSize));
       const avail = available(flow);
       const keep = flow.style.fontSize;
       let fit = null, best = null;
+      // the line that is too wide for its box, or wraps more than once, at the size now set
+      const widest = () => [...flow.querySelectorAll('.card p')].find((el) => el.scrollWidth > el.clientWidth + 1
+        || el.getBoundingClientRect().height > 2.4 * px(getComputedStyle(el).lineHeight)
+        || el.closest('.card').scrollWidth > el.closest('.card').clientWidth + 1);
       const fits = (s) => {
         flow.style.fontSize = s + 'px';
-        // too wide for its box, or a line that wraps more than once
-        const wide = [...flow.querySelectorAll('.card, .card p')].some((el) => el.scrollWidth > el.clientWidth + 1)
-          || [...flow.querySelectorAll('.card p')].some((el) => el.getBoundingClientRect().height > 2.4 * px(getComputedStyle(el).lineHeight));
-        return flow.getBoundingClientRect().height <= avail * cfg.safety && !wide;
+        return flow.getBoundingClientRect().height <= avail * cfg.safety && !widest();
       };
-      for (let s = 48; s >= 32; s -= 2) if (fits(s)) { fit = s; break; }
+      const FLOW_MAX = 56;
+      for (let s = FLOW_MAX; s >= 32; s -= 2) if (fits(s)) { fit = s; break; }
+      // What stops the text from growing further: a line, if the height would still allow it
+      let stop = null;
+      if (fit !== null && fit < FLOW_MAX) {
+        flow.style.fontSize = (fit + 2) + 'px';
+        const w = flow.getBoundingClientRect().height <= avail * cfg.safety ? widest() : null;
+        if (w) stop = w.textContent.trim().replace(/\s+/g, ' ').slice(0, 40);
+      }
       // Prefer a size, up to 6px smaller, at which no line ends in a single word
       if (fit !== null) {
         best = fit;
@@ -274,6 +289,16 @@ function measure(cfg) {
       else if (lone.length && cleanAtBest && best !== cur) out.flags.push(`ORPHAN: "${lone[0].word}" stands alone on the last line of "${lone[0].line}": set .flow font-size:${best}px, or shorten the wording`);
       else if (lone.length) lone.forEach((o) => out.flags.push(`ORPHAN: "${o.word}" stands alone on the last line of "${o.line}": shorten the wording, or use fewer or wider boxes`));
       else if (best - cur >= cfg.step && (cleanAtBest || best - cur > 8)) out.flags.push(`GROW: set .flow font-size:${best}px (now ${cur}px)`);
+      if (stop && best !== null && cur <= fit) out.notes.push(`the flow stops at ${fit}px because of the line "${stop}". A shorter line there lets the text of every box grow (up to ${FLOW_MAX}px)`);
+      // A flow alone on its slide with empty bands above and below it
+      const alone = !sec.querySelector('.txt, table, .fig, .host');
+      const fill = flow.getBoundingClientRect().height / avail;
+      if (alone && best !== null && cur >= best - 2 && fill < 0.62) {
+        out.flags.push(stop
+          ? `UNDERUSED: the flow fills ${Math.round(fill * 100)}% of the height and cannot grow past ${fit}px because of the line "${stop}". Shorten that line or break it in two with <br>, so the text of every box can grow`
+          : `UNDERUSED: the flow fills ${Math.round(fill * 100)}% of the height. Give each box one more line of what it does, or put a .txt line above the flow`);
+      }
+      if (flow.querySelector(':scope > p.arrow')) out.flags.push('ARROW: a typed arrow between boxes is hard to see. Use a block arrow: <x-shape kind="arrow-right" class="arw"></x-shape>');
     });
 
     // A line that wraps for one last word, outside the blocks that are sized above and below (those report their own)
@@ -308,6 +333,23 @@ function measure(cfg) {
           ? `FORMULA too wide at ${Math.round(cur)}px: set style="font-size:${fit}px" on .eq`
           : 'FORMULA too wide even at 36px: crop it from the paper as a picture, or show only the part the slide is about');
       });
+      // Under a formula, each panel that explains a term starts with the term's name
+      if (sec.querySelector('.eq .term')) {
+        const untitled = [...sec.querySelectorAll('.panel')].filter((pn) => !pn.querySelector('.pt'));
+        if (untitled.length) out.flags.push(`FORMULA: ${untitled.length} panel(s) under the formula have no title. Start each with the name of its term: <p class="pt">Name</p>, then one or two lines`);
+        // An outline needs air: no character of the formula closer than 6px to a term's outline
+        const pieces = [...sec.querySelectorAll('.eq p')].filter((q) => !q.classList.contains('tl'));
+        sec.querySelectorAll('.eq .term').forEach((tm) => {
+          const tr = tm.getBoundingClientRect();
+          const near = pieces.find((q) => {
+            const r = q.getBoundingClientRect();
+            if (Math.min(r.bottom, tr.bottom) - Math.max(r.top, tr.top) <= 4) return false;
+            if (tm.contains(q)) return r.left - tr.left < 10 || tr.right - r.right < 10;
+            return r.right > tr.left - 6 && r.left < tr.right + 6;
+          });
+          if (near) out.flags.push(`FORMULA: the outline around "${tm.textContent.trim().slice(0, 16)}" touches "${near.textContent.trim().slice(0, 12)}". Keep the gap of .eq and the padding of .term as deck.css sets them, or make the formula smaller`);
+        });
+      }
       // A template that requires its logo says so in deck.css: section { --logo: required }
       if (getComputedStyle(sec).getPropertyValue('--logo').trim() === 'required' && !sec.querySelector('img.logo'))
         out.flags.push('LOGO missing: every content slide starts with <img class="logo"> (assets/logo.png)');
@@ -350,7 +392,16 @@ function measure(cfg) {
       else if (cur > fit) out.flags.push(`TEXT TOO BIG at ${cur}px (fits at ${best}px). Prefer cutting text; otherwise set font-size:${best}px`);
       else if (lone.length && cleanAtBest && best !== cur) out.flags.push(`ORPHAN: "${lone[0].word}" stands alone on the last line of "${lone[0].line}": set .txt font-size:${best}px (no line then ends in a single word), or ${WIDER}`);
       else if (lone.length) lone.forEach((o) => out.flags.push(`ORPHAN: "${o.word}" stands alone on the last line of "${o.line}": ${WIDER}`));
-      else if (best - cur >= cfg.step && (cleanAtBest || best - cur > 8)) out.flags.push(`GROW: set .txt font-size:${best}px (now ${cur}px, fill ${t.fill}% -> ${t.fillBest}%)`);
+      else if (best - cur >= cfg.step && cleanAtBest) out.flags.push(`GROW: set .txt font-size:${best}px (now ${cur}px, fill ${t.fill}% -> ${t.fillBest}%)`);
+      else if (fit - cur >= cfg.step && fillNow < 0.8) {
+        // Room to grow, but at the larger size a line would end in a single word: the wording has to change first
+        txt.style.fontSize = fit + 'px';
+        const lf = orphans(txt);
+        txt.style.fontSize = keep;
+        out.flags.push(lf.length
+          ? `GROW: the text fits at ${fit}px (now ${cur}px, fill ${t.fill}% -> ${Math.round(fillFit * 100)}%), but "${lf[0].word}" would then stand alone on the last line of "${lf[0].line}". Reword that line so it breaks evenly or fits on one line, then set .txt font-size:${fit}px`
+          : `GROW: set .txt font-size:${fit}px (now ${cur}px, fill ${t.fill}% -> ${Math.round(fillFit * 100)}%)`);
+      }
       if (best !== null && cur <= best && fillFit < (txt.parentElement === sec ? cfg.lowFillSolo : cfg.lowFill))
         out.flags.push(`UNDERFILL: only ${Math.round(fillFit * 100)}% even at ${fit}px. Rebalance the layout (see "Fill the slide", step 5)`);
     });
@@ -402,6 +453,7 @@ function measure(cfg) {
     const t = r.txt[0];
     console.log([r.n, r.id, r.top ?? '-', r.bottom || '-', t ? t.cur : '-', t && t.best ? t.best : '-', t ? t.fill + '%' : '-'].join('\t'));
     for (const f of r.flags) { bad++; console.log('\t! ' + f); }
+    for (const f of r.notes || []) console.log('\t~ ' + f);   // worth knowing, not a fault
     // Slide coordinates: left, top, width, height, then the middle of the top and of the bottom edge
     for (const b of r.where || []) console.log(`\t@ ${b.what}: x ${b.x} y ${b.y} w ${b.w} h ${b.h} | top-mid ${b.x + Math.round(b.w / 2)},${b.y} bottom-mid ${b.x + Math.round(b.w / 2)},${b.y + b.h}`);
   }

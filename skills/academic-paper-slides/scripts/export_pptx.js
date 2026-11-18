@@ -541,6 +541,9 @@ function extract() {
       // Name the bullet's font, so every bullet is drawn the same size and height as the text
       }).replace(/(<a:buFont [^>]*\/>)?<a:buChar /g, `<a:buFont typeface="${face}"/><a:buChar `)
         .replace(/<a:buFont typeface="\+mj-lt"\/>/g, `<a:buFont typeface="${face}"/>`));
+      // Arrow heads at their largest size, so an arrow is seen from the back of the room
+      xml = await zip.file(name).async('string');
+      zip.file(name, xml.replace(/<a:(headEnd|tailEnd) type="triangle"\/>/g, '<a:$1 type="triangle" w="lg" len="lg"/>'));
       // A bullet or number takes the colour of the first word after it unless it is given its own: keep it the colour of the line
       const marked = /(<a:pPr\b[^>]*marL="\d+" indent="-\d+"[^>]*>)([\s\S]*?)(<\/a:pPr>)/g;
       xml = await zip.file(name).async('string');

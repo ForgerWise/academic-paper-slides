@@ -137,6 +137,8 @@ For figures narrower than 1.8 : 1. Give `.fig` and the `<img>` the same px width
 </div>
 ```
 
+The text beside a figure uses the height of the figure: it starts near the top of the column and ends near the bottom. A few lines floating in the middle of a tall column are too small. `check_layout.js` prints the largest size that fits (up to 60px) and, when one line's wording is all that keeps the text small, names that line: reword it so that it fits on one line or breaks evenly, then set the size.
+
 `.ring` and `.badge` are positioned in % of the figure box. To mark a block of a diagram, use a box instead of an ellipse: `<x-shape kind="rounded" class="ring box" style="left:9%;top:35%;width:40%;height:39%"></x-shape>`. When a diagram is explained over several slides, repeat the figure at the same size and move only the ring. A badge holds its number as text: `<div class="badge" style="left:12%;top:40%">1</div>`.
 
 ## Text on top, figure below (`.stack`), pictures side by side (`.row`)
@@ -177,13 +179,14 @@ Use it to show how something works: who sees what, what blocks what, what is com
 - `<div class="panel">`: a larger rounded box that holds a name line and a few lines or a short list.
 - `<img class="ico">`: an icon from `assets/icons/` or a small photo.
 - `<p class="lbl">`: plain text. Add `bd` for bold, `ctr` to center it in its width. Give every label a `width` wide enough for its longest line.
-- `<x-connector x1 y1 x2 y2>`: an arrow from one point to another. `head="none"` for a plain line, `route="hv"` or `"vh"` for a right-angled one. Colour and thickness go in `style` as `color` and `border-width`; `border-style:dashed` for a dashed line. Use `#555555` at 4px for ordinary arrows and the emphasis red (`#C00000`) for the one path the slide is about.
+- `<x-connector x1 y1 x2 y2>`: an arrow from one point to another. `head="none"` for a plain line, `route="hv"` or `"vh"` for a right-angled one. Colour and thickness go in `style` as `color` and `border-width`; `border-style:dashed` for a dashed line. Arrows must be seen from the back of the room: `#404040` at 6px for ordinary arrows, the emphasis red (`#C00000`) for the one path the slide is about. Never thinner than 4px.
 
 Rules that keep a diagram right:
 
 1. Write the boxes, icons and labels first. Then add the connectors, reading each end from the numbers already in the file: the middle of a box's right edge is `(left + width, top + height / 2)`, of its bottom edge `(left + width / 2, top + height)`. Leave about 10px between an arrow's end and an icon.
 2. One host holds at most 24 pinned parts, connectors included.
 3. Carry one example through the diagram. Here the query “it” scores three words, the scores become weights, and the output is mostly “cat”.
+4. Make the boxes tall and their text large (44 to 52px), so that the diagram fills the space under the text. A row of low boxes in a strip, with thin arrows, reads as unfinished.
 4. Set the host's `font-size` inline (40 to 52px); labels and boxes inherit it. Make the host as tall as the space under the text allows and fill it.
 
 ```html
@@ -210,34 +213,34 @@ Rules that keep a diagram right:
   <p class="lbl ctr" style="left:1080px;top:267px;width:240px">0.24</p>
   <p class="lbl ctr" style="left:1080px;top:436px;width:240px">0.09</p>
   <div class="node" style="left:1400px;top:165px;width:338px;height:260px"><p class="bd">Output</p><p>0.67 “cat”<br>+ 0.24 “mat”<br>+ 0.09 “sat”</p></div>
-  <x-connector x1="300" y1="295" x2="470" y2="126" style="color:#555555;border-width:4px"></x-connector>
-  <x-connector x1="300" y1="295" x2="470" y2="295" style="color:#555555;border-width:4px"></x-connector>
-  <x-connector x1="300" y1="295" x2="470" y2="464" style="color:#555555;border-width:4px"></x-connector>
-  <x-connector x1="990" y1="126" x2="1090" y2="126" style="color:#555555;border-width:4px"></x-connector>
-  <x-connector x1="990" y1="295" x2="1090" y2="295" style="color:#555555;border-width:4px"></x-connector>
-  <x-connector x1="990" y1="464" x2="1090" y2="464" style="color:#555555;border-width:4px"></x-connector>
-  <x-connector x1="1300" y1="126" x2="1400" y2="250" style="color:#555555;border-width:4px"></x-connector>
-  <x-connector x1="1300" y1="295" x2="1400" y2="295" style="color:#555555;border-width:4px"></x-connector>
-  <x-connector x1="1300" y1="464" x2="1400" y2="340" style="color:#555555;border-width:4px"></x-connector>
+  <x-connector x1="300" y1="295" x2="470" y2="126" style="color:#404040;border-width:6px"></x-connector>
+  <x-connector x1="300" y1="295" x2="470" y2="295" style="color:#404040;border-width:6px"></x-connector>
+  <x-connector x1="300" y1="295" x2="470" y2="464" style="color:#404040;border-width:6px"></x-connector>
+  <x-connector x1="990" y1="126" x2="1090" y2="126" style="color:#404040;border-width:6px"></x-connector>
+  <x-connector x1="990" y1="295" x2="1090" y2="295" style="color:#404040;border-width:6px"></x-connector>
+  <x-connector x1="990" y1="464" x2="1090" y2="464" style="color:#404040;border-width:6px"></x-connector>
+  <x-connector x1="1300" y1="126" x2="1400" y2="250" style="color:#404040;border-width:6px"></x-connector>
+  <x-connector x1="1300" y1="295" x2="1400" y2="295" style="color:#404040;border-width:6px"></x-connector>
+  <x-connector x1="1300" y1="464" x2="1400" y2="340" style="color:#404040;border-width:6px"></x-connector>
 </div>
 ```
 
 Boxes in a chain, with a return path made of three connectors (up, across, down; only the last has a head):
 
 ```html
-<div class="host" style="width:1738px;height:330px;font-size:44px">
-  <p class="lbl ctr em" style="left:430px;top:0px;width:760px">attention: look at any input word</p>
-  <div class="node" style="left:0px;top:130px;width:330px;height:120px"><p>Input sentence</p></div>
-  <div class="node" style="left:430px;top:130px;width:330px;height:120px"><p class="bd">Encoder</p></div>
-  <div class="node" style="left:860px;top:130px;width:330px;height:120px"><p class="bd">Decoder</p></div>
-  <div class="node" style="left:1290px;top:130px;width:448px;height:120px"><p>Output sentence</p></div>
-  <p class="lbl ctr" style="left:430px;top:266px;width:760px">recurrent networks</p>
-  <x-connector x1="330" y1="190" x2="430" y2="190" style="color:#555555;border-width:4px"></x-connector>
-  <x-connector x1="760" y1="190" x2="860" y2="190" style="color:#555555;border-width:4px"></x-connector>
-  <x-connector x1="1190" y1="190" x2="1290" y2="190" style="color:#555555;border-width:4px"></x-connector>
-  <x-connector x1="1025" y1="130" x2="1025" y2="74" head="none" style="color:#C00000;border-width:4px;border-style:dashed"></x-connector>
-  <x-connector x1="1025" y1="74" x2="595" y2="74" head="none" style="color:#C00000;border-width:4px;border-style:dashed"></x-connector>
-  <x-connector x1="595" y1="74" x2="595" y2="130" style="color:#C00000;border-width:4px;border-style:dashed"></x-connector>
+<div class="host" style="width:1738px;height:400px;font-size:50px">
+  <p class="lbl ctr em" style="left:380px;top:0px;width:860px">attention: look at any input word</p>
+  <div class="node" style="left:0px;top:150px;width:330px;height:160px"><p>Input sentence</p></div>
+  <div class="node" style="left:430px;top:150px;width:330px;height:160px"><p class="bd">Encoder</p></div>
+  <div class="node" style="left:860px;top:150px;width:330px;height:160px"><p class="bd">Decoder</p></div>
+  <div class="node" style="left:1290px;top:150px;width:448px;height:160px"><p>Output sentence</p></div>
+  <p class="lbl ctr" style="left:380px;top:330px;width:860px">recurrent networks</p>
+  <x-connector x1="330" y1="230" x2="430" y2="230" style="color:#404040;border-width:6px"></x-connector>
+  <x-connector x1="760" y1="230" x2="860" y2="230" style="color:#404040;border-width:6px"></x-connector>
+  <x-connector x1="1190" y1="230" x2="1290" y2="230" style="color:#404040;border-width:6px"></x-connector>
+  <x-connector x1="1025" y1="150" x2="1025" y2="84" head="none" style="color:#C00000;border-width:6px;border-style:dashed"></x-connector>
+  <x-connector x1="1025" y1="84" x2="595" y2="84" head="none" style="color:#C00000;border-width:6px;border-style:dashed"></x-connector>
+  <x-connector x1="595" y1="84" x2="595" y2="150" style="color:#C00000;border-width:6px;border-style:dashed"></x-connector>
 </div>
 ```
 
@@ -245,19 +248,19 @@ A picture can be the start of a diagram: make the photo an `.ico` with `object-f
 
 ## Method overview with lettered parts
 
-The parts of the method as panels, the one-line idea above them in red, and what they produce together below. The letters return as section labels on the slides of each part.
+The parts of the method as panels, the one-line idea above them in red, and what they produce together below. The letters return as section labels on the slides of each part. Each panel starts with its title (`<p class="pt">`), which is larger than its lines; panels in a row get class `top`, so that their titles start on one line.
 
 ```html
 <p class="goal" style="padding-top:0px;color:#C00000;text-align:center;font-size:54px">The Transformer: attention and feed-forward layers only</p>
 <div class="host" style="width:1738px;height:590px;font-size:44px">
-  <div class="panel" style="left:0px;top:20px;width:540px;height:330px"><p class="bd">A | Encoder and decoder stacks</p><p>Six layers each, with no recurrence inside</p></div>
-  <div class="panel" style="left:599px;top:20px;width:540px;height:330px"><p class="bd">B | Attention</p><p>Scaled dot-product attention, run as 8 parallel heads</p></div>
-  <div class="panel" style="left:1198px;top:20px;width:540px;height:330px"><p class="bd">C | Positional encoding</p><p>Tells the model the order of the words</p></div>
+  <div class="panel top" style="left:0px;top:20px;width:540px;height:330px"><p class="pt">A | Encoder and decoder stacks</p><p>Six layers each, with no recurrence inside</p></div>
+  <div class="panel top" style="left:599px;top:20px;width:540px;height:330px"><p class="pt">B | Attention</p><p>Scaled dot-product attention, run as 8 parallel heads</p></div>
+  <div class="panel top" style="left:1198px;top:20px;width:540px;height:330px"><p class="pt">C | Positional encoding</p><p>Tells the model the order of the words</p></div>
   <div class="node" style="left:469px;top:470px;width:800px;height:110px"><p class="bd">Translation without recurrence</p></div>
-  <x-connector x1="270" y1="350" x2="270" y2="410" head="none" style="color:#555555;border-width:4px"></x-connector>
-  <x-connector x1="1468" y1="350" x2="1468" y2="410" head="none" style="color:#555555;border-width:4px"></x-connector>
-  <x-connector x1="270" y1="410" x2="1468" y2="410" head="none" style="color:#555555;border-width:4px"></x-connector>
-  <x-connector x1="869" y1="350" x2="869" y2="470" style="color:#555555;border-width:4px"></x-connector>
+  <x-connector x1="270" y1="350" x2="270" y2="410" head="none" style="color:#404040;border-width:6px"></x-connector>
+  <x-connector x1="1468" y1="350" x2="1468" y2="410" head="none" style="color:#404040;border-width:6px"></x-connector>
+  <x-connector x1="270" y1="410" x2="1468" y2="410" head="none" style="color:#404040;border-width:6px"></x-connector>
+  <x-connector x1="869" y1="350" x2="869" y2="470" style="color:#404040;border-width:6px"></x-connector>
 </div>
 ```
 
@@ -265,44 +268,56 @@ The three lines without heads and the one with a head form a bracket: down from 
 
 ## Formula with named terms
 
-The formula is a row of pieces. Every piece is a `<p>`. A subscript is `<p class="sb">` right after its base. Pieces the slide does not discuss can get class `dim`. A term the slide explains is wrapped in `<div class="term">`, inside a `<div class="tcol">` that puts the term's name above it. Under the formula, one panel per term, in the same order.
+The formula must be easy to read before anything is added to it: one line, large (60 to 72px), with clear gaps between its pieces.
+
+- Every piece is a `<p>`: `<p>Attention(Q, K, V) = softmax(</p>`. The row keeps a gap between pieces, so write an operator as its own piece.
+- A symbol with a subscript or a superscript is a group, `<div class="pc">`, holding the symbol and then `<p class="sb">` (subscript) or `<p class="sp">` (superscript): `<div class="pc"><p>d</p><p class="sb">k</p></div>`. Do not type the characters ᵀ or ₖ in a formula: fonts draw them badly.
+- A term the slide explains is boxed: `<div class="term">…</div>`. It holds pieces and groups like the row itself, and it has room inside, so its outline never touches or covers a character. Do not shrink that room, and box at most three terms.
+- Pieces the slide does not discuss can get class `dim` (grey).
+
+Under the formula, one panel per boxed term, in the same left-to-right order. Each panel starts with the **name of its term as a title** (`<p class="pt">`), then one or two short lines that say what the term does. A line joins each term to its panel.
 
 ```html
-<div class="eq" style="font-size:60px"><p>Attention(Q, K, V) = softmax(</p><div class="tcol"><p class="tl">Scores</p><div class="term"><p>QKᵀ</p></div></div><p>/</p><div class="tcol"><p class="tl">Scaling</p><div class="term"><p>√d</p><p class="sb">k</p></div></div><p>) V</p></div>
-<div class="cols" style="font-size:46px;flex:none;height:300px">
-  <div class="panel" style="flex:1"><p class="bd">One score for every pair of words</p><p>Each query times each key</p></div>
-  <div class="panel" style="flex:1"><p class="bd">Keeps the scores small</p><p>Large dot products leave softmax with <span class="em">very small gradients</span></p></div>
+<div class="eq" style="font-size:68px"><p>Attention(Q, K, V) = softmax(</p><div class="term"><div class="pc"><p>QK</p><p class="sp">T</p></div></div><p>/</p><div class="term"><div class="pc"><p>√d</p><p class="sb">k</p></div></div><p>) V</p></div>
+<div class="cols" style="font-size:48px;flex:none">
+  <div class="panel" style="flex:1"><p class="pt">Scores</p><p>Each query times each key</p><p>One score per pair of words</p></div>
+  <div class="panel" style="flex:1"><p class="pt">Scaling</p><p>Keeps the scores small</p><p>Large scores give softmax<br><span class="em">very small gradients</span></p></div>
 </div>
-<div class="txt" style="font-size:54px">
+<div class="txt" style="font-size:60px">
   <div class="grp"><ul class="bl"><li>softmax turns the scores into weights</li><li>Multiplying by V gives the weighted sum of the values</li></ul></div>
 </div>
-<x-connector x1="1247" y1="357" x2="511" y2="459" head="none" style="color:#222222;border-width:3px"></x-connector>
-<x-connector x1="1435" y1="357" x2="1410" y2="459" head="none" style="color:#222222;border-width:3px"></x-connector>
+<x-connector x1="1275" y1="332" x2="511" y2="385" route="vh" head="none" style="color:#222222;border-width:4px"></x-connector>
+<x-connector x1="511" y1="385" x2="511" y2="438" head="none" style="color:#222222;border-width:4px"></x-connector>
+<x-connector x1="1516" y1="332" x2="1516" y2="438" head="none" style="color:#222222;border-width:4px"></x-connector>
 ```
 
-The two connectors are children of the slide itself, so their coordinates are slide coordinates. Write the slide without them first, then get the numbers:
+The connectors are children of the slide itself, so their coordinates are slide coordinates. Write the slide without them first, then get the numbers:
 
 ```bash
 node scripts/check_layout.js <deck_root> --where ".term, .cols .panel"
 ```
 
-Each line runs from the `bottom-mid` of a term to the `top-mid` of its panel. Change the formula or its size and the numbers change: measure again. `.cols` stretches to the bottom of the slide unless it is given `flex:none` and a height, as here, to leave room for the text below.
+A line leaves the `bottom-mid` of its term and goes straight down into its panel when the term stands above that panel (the second term here). When it does not, the line goes down, across and down in right angles to the `top-mid` of the panel: one connector with `route="vh"` to a point halfway between formula and panels, and a second one straight down from there (the first term here). No diagonal lines. Change the formula, its size or the font and the numbers change: measure again.
 
-A short formula with no terms to single out is the same row without `.term` and without panels, followed by a `.txt` that explains it.
+`.cols` takes the height its panels need when it has `flex:none`, which leaves room for the text below. When a term has no panel, put its name above it instead: `<div class="tcol"><p class="tl">Scores</p><div class="term">…</div></div>`.
+
+A short formula with no terms to single out is the same row without `.term` and without panels, followed by a `.txt` that explains it. A formula that needs fractions, sums or matrices is cropped from the paper as a picture; its terms are then marked with `.ring box` outlines placed around them with a margin, never across a symbol.
 
 ## Flow of steps (`.flow`)
 
-One `.flow` row of up to four `.card` boxes with an arrow between them. In each box: a head row (`.hd`) with the step number in a circle and the name of the step in bold, then one to three short lines (what data it uses, what it produces). The step being evaluated gets `class="card key"`. The flow must explain itself; do not add a paragraph under it.
+One `.flow` row of up to four `.card` boxes with a block arrow between them. In each box: a head row (`.hd`) with the step number in a circle and the name of the step, then one to three short lines (what data it uses, what it produces). The name is set larger than the lines by the stylesheet, so keep it to one or two words. The step being evaluated gets `class="card key"`. The flow must explain itself; do not add a paragraph under it.
 
-Set the text size once, inline on `.flow`; `check_layout.js` prints the largest size that fits (32 to 48px), so the boxes fill the slide. Keep every line in a box short: one fact per line, and a line may wrap once at most. Three boxes hold longer lines than four. A slide that holds only a flow gets `class="c mid"` on its section.
+A slide that holds only a flow gets `class="c mid"` on its section, and the flow then has to use the height: tall boxes with large text, not a strip with empty bands above and below. Set the text size once, inline on `.flow`; `check_layout.js` prints the largest size that fits (32 to 56px) and names the line that stops the text from growing. Shorten that line or break it in two with `<br>`: one fact per line, at most about 14 characters where there are three boxes, and a line may wrap once at most. Three boxes hold larger text than four.
+
+The arrow between two boxes is a block arrow, `<x-shape kind="arrow-right" class="arw"></x-shape>`, not a typed "→", which is too thin to see.
 
 ```html
-<div class="flow" style="font-size:48px">
-  <div class="card"><div class="hd"><p class="circ">1</p><p class="bd">Data</p></div><p>WMT 2014</p><p>English–German:<br>4.5M sentence pairs</p><p>English–French:<br>36M sentences</p></div>
-  <p class="arrow">→</p>
+<div class="flow" style="font-size:54px">
+  <div class="card"><div class="hd"><p class="circ">1</p><p class="bd">Data</p></div><p>WMT 2014</p><p>English–German<br>4.5M pairs</p><p>English–French<br>36M pairs</p></div>
+  <x-shape kind="arrow-right" class="arw"></x-shape>
   <div class="card"><div class="hd"><p class="circ">2</p><p class="bd">Train</p></div><p>8 P100 GPUs</p><p>Base: 12 hours</p><p>Big: 3.5 days</p></div>
-  <p class="arrow">→</p>
-  <div class="card key"><div class="hd"><p class="circ">3</p><p class="bd">Test and compare</p></div><p>newstest2014, BLEU</p><p>Against GNMT, ConvS2S,</p><p>ByteNet and MoE</p></div>
+  <x-shape kind="arrow-right" class="arw"></x-shape>
+  <div class="card key"><div class="hd"><p class="circ">3</p><p class="bd">Test</p></div><p>newstest2014</p><p>Scored by BLEU</p><p>Against GNMT,<br>ConvS2S, MoE</p></div>
 </div>
 ```
 
@@ -314,8 +329,8 @@ For content that is "this leads to that": cases and their outcomes, causes and e
 <div class="split">
   <div class="fig" style="width:560px;height:373px"><img src="/_blob/PHOTO" alt="Sunlight reflected by a window" style="width:560px;height:373px"></div>
   <div class="dia" style="font-size:40px">
-    <div class="card"><p>Brightness stays high</p></div><p class="arrow">→</p><p class="bd">Glare</p>
-    <div class="card"><p>Brightness keeps changing</p></div><p class="arrow">→</p><p class="bd">Flicker</p>
+    <div class="card"><p>Brightness stays high</p></div><x-shape kind="arrow-right" class="arw"></x-shape><p class="bd">Glare</p>
+    <div class="card"><p>Brightness keeps changing</p></div><x-shape kind="arrow-right" class="arw"></x-shape><p class="bd">Flicker</p>
   </div>
 </div>
 ```

@@ -18,7 +18,7 @@ The same paper, *Attention Is All You Need*, turned into slides by Claude twice.
 
 **It reads like a deck a careful person would make.** The slides follow one line of reasoning, from the background and the problem through the method to the results, and each slide picks up where the last one stopped. One message per slide. Titles name the topic in a few words ("Problem", "Positional Encoding", "Training Cost"), and the slides of each part of the method carry that part's name above the title. Bullets have two levels that mean something: the point, then its detail; steps in order are numbered. Text sits beside or above the figure it explains, and every slide names its source.
 
-**It is easy to read from the back of the room.** Text is set as large as the slide allows, 36 to 54px, and figures as large as they stay sharp. A script measures every slide and tells Claude the exact size that fits, so a short text block never floats in an empty column and nothing overflows.
+**It is easy to read from the back of the room.** Text is set as large as the slide allows, 36 to 60px, and figures as large as they stay sharp. A script measures every slide and tells Claude the exact size that fits, so a short text block never floats in an empty column and nothing overflows.
 
 **It is easy to edit afterwards.** A slide is plain text and a visual, not a layout of nested boxes, so you can retitle, reword or cut a line in Claude Slides, PowerPoint or Google Slides without breaking the page. Diagrams are real boxes, arrows and text, not pictures, also in the PowerPoint file. The whole look is a handful of variables in one stylesheet.
 
