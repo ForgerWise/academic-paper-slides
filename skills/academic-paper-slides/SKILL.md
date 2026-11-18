@@ -256,7 +256,7 @@ Slides draws `<x-connector>` itself; the script draws the same lines for its scr
    - Tables: grid lines visible, at most one highlighted row, the key column not wrapped.
    - Figures: sharp. When a diagram is explained in parts, the part is ringed and the figure keeps its size and place from slide to slide.
    - Formulas: centered, with the text below, or above and below.
-   - Emphasis: at most two red phrases on a slide, bold only on sub-headings.
+   - Emphasis: at most three red phrases on a slide, bold only on sub-headings.
    - Layout: text is left or on top, figures right or below.
    - Visuals: almost every slide has one, it explains the text above it, and it fills the space under the text. A diagram's arrows start and end on the boxes and icons they join.
    - Lines: no line ends in a single word, no table cell or box wraps for one word, nothing touches or covers its neighbour. Look hardest at the text you enlarged.
