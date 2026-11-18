@@ -6,6 +6,8 @@
 //   - for every .txt block: how much of its available height it fills, its current
 //     font size, and the largest size between --min and --max that still fits
 //   - rule breaks that are mechanical: wrapped title, over-long title name, nested <ul>
+//   - layout slips that enlarging text causes: a line that wraps for one last word, blocks that
+//     overlap, content that runs off the side of the slide
 // Exit code 0 = clean, 1 = something to fix, 2 = could not run.
 //
 // <deck_root> is the folder that contains project/deck.json.
@@ -96,8 +98,51 @@ function measure(cfg) {
     const others = flow.filter((k) => k !== txt).reduce((a, k) => a + k.getBoundingClientRect().height, 0);
     return inner - others - px(cs.rowGap) * Math.max(0, flow.length - 1);
   };
-  const tooWide = (txt) => [txt, ...txt.querySelectorAll('ul,li,p,div,table')]
-    .some((el) => el.scrollWidth > el.clientWidth + 1);
+  // The lines of a paragraph as lists of words. A word that breaks across lines counts on each line
+  const CJK = '\\u3040-\\u30ff\\u3400-\\u4dbf\\u4e00-\\u9fff\\uac00-\\ud7af';
+  const TOKEN = new RegExp(`[${CJK}]|[^\\s${CJK}]+`, 'g');
+  const linesOf = (el) => {
+    const pieces = [];
+    const w = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+    let t;
+    while ((t = w.nextNode())) {
+      if (t.parentElement.closest('ul, ol, table, aside') !== el.closest('ul, ol, table, aside')) continue;
+      let m;
+      TOKEN.lastIndex = 0;
+      while ((m = TOKEN.exec(t.textContent))) {
+        const rg = document.createRange();
+        rg.setStart(t, m.index); rg.setEnd(t, m.index + m[0].length);
+        for (const r of rg.getClientRects()) if (r.width > 0) pieces.push({ text: m[0], mid: (r.top + r.bottom) / 2, left: r.left, right: r.right, h: r.height });
+      }
+    }
+    pieces.sort((a, b) => a.mid - b.mid || a.left - b.left);
+    const lines = [];
+    for (const q of pieces) {
+      const last = lines[lines.length - 1];
+      if (last && Math.abs(q.mid - last.mid) < 0.5 * Math.max(q.h, last.h)) last.words.push(q);
+      else lines.push({ mid: q.mid, h: q.h, words: [q] });
+    }
+    return lines.map((l) => ({ n: l.words.length, text: l.words.map((x) => x.text).join(' '),
+      width: Math.max(...l.words.map((x) => x.right)) - Math.min(...l.words.map((x) => x.left)) }));
+  };
+  const cjkOnly = new RegExp(`^[${CJK}、。，．・\\s]+$`);
+  // Paragraphs under root whose last line holds one word (two characters in Chinese or Japanese)
+  const orphans = (root) => [...root.querySelectorAll('p, li, h1, h2, h3, td, th')].filter((el) => !el.closest('aside, .cite')).map((el) => {
+    const ls = linesOf(el);
+    if (ls.length < 2) return null;
+    const last = ls[ls.length - 1];
+    const few = cjkOnly.test(last.text) ? last.n <= 2 : last.n === 1;
+    if (!few || last.width >= 0.34 * Math.max(...ls.map((l) => l.width))) return null;
+    const all = ls.map((l) => l.text).join(' ');
+    return { el, word: last.text, line: all.length > 48 ? all.slice(0, 45) + '...' : all };
+  }).filter(Boolean);
+  const WIDER = 'give the line more width (narrow the figure beside it, widen the column or the box) or shorten the wording';
+  // A formula has its own size and its own flag, so it does not count here
+  const tooWide = (txt) => {
+    const eqWide = [...txt.querySelectorAll('.eq')].some((el) => el.scrollWidth > el.clientWidth + 1);
+    return [...(eqWide ? [] : [txt]), ...txt.querySelectorAll('ul,li,p,div,table')]
+      .some((el) => !el.classList.contains('eq') && !(eqWide && el.querySelector('.eq')) && el.scrollWidth > el.clientWidth + 1);
+  };
 
   return [...document.querySelectorAll('body > section')].map((sec, i) => {
     const sr = sec.getBoundingClientRect();
@@ -149,20 +194,67 @@ function measure(cfg) {
       const cur = Math.round(px(getComputedStyle(flow).fontSize));
       const avail = available(flow);
       const keep = flow.style.fontSize;
-      let best = null;
-      for (let s = 48; s >= 32; s -= 2) {
+      let fit = null, best = null;
+      const fits = (s) => {
         flow.style.fontSize = s + 'px';
         // too wide for its box, or a line that wraps more than once
         const wide = [...flow.querySelectorAll('.card, .card p')].some((el) => el.scrollWidth > el.clientWidth + 1)
           || [...flow.querySelectorAll('.card p')].some((el) => el.getBoundingClientRect().height > 2.4 * px(getComputedStyle(el).lineHeight));
-        if (flow.getBoundingClientRect().height <= avail * cfg.safety && !wide) { best = s; break; }
+        return flow.getBoundingClientRect().height <= avail * cfg.safety && !wide;
+      };
+      for (let s = 48; s >= 32; s -= 2) if (fits(s)) { fit = s; break; }
+      // Prefer a size, up to 6px smaller, at which no line ends in a single word
+      if (fit !== null) {
+        best = fit;
+        for (let s = fit; s >= Math.max(32, fit - 6); s -= 2) if (fits(s) && !orphans(flow).length) { best = s; break; }
       }
+      flow.style.fontSize = (best || cur) + 'px';
+      const cleanAtBest = best !== null && !orphans(flow).length;
       flow.style.fontSize = keep;
+      const lone = orphans(flow);
       out.txt.push({ cur, best, fill: Math.round(flow.getBoundingClientRect().height / avail * 100), fillBest: null });
       if (best === null) out.flags.push('FLOW TOO LONG: at 32px a line still wraps more than once or the boxes do not fit. Shorten the lines or use fewer boxes');
-      else if (cur > best) out.flags.push(`FLOW TOO BIG at ${cur}px: set .flow font-size:${best}px`);
-      else if (best - cur >= cfg.step) out.flags.push(`GROW: set .flow font-size:${best}px (now ${cur}px)`);
+      else if (cur > fit) out.flags.push(`FLOW TOO BIG at ${cur}px: set .flow font-size:${best}px`);
+      else if (lone.length && cleanAtBest && best !== cur) out.flags.push(`ORPHAN: "${lone[0].word}" stands alone on the last line of "${lone[0].line}": set .flow font-size:${best}px, or shorten the wording`);
+      else if (lone.length) lone.forEach((o) => out.flags.push(`ORPHAN: "${o.word}" stands alone on the last line of "${o.line}": shorten the wording, or use fewer or wider boxes`));
+      else if (best - cur >= cfg.step && (cleanAtBest || best - cur > 8)) out.flags.push(`GROW: set .flow font-size:${best}px (now ${cur}px)`);
     });
+
+    // A line that wraps for one last word, outside the blocks that are sized above and below (those report their own)
+    orphans(sec).filter((o) => !o.el.closest('.txt, .flow')).forEach((o) =>
+      out.flags.push(`ORPHAN: "${o.word}" stands alone on the last line of "${o.line}": ${WIDER}`));
+
+    // Blocks that overlap, or that run off the side of the slide
+    if (!out.cover) {
+      const blocks = [...sec.querySelectorAll('.txt, .fig, table, .flow, .dia, .cite, .ttl')]
+        .filter((el) => !el.parentElement.closest('.txt, .fig, table, .flow, .dia') && el.getBoundingClientRect().height > 0);
+      const name = (el) => el.tagName === 'TABLE' ? 'the table' : 'the .' + el.classList[0] + ' block';
+      for (let a = 0; a < blocks.length; a++) {
+        const ra = blocks[a].getBoundingClientRect();
+        if (ra.left - sr.left < -0.5 || ra.right - sr.left > 1920.5) out.flags.push(`OFF THE SLIDE: ${name(blocks[a])} runs past the side edge`);
+        for (let b = a + 1; b < blocks.length; b++) {
+          const rb = blocks[b].getBoundingClientRect();
+          const w = Math.min(ra.right, rb.right) - Math.max(ra.left, rb.left);
+          const h = Math.min(ra.bottom, rb.bottom) - Math.max(ra.top, rb.top);
+          if (w > 4 && h > 4) out.flags.push(`OVERLAP: ${name(blocks[a])} and ${name(blocks[b])} cover each other by ${Math.round(w)} x ${Math.round(h)}px`);
+        }
+      }
+      sec.querySelectorAll('.card, td, th').forEach((el) => {
+        if (el.scrollWidth > el.clientWidth + 1) out.flags.push(`OVERFLOW: text is wider than its ${el.classList.contains('card') ? 'box' : 'table cell'} ("${el.textContent.trim().slice(0, 30)}")`);
+      });
+      // A formula stays on one line
+      sec.querySelectorAll('.eq').forEach((el) => {
+        if (el.scrollWidth <= el.clientWidth + 1) return;
+        const cur = px(getComputedStyle(el).fontSize);
+        const fit = Math.floor(cur * el.clientWidth / el.scrollWidth * 0.98 / 2) * 2;
+        out.flags.push(fit >= 36
+          ? `FORMULA too wide at ${Math.round(cur)}px: set style="font-size:${fit}px" on .eq`
+          : 'FORMULA too wide even at 36px: crop it from the paper as a picture, or show only the part the slide is about');
+      });
+      // A template that requires its logo says so in deck.css: section { --logo: required }
+      if (getComputedStyle(sec).getPropertyValue('--logo').trim() === 'required' && !sec.querySelector('img.logo'))
+        out.flags.push('LOGO missing: every content slide starts with <img class="logo"> and has class "lg" (assets/logo.png)');
+    }
 
     const ems = [...sec.querySelectorAll('.em')].filter((e) => !e.closest(CHROME));
     if (ems.length > 2) out.flags.push(`EMPHASIS: ${ems.length} red phrases on one slide; keep at most two`);
@@ -181,20 +273,29 @@ function measure(cfg) {
       const avail = available(txt);
       const fillNow = contentHeight(txt) / avail;
       const keep = txt.style.fontSize;
-      let best = null, fillBest = null;
-      for (let s = cfg.max; s >= cfg.min; s -= 2) {
-        txt.style.fontSize = s + 'px';
-        const h = contentHeight(txt);
-        if (h <= avail * cfg.safety && !tooWide(txt)) { best = s; fillBest = h / avail; break; }
+      let fit = null, best = null, fillBest = null;
+      const fits = (s) => { txt.style.fontSize = s + 'px'; return contentHeight(txt) <= avail * cfg.safety && !tooWide(txt); };
+      for (let s = cfg.max; s >= cfg.min; s -= 2) if (fits(s)) { fit = s; break; }
+      const fillFit = fit !== null ? contentHeight(txt) / avail : null;   // how full the block can get
+      // Prefer a size, up to 6px smaller, at which no line ends in a single word
+      let cleanAtBest = false;
+      if (fit !== null) {
+        best = fit;
+        for (let s = fit; s >= Math.max(cfg.min, fit - 6); s -= 2) if (fits(s) && !orphans(txt).length) { best = s; cleanAtBest = true; break; }
+        txt.style.fontSize = best + 'px';
+        fillBest = contentHeight(txt) / avail;
       }
       txt.style.fontSize = keep;
+      const lone = orphans(txt);
       const t = { cur, best, fill: Math.round(fillNow * 100), fillBest: best ? Math.round(fillBest * 100) : null };
       out.txt.push(t);
       if (best === null) out.flags.push(`TEXT TOO LONG: does not fit even at ${cfg.min}px. Move detail to the notes or split the slide`);
-      else if (cur > best) out.flags.push(`TEXT TOO BIG at ${cur}px (fits at ${best}px). Prefer cutting text; otherwise set font-size:${best}px`);
-      else if (best - cur >= cfg.step) out.flags.push(`GROW: set .txt font-size:${best}px (now ${cur}px, fill ${t.fill}% -> ${t.fillBest}%)`);
-      if (best !== null && cur <= best && fillBest < (txt.parentElement === sec ? cfg.lowFillSolo : cfg.lowFill))
-        out.flags.push(`UNDERFILL: only ${t.fillBest}% even at ${best}px. Rebalance the layout (see "Fill the slide", step 5)`);
+      else if (cur > fit) out.flags.push(`TEXT TOO BIG at ${cur}px (fits at ${best}px). Prefer cutting text; otherwise set font-size:${best}px`);
+      else if (lone.length && cleanAtBest && best !== cur) out.flags.push(`ORPHAN: "${lone[0].word}" stands alone on the last line of "${lone[0].line}": set .txt font-size:${best}px (no line then ends in a single word), or ${WIDER}`);
+      else if (lone.length) lone.forEach((o) => out.flags.push(`ORPHAN: "${o.word}" stands alone on the last line of "${o.line}": ${WIDER}`));
+      else if (best - cur >= cfg.step && (cleanAtBest || best - cur > 8)) out.flags.push(`GROW: set .txt font-size:${best}px (now ${cur}px, fill ${t.fill}% -> ${t.fillBest}%)`);
+      if (best !== null && cur <= best && fillFit < (txt.parentElement === sec ? cfg.lowFillSolo : cfg.lowFill))
+        out.flags.push(`UNDERFILL: only ${Math.round(fillFit * 100)}% even at ${fit}px. Rebalance the layout (see "Fill the slide", step 5)`);
     });
     return out;
   });

@@ -59,7 +59,7 @@ skills/academic-paper-slides/
   SKILL.md                          the rules and the workflow
   assets/deck.css                   stylesheet; theme = five variables at the top
   references/patterns.md            HTML for every slide kind
-  scripts/check_layout.js           fill, fit and overflow check
+  scripts/check_layout.js           fill, fit, overflow and line-break check
   scripts/check_notes.py            read-aloud lint and timing
   scripts/export_pptx.js            editable PowerPoint export
 examples/attention/                 the paper above as two decks: with the skill, and Claude's default style

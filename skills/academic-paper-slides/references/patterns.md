@@ -15,6 +15,7 @@ Each slide is one file, `project/slides/<id>.html`, holding exactly one `<sectio
 - Text only
 - Problem slide
 - Related-work table
+- Small diagram (`.dia`)
 - Experiment-setup flow
 - Logo and theme
 
@@ -168,6 +169,22 @@ Columns: approach, one-line description, then one column per comparison axis. Ma
 ```
 
 A `text-align` on one cell applies to its whole column. Only the header row is bold. Grid lines are drawn by the Slides type itself and by the PowerPoint export, so add no border rules. `class="hl"` gives a row the highlight fill: use it in any table to stress one row, at most one row per table.
+
+## Small diagram (`.dia`)
+
+For content that is "this leads to that": cases and their outcomes, causes and effects, inputs and what the model makes of them. Each row is a box, an arrow and the outcome in bold. It can stand beside a picture in a `.split`, or alone. Use it instead of a numbered list that would describe the same rows in sentences.
+
+```html
+<div class="split">
+  <div class="fig" style="width:560px;height:373px"><img src="/_blob/PHOTO" alt="Sunlight reflected by a window" style="width:560px;height:373px"></div>
+  <div class="dia" style="font-size:40px">
+    <div class="card"><p>Brightness stays high</p></div><p class="arrow">→</p><p class="bd">Glare</p>
+    <div class="card"><p>Brightness keeps changing</p></div><p class="arrow">→</p><p class="bd">Flicker</p>
+  </div>
+</div>
+```
+
+Here the picture is on the left because the diagram reads from it. Two to four rows; a few words per box.
 
 ## Experiment-setup flow
 

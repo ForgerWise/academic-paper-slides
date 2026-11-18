@@ -45,7 +45,7 @@ section.lg .ttl { left: 190px; width: 1536px; }
 .k { font-weight: 700; }                 /* bold lead-in such as "Result" */
 .goal { font-size: 64px; font-weight: 700; color: var(--accent); line-height: 1.25; padding-top: 36px; }  /* last line of the Problem slide: the largest text in the body */
 .em { color: var(--em); }                /* use at most twice on a slide */
-.eq { font-size: 60px; text-align: center; padding: 6px 0px 14px 0px; }   /* a formula, centered across the slide */
+.eq { font-size: 60px; text-align: center; white-space: nowrap; padding: 6px 0px 14px 0px; }   /* a formula, centered across the slide, on one line; a long one gets a smaller inline size */
 
 /* Layouts. .txt must be a direct child of section.c, .split or .stack */
 .split { display: flex; flex: 1; gap: 50px; align-items: center; min-height: 0; }  /* text left, figure right */
@@ -71,6 +71,11 @@ section.lg .ttl { left: 190px; width: 1536px; }
 .card { flex: 1; background: #FFFFFF; border: 2px solid var(--ink); border-radius: 16px; padding: 22px 24px; display: flex; flex-direction: column; gap: 10px; }
 .card.key { border: 4px solid var(--ink); }
 .arrow { align-self: center; font-size: 48px; }
+
+/* Small diagram: rows of "box, arrow, outcome" in a three-column grid. ONE font-size, set inline on .dia */
+.dia { display: grid; grid-template-columns: 1fr auto auto; gap: 24px 22px; align-items: center; font-size: 40px; flex: 1; }
+.dia .card { flex: none; text-align: center; justify-content: center; }
+.dia .arrow { font-size: 1.2em; }
 
 /* Small helpers */
 .s44 { font-size: 44px; } .s40 { font-size: 40px; } .s36 { font-size: 36px; } .s32 { font-size: 32px; } .s28 { font-size: 28px; } .s24 { font-size: 24px; }

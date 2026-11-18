@@ -95,7 +95,18 @@ A 15-minute talk is 15 to 17 slides. Scale with the talk length at about one sli
 - No cross-slide references such as "(p. 7)" or "see slide 4".
 - Every number on a slide can be found in the paper. Mark invented example values "values are illustrative".
 - Detail cut from a slide goes into its notes, not into smaller type.
-- Every content slide ends with a source line (`.cite`): "Source: Author et al., Venue Year, Sec. 3" or "Figure: Author et al., Venue Year, Fig. 4; orange ring added by presenter". A table you compiled says "Table compiled by presenter".
+- Show the shape of the content. Before you write a list, ask what shape the content has, and draw that shape instead of describing it line by line:
+  - steps or a pipeline (input → model → output, train → test) → a flow of boxes
+  - the same properties of several things → a table
+  - one thing that splits into cases, or causes and their effects → boxes joined by arrows (`.dia`)
+  - a formula → the formula itself, with its terms named under it
+  - a comparison of numbers → the paper's chart or table, with the key value marked
+
+  A figure, a table or a flow is read in seconds; three numbered sentences that describe the same thing are not. Keep a numbered list for content that has no such shape. Diagrams stay plain: white boxes with a thin border, arrows, a few words in each box. The notes carry the explanation.
+- Pictures from outside the paper. When a picture the paper does not have would make a slide clearer (a photo of the device or the place, the scene of the problem), look on the web for one that may be reused: public domain or CC0, CC BY or CC BY-SA (Wikimedia Commons, Openverse, agencies such as NASA), or a site whose license allows reuse (Unsplash, Pexels). Read the license on the picture's own page, not in a search result, and credit the picture in the source line: "Photo: Author, CC BY 4.0, via Wikimedia Commons". Do not use a picture whose license you cannot find, and never one that only decorates. If nothing reusable turns up, build the slide without it and say so when you deliver.
+- Sources.
+  - Someone else's paper: every content slide ends with a source line (`.cite`): "Source: Author et al., Venue Year, Sec. 3" or "Figure: Author et al., Venue Year, Fig. 4; orange ring added by presenter". A table you compiled says "Table compiled by presenter".
+  - Your own paper (the presenter is an author): its text, figures, tables and results carry no source line and no citation. The cover already says whose work it is. A source line appears only on a slide that shows something from elsewhere: another paper's method, result or figure, a statistic, a picture from the web.
 
 ## 4. Speaker notes
 
@@ -154,7 +165,7 @@ Use both kinds sparingly. A slide where everything is stressed stresses nothing.
 
 **Formulas**
 
-- One formula per slide, centered across the slide (`.eq`), never beside a figure.
+- One formula per slide, centered across the slide (`.eq`), on one line, never beside a figure. A long formula gets a smaller size inline on `.eq` (the check names it, not under 36px).
 - When the slide is about the formula, the formula comes first and the text below explains it. When the formula supports a point, the point stands above it and the explanation of its terms below.
 - A formula that needs fractions, sums or matrices is cropped from the paper as a picture and centered the same way.
 
@@ -173,14 +184,14 @@ Use both kinds sparingly. A slide where everything is stressed stresses nothing.
 - The goal line of the problem slide is the largest text in the body: 64px, bold, on one line if it can be.
 - Body text as large as fits: 36 to 54px. Tables 36 to 44px. Flow boxes as large as fits: 32 to 48px, so that the flow fills the slide instead of sitting in a strip at the top. Nothing under 24px.
 - Figures as large as they stay sharp: at most about 1.3× their native pixel size. A figure that cannot be read is left out and replaced by text.
-- Mark the important part of a figure with a ring (`.ring`, or `.ring.box` around a block) or a numbered badge (`.badge`), and say so in the source line.
+- Mark the important part of a figure with a ring (`.ring`, or `.ring.box` around a block) or a numbered badge (`.badge`), and say so in the source line when the slide has one.
 - A diagram that is explained in parts gets one slide per part: the same figure on every slide, with the part under discussion ringed. These slides are one topic continued, so they share a title and a running number.
 - Tables: grid lines drawn, white bold header, no zebra fill. To stress one row (this paper, the best result), give that row the highlight fill; at most one row per table. Size the columns so the key column does not wrap.
 
 **Canvas**
 
 - 1920 × 1080. Content area: x 91 to 1829, y 221 to 990 (1738 × 769).
-- Nothing may end below y 990. The source line sits at y 1030 in 24px.
+- Nothing may end below y 990. The source line, when there is one, sits at y 1030 in 24px.
 
 ## 6. Fill the slide
 
@@ -198,7 +209,10 @@ The usual failure is a short text block at a cautious size, floating in a tall c
    - `FLOW TOO BIG` or `FLOW TOO LONG`: set the size it names, or shorten the lines in the boxes. A line in a box may wrap once at most.
    - `UNDERFILL`: the text is lost even at 54px. Go to step 5.
    - `UNDERUSED`: a table leaves the lower part of the slide empty. Enlarge its text within the size limits, or put a `.txt` block above it that says what it compares.
-   - `TITLE`, `NESTED`, `LIST outside .txt`, `NUMBERED`, `EMPHASIS`, `BOLD`: fix the slide as the message says.
+   - `ORPHAN`: a line wraps for its last word alone. This is what enlarged text does to a layout. Set the size the message names if it names one. Otherwise give the line more width (narrow the figure beside it, widen the column of the table or the box) or shorten the wording. Do not leave it.
+   - `FORMULA too wide`: set the size it names on `.eq`.
+   - `OVERLAP`, `OFF THE SLIDE`, `OVERFLOW: text is wider than its box`: a block grew into its neighbour or out of its box. Give it room or make its text shorter or smaller.
+   - `TITLE`, `NESTED`, `LIST outside .txt`, `NUMBERED`, `EMPHASIS`, `BOLD`, `LOGO`: fix the slide as the message says.
    - `Note:` about titles that are a kind plus a number: name each slide by its topic.
 5. **Rebalance an underfilled slide**, first option that applies:
    1. The figure can still grow within step 2: enlarge it, which narrows the text column and makes the text taller.
@@ -206,6 +220,7 @@ The usual failure is a short text block at a cautious size, floating in a tall c
    3. Bring back one second-level detail from the notes that helps the audience read the figure. Never add filler.
    4. The message is complete as it is: accept it. One short statement at 54px, centered beside a large figure, is a good slide.
 6. Run again until it prints `Layout clean.` The target is a text block that fills 75 to 96% of its available height.
+7. **Check last, every time.** Any later change (a size, a width, a word, a new slide, a fix the user asked for) can break a line or push a block. After the last change of all, run the check once more and look at the screenshots of that run. A deck is finished only when its final state has been checked, not an earlier one.
 
 The script renders with local fonts, which differ slightly from the deck's fonts, so it keeps a 4% margin and ignores gains under 4px. Pictures in `project/img/` are shown; uploaded pictures appear as empty boxes locally, which is expected. If Playwright is not available, say so, size by the rules above, and check the published deck by eye.
 
@@ -227,9 +242,12 @@ The script renders with local fonts, which differ slightly from the deck's fonts
    - Formulas: centered, with the text below, or above and below.
    - Emphasis: at most two red phrases on a slide, bold only on sub-headings.
    - Layout: text is left or on top, figures right or below.
+   - Lines: no line ends in a single word, no table cell or box wraps for one word, nothing touches or covers its neighbour. Look hardest at the text you enlarged.
+   - Shape: a slide that lists steps, cases or properties as sentences is redrawn as a flow, a diagram or a table.
 7. If subagents are available, have one that has not seen your work check the deck against the paper (numbers, figure numbers, claims) and against these rules. Reviewers make mistakes too: verify each finding in the paper before changing anything.
 8. For PowerPoint or Google Slides, export with `export_pptx.js` and look at the result (section 0).
-9. Deliver in one sentence, plus the inputs that are still missing (date, logo, presenter).
+9. Whatever you changed in steps 6 to 8, finish with section 6 step 7: one more run of `check_layout.js` and one more look at its screenshots.
+10. Deliver in one sentence, plus the inputs that are still missing (date, presenter).
 
 ## 8. Working with the user
 

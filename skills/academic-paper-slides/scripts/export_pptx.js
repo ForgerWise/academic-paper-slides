@@ -139,7 +139,8 @@ function extract() {
               return;
             }
             walk(n, { bold: bold(cs), italic: cs.fontStyle === 'italic',
-              underline: cs.textDecorationLine.includes('underline'), color: hex(cs.color) });
+              underline: cs.textDecorationLine.includes('underline'), color: hex(cs.color),
+              sub: n.tagName === 'SUB' || !!st.sub, sup: n.tagName === 'SUP' || !!st.sup });
           }
         });
       };
@@ -334,6 +335,8 @@ function extract() {
         const o = { fontFace: font, fontSize: PT(p.size), bold: !!r.bold, italic: !!r.italic,
           color: r.color || s.ink, align: p.align, lineSpacing: PT(p.line), paraSpaceBefore: PT(p.before || 0) };
         if (r.underline) o.underline = { style: 'sng' };
+        if (r.sub) o.subscript = true;
+        if (r.sup) o.superscript = true;
         if (r.brk) o.softBreakBefore = true;
         if (p.bullet) {
           o.bullet = p.number ? { type: 'number', style: 'arabicPeriod', numberStartAt: p.number, indent: PT(p.indent || 64) }
