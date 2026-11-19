@@ -194,7 +194,7 @@ function measure(cfg) {
     const out = { n: i + 1, id: sec.id, cover: sec.classList.contains('cover'), flags: [], notes: [], txt: [] };
 
     let top = Infinity, bottom = 0;
-    sec.querySelectorAll('p,li,img,table,h1,h2,h3,svg,x-shape,.fig,.card,.node,.panel,.host').forEach((el) => {
+    sec.querySelectorAll('p,li,img,table,h1,h2,h3,svg,x-shape,.fig,.card,.node,.panel,.host,.ph').forEach((el) => {
       if (el.closest(CHROME)) return;
       const r = el.getBoundingClientRect();
       if (!r.width || !r.height) return;
@@ -291,7 +291,7 @@ function measure(cfg) {
       else if (best - cur >= cfg.step && (cleanAtBest || best - cur > 8)) out.flags.push(`GROW: set .flow font-size:${best}px (now ${cur}px)`);
       if (stop && best !== null && cur <= fit) out.notes.push(`the flow stops at ${fit}px because of the line "${stop}". A shorter line there lets the text of every box grow (up to ${FLOW_MAX}px)`);
       // A flow alone on its slide with empty bands above and below it
-      const alone = !sec.querySelector('.txt, table, .fig, .host');
+      const alone = !sec.querySelector('table, .fig, .host');
       const fill = flow.getBoundingClientRect().height / avail;
       if (alone && best !== null && cur >= best - 2 && fill < 0.62) {
         out.flags.push(stop
@@ -348,6 +348,16 @@ function measure(cfg) {
             return r.right > tr.left - 6 && r.left < tr.right + 6;
           });
           if (near) out.flags.push(`FORMULA: the outline around "${tm.textContent.trim().slice(0, 16)}" touches "${near.textContent.trim().slice(0, 12)}". Keep the gap of .eq and the padding of .term as deck.css sets them, or make the formula smaller`);
+          // The text in a box stays on the baseline of the pieces outside it
+          const plain = (q) => !/\b(sb|sp|tl)\b/.test(q.className);
+          const base = [...tm.querySelectorAll('p')].find(plain);
+          const eq = tm.closest('.eq');
+          const ref = base && [...eq.querySelectorAll('p')].find((q) => plain(q) && !q.closest('.term')
+            && Math.abs(px(getComputedStyle(q).fontSize) - px(getComputedStyle(base).fontSize)) < 0.5);
+          if (ref) {
+            const lift = ref.getBoundingClientRect().bottom - base.getBoundingClientRect().bottom;
+            if (Math.abs(lift) > 2) out.flags.push(`FORMULA: the text in the box around "${tm.textContent.trim().slice(0, 16)}" sits ${Math.round(Math.abs(lift))}px ${lift > 0 ? 'higher' : 'lower'} than the rest of the formula. The box's padding and border must not move it: give .term a negative bottom margin equal to its bottom padding plus its border, as deck.css does`);
+          }
         });
       }
       // A template that requires its logo says so in deck.css: section { --logo: required }
@@ -355,6 +365,30 @@ function measure(cfg) {
         out.flags.push('LOGO missing: every content slide starts with <img class="logo"> (assets/logo.png)');
     }
 
+    // Every visual has a line of text that says what it shows. A flow of steps is a visual like any other
+    if (!out.cover) {
+      const before = (a, b) => !!(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING);
+      const lead = [...sec.querySelectorAll('.txt, .goal')];
+      sec.querySelectorAll('.flow').forEach((fl) => {
+        if (!lead.some((t) => before(t, fl))) out.flags.push('TEXT: the flow has no text above it. Put one or two short lines in a .txt block above the flow that say what it shows (what is tested and how). A slide is never a title and a flow alone');
+      });
+      const vis = sec.querySelector('.host, .fig, table, .dia, .ph');
+      if (vis && !sec.querySelector('.flow') && !sec.querySelector('.txt, .goal, .cols'))
+        out.flags.push('TEXT: the slide shows a visual with no line of text. Put one or two short lines above it that say what to look for');
+    }
+    // Abbreviations on this slide, and whether the slide explains them: "CFD (…)", "(… CFD …)" or "CFD: …"
+    {
+      const clone = sec.cloneNode(true);
+      clone.querySelectorAll('aside, .cite, .pnum, .logo').forEach((e) => e.remove());
+      clone.querySelectorAll('br').forEach((e) => e.replaceWith(' '));
+      clone.querySelectorAll('p, li, td, th, h1, h2, h3, div').forEach((e) => e.append(' '));
+      const text = clone.textContent.replace(/\s+/g, ' ');
+      const found = text.match(/\b(?:[A-Z]{2,}[a-z0-9]*|[A-Z][a-z]+[A-Z0-9][A-Za-z0-9]*|[A-Z]+[0-9]+[A-Za-z0-9]*)\b/g) || [];
+      out.abbr = [...new Set(found)].map((tok) => {
+        const e = tok.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        return { tok, defined: new RegExp(e + '(?:\\s+[\\w.-]+){0,2}\\s*[\\(（:：]|[\\(（][^\\)）]*' + e).test(text) };
+      });
+    }
     const ems = [...sec.querySelectorAll('.em')].filter((e) => !e.closest(CHROME));
     if (ems.length > 3) out.flags.push(`EMPHASIS: ${ems.length} red phrases on one slide; keep at most three`);
     if (ems.some((e) => e.textContent.trim().split(/\s+/).length > 6)) out.flags.push('EMPHASIS: a red phrase is longer than six words; stress only the key number or phrase');
@@ -414,7 +448,7 @@ function measure(cfg) {
         });
       } catch (e) { out.where = []; }
     }
-    out.visual = !!sec.querySelector('img:not(.logo), table, .flow, .dia, .host, .eq, svg:not(.xconn)');
+    out.visual = !!sec.querySelector('img:not(.logo), table, .flow, .dia, .host, .eq, .ph, svg:not(.xconn)');
     return out;
   });
 }
@@ -466,6 +500,18 @@ function measure(cfg) {
   } else if (plain.length) {
     console.log(`\nNote: text-only slides: ${plain.map((r) => r.id).join(', ')}. Check that none of them would be clearer as a diagram, a table or a figure.`);
   }
+  // Abbreviations whose first appearance in the deck has no explanation on that slide
+  const seen = new Set(), unexplained = [];
+  for (const r of rows) {
+    if (r.cover) continue;
+    for (const a of r.abbr || []) {
+      const key = a.tok.replace(/s$/, '');
+      if (seen.has(key)) continue;
+      seen.add(key);
+      if (!a.defined) unexplained.push(`${a.tok} (slide ${r.n})`);
+    }
+  }
+  if (unexplained.length) console.log(`\nNote: first shown without an explanation on the slide: ${unexplained.slice(0, 16).join(', ')}${unexplained.length > 16 ? ', ...' : ''}. Explain an abbreviation in a few words where the audience first sees it, on the slide and not only in the notes, unless every listener knows it.`);
   console.log(bad ? `\n${bad} thing(s) to fix. Fix them and run again.` : '\nLayout clean.');
 
   // "Method 1", "Method 2": a label with only a number says nothing about the slide

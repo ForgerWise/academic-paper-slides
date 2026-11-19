@@ -19,6 +19,7 @@ The examples come from one talk (`examples/attention/` in the repository), so th
 - Formula with named terms
 - Flow of steps (`.flow`)
 - Rows of "box, arrow, outcome" (`.dia`)
+- Placeholder for a picture or video the presenter supplies
 - Tables
 - A value written on a chart
 - Sources
@@ -47,7 +48,7 @@ The examples come from one talk (`examples/attention/` in the repository), so th
 <div class="tbar"><h2 class="ttl">Architecture</h2><p class="circ">2</p></div>
 ```
 
-- A slide that holds only a diagram or a flow gets `class="c mid"`, which puts it in the vertical middle.
+- Every visual has one or two lines of text above it (a `.txt` block) that say what it shows. A slide is never a title and a flow, or a title and a diagram, alone.
 - The source line is there on every content slide when the paper is someone else's, and only where something comes from elsewhere when the paper is the presenter's own (see "Sources").
 
 ## Cover
@@ -141,6 +142,8 @@ The text beside a figure uses the height of the figure: it starts near the top o
 
 `.ring` and `.badge` are positioned in % of the figure box. To mark a block of a diagram, use a box instead of an ellipse: `<x-shape kind="rounded" class="ring box" style="left:9%;top:35%;width:40%;height:39%"></x-shape>`. When a diagram is explained over several slides, repeat the figure at the same size and move only the ring. A badge holds its number as text: `<div class="badge" style="left:12%;top:40%">1</div>`.
 
+A ring never crosses the figure's own text (panel titles, labels, legends, axis labels). Make it larger rather than tighter: leave a clear margin around everything it encloses, and let it reach a little beyond the figure if it must (`left:-2%;width:101%`). When the part includes a panel's title, ring the whole panel with the title inside. When the gaps between the items of a figure are too narrow for any ring to pass without crossing text, add white space between the items in a copy of the figure first: find a row or column of pixels that only straight lines cross and repeat it (layout only, never the data), then ring the part and say so in the source line ("spacing widened and orange box added by presenter"). After placing a ring, look at the figure at full size in the screenshot.
+
 ## Text on top, figure below (`.stack`), pictures side by side (`.row`)
 
 For figures 1.8 : 1 or wider. The figure height is what the text leaves: `769 − text height − 24`.
@@ -162,6 +165,8 @@ Several pictures of the same kind (three test sites, two views) stand in a `.row
   <!-- the other sites -->
 </div>
 ```
+
+A large architecture or pipeline figure gets as much of the slide as it can: a `.stack` with one short line of text above it and the figure at the largest size that stays sharp. Crop away the paper's own panel letters and figure headings ("(b) Simulator architecture") unless the text of the slide refers to them.
 
 ## Problem slide
 
@@ -273,6 +278,7 @@ The formula must be easy to read before anything is added to it: one line, large
 - Every piece is a `<p>`: `<p>Attention(Q, K, V) = softmax(</p>`. The row keeps a gap between pieces, so write an operator as its own piece.
 - A symbol with a subscript or a superscript is a group, `<div class="pc">`, holding the symbol and then `<p class="sb">` (subscript) or `<p class="sp">` (superscript): `<div class="pc"><p>d</p><p class="sb">k</p></div>`. Do not type the characters ᵀ or ₖ in a formula: fonts draw them badly.
 - A term the slide explains is boxed: `<div class="term">…</div>`. It holds pieces and groups like the row itself, and it has room inside, so its outline never touches or covers a character. Do not shrink that room, and box at most three terms.
+- The text in a box stays on the baseline of the pieces outside it. The stylesheet does this with a negative bottom margin on `.term` equal to its bottom padding plus its border; if you change one, change the other. In the screenshot every character of the formula stands on one line.
 - Pieces the slide does not discuss can get class `dim` (grey).
 
 Under the formula, one panel per boxed term, in the same left-to-right order. Each panel starts with the **name of its term as a title** (`<p class="pt">`), then one or two short lines that say what the term does. A line joins each term to its panel.
@@ -286,9 +292,9 @@ Under the formula, one panel per boxed term, in the same left-to-right order. Ea
 <div class="txt" style="font-size:60px">
   <div class="grp"><ul class="bl"><li>softmax turns the scores into weights</li><li>Multiplying by V gives the weighted sum of the values</li></ul></div>
 </div>
-<x-connector x1="1275" y1="332" x2="511" y2="385" route="vh" head="none" style="color:#222222;border-width:4px"></x-connector>
-<x-connector x1="511" y1="385" x2="511" y2="438" head="none" style="color:#222222;border-width:4px"></x-connector>
-<x-connector x1="1516" y1="332" x2="1516" y2="438" head="none" style="color:#222222;border-width:4px"></x-connector>
+<x-connector x1="1275" y1="332" x2="511" y2="381" route="vh" head="none" style="color:#222222;border-width:4px"></x-connector>
+<x-connector x1="511" y1="381" x2="511" y2="430" head="none" style="color:#222222;border-width:4px"></x-connector>
+<x-connector x1="1516" y1="332" x2="1516" y2="430" head="none" style="color:#222222;border-width:4px"></x-connector>
 ```
 
 The connectors are children of the slide itself, so their coordinates are slide coordinates. Write the slide without them first, then get the numbers:
@@ -305,19 +311,22 @@ A short formula with no terms to single out is the same row without `.term` and 
 
 ## Flow of steps (`.flow`)
 
-One `.flow` row of up to four `.card` boxes with a block arrow between them. In each box: a head row (`.hd`) with the step number in a circle and the name of the step, then one to three short lines (what data it uses, what it produces). The name is set larger than the lines by the stylesheet, so keep it to one or two words. The step being evaluated gets `class="card key"`. The flow must explain itself; do not add a paragraph under it.
+One `.flow` row of up to four `.card` boxes with a block arrow between them. In each box: a head row (`.hd`) with the step number in a circle and the name of the step, then one to three short lines (what data it uses, what it produces). The name is set larger than the lines by the stylesheet, so keep it to one or two words. The step being evaluated gets `class="card key"`. The boxes must explain the steps themselves; do not add a paragraph under the flow.
 
-A slide that holds only a flow gets `class="c mid"` on its section, and the flow then has to use the height: tall boxes with large text, not a strip with empty bands above and below. Set the text size once, inline on `.flow`; `check_layout.js` prints the largest size that fits (32 to 56px) and names the line that stops the text from growing. Shorten that line or break it in two with `<br>`: one fact per line, at most about 14 characters where there are three boxes, and a line may wrap once at most. Three boxes hold larger text than four.
+A flow is a visual like any other: one or two short lines of text stand above it and say what the flow is (what is tested and how). Under them the flow has to use the height: tall boxes with large text, not a strip with empty space under it. Set the text size once, inline on `.flow`; `check_layout.js` prints the largest size that fits (32 to 56px) and names the line that stops the text from growing. Shorten that line or break it in two with `<br>`: one fact per line, at most about 14 characters where there are three boxes, and a line may wrap once at most. Three boxes hold larger text than four.
 
 The arrow between two boxes is a block arrow, `<x-shape kind="arrow-right" class="arw"></x-shape>`, not a typed "→", which is too thin to see.
 
 ```html
-<div class="flow" style="font-size:54px">
-  <div class="card"><div class="hd"><p class="circ">1</p><p class="bd">Data</p></div><p>WMT 2014</p><p>English–German<br>4.5M pairs</p><p>English–French<br>36M pairs</p></div>
+<div class="txt" style="font-size:54px">
+  <div class="grp"><ul class="bl"><li>Two translation tasks from WMT 2014 (public benchmark), scored with BLEU (higher is better)</li><li>Compared with the best earlier systems (GNMT, ConvS2S, MoE)</li></ul></div>
+</div>
+<div class="flow" style="font-size:50px">
+  <div class="card"><div class="hd"><p class="circ">1</p><p class="bd">Data</p></div><p>English–German<br>4.5M pairs</p><p>English–French<br>36M pairs</p></div>
   <x-shape kind="arrow-right" class="arw"></x-shape>
-  <div class="card"><div class="hd"><p class="circ">2</p><p class="bd">Train</p></div><p>8 P100 GPUs</p><p>Base: 12 hours</p><p>Big: 3.5 days</p></div>
+  <div class="card"><div class="hd"><p class="circ">2</p><p class="bd">Train</p></div><p>8 GPUs (P100)</p><p>Base: 12 hours</p><p>Big: 3.5 days</p></div>
   <x-shape kind="arrow-right" class="arw"></x-shape>
-  <div class="card key"><div class="hd"><p class="circ">3</p><p class="bd">Test</p></div><p>newstest2014</p><p>Scored by BLEU</p><p>Against GNMT,<br>ConvS2S, MoE</p></div>
+  <div class="card key"><div class="hd"><p class="circ">3</p><p class="bd">Test</p></div><p>newstest2014</p><p>BLEU against<br>earlier systems</p></div>
 </div>
 ```
 
@@ -336,6 +345,27 @@ For content that is "this leads to that": cases and their outcomes, causes and e
 ```
 
 Here the picture is on the left because the diagram reads from it. Two to four rows; a few words per box.
+
+## Placeholder for a picture or video the presenter supplies
+
+When a slide needs a picture or a video that only the presenter can make (a demonstration of the system, a screenshot of results), leave a box of the final size that says what goes there. The box takes the place of the `.fig`: give it the width and height the picture will have.
+
+```html
+<div class="split">
+  <div class="txt" style="font-size:52px"><!-- two-level bullets --></div>
+  <div class="ph" style="width:900px;height:506px"><p class="bd">Video: the simulator running one flight</p><p>Side view, 10 to 15 s, 16:9, at least 1280 × 720</p></div>
+</div>
+```
+
+When you deliver, list every placeholder for the user in plain text, one item per slide:
+
+```
+Slide 9 "Simulator Demo" (required): video of the simulator running one flight. Side view of the drone and the canopy,
+  10 to 15 s, MP4, 16:9, at least 1280 x 720.
+Slide 12 "Field Test" (optional): photo of the drone over the field, taken from the ground, JPG or PNG, at least 1600 px wide.
+```
+
+A demonstration shot under settings other than the paper's experiments says so in its caption on the slide: `<p class="figcap">0.5 m above the canopy (demonstration)</p>`.
 
 ## Tables
 

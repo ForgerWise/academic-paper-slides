@@ -3,22 +3,24 @@
 <div class="rule"></div>
 <div class="pnum"></div>
 <div class="stack">
-<div class="txt" style="font-size:58px">
+<div class="txt" style="font-size:48px">
   <div class="grp">
     <ul class="bl"><li>Tests a different task: English constituency parsing</li></ul>
-    <ul class="bl sub"><li>A 4-layer Transformer, almost unchanged from translation</li></ul>
+    <ul class="bl sub"><li>4-layer Transformer; data: WSJ (Wall Street Journal treebank); score: F1</li></ul>
   </div>
   <div class="grp">
-    <ul class="bl"><li><span class="k">Result</span></li></ul>
-    <ul class="bl sub"><li>Close to the best with WSJ data only, <span class="em">ahead</span> with extra data</li></ul>
+    <ul class="bl"><li>WSJ only: close to the best earlier result</li></ul>
+  </div>
+  <div class="grp">
+    <ul class="bl"><li>Semi-supervised: <span class="em">above</span> the earlier semi-supervised results</li></ul>
   </div>
 </div>
-<table class="tb roomy" style="font-size:44px">
-<tr class="h"><th style="width:50%">Training data (WSJ section 23, F1)</th><th class="ctr">Transformer</th><th class="ctr">Best earlier result</th></tr>
+<table class="tb" style="font-size:44px">
+<tr class="h"><th style="width:50%">Training data (WSJ section 23, F1)</th><th class="ctr">Transformer</th><th class="ctr">Best earlier, same setting</th></tr>
 <tr><td>WSJ only</td><td class="ctr">91.3</td><td class="ctr">91.7</td></tr>
 <tr class="hl"><td>Semi-supervised</td><td class="ctr">92.7</td><td class="ctr">92.1</td></tr>
 </table>
 </div>
 <p class="cite">Table: Vaswani et al., NIPS 2017, Table 4 (best earlier result in each setting), Sec. 6.3</p>
-<aside>[≤ 12:28] Does the model only work for translation? The authors tested a very different task, English constituency parsing. Here the output is a tree structure and it is much longer than the input. They used a Transformer with four layers and did very little tuning. Trained only on the Wall Street Journal data, it reaches an F1 score of 91.3, a little under the best earlier result. With extra semi-supervised data it reaches 92.7, above the earlier semi-supervised results. So the architecture carries over to another task.</aside>
+<aside>[≤ 12:13] Does the model only work for translation? The authors tested a very different task, English constituency parsing. Here the output is a tree structure and it is much longer than the input. They used a Transformer with four layers and did very little tuning. Trained only on the Wall Street Journal data, it reaches an F1 score of 91.3, a little under the best earlier result. With extra semi-supervised data it reaches 92.7, above the earlier semi-supervised results. So the architecture carries over to another task.</aside>
 </section>

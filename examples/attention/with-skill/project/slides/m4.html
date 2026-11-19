@@ -17,11 +17,11 @@
     <ul class="bl sub"><li>Relative positions are easy to learn</li><li>May extend to longer sentences</li></ul>
   </div>
 </div>
-<div class="fig" style="width:516px;height:760px">
-  <img src="/project/img/fig1-architecture.png" alt="Fig. 1 of the paper: the Transformer architecture, encoder on the left and decoder on the right" style="width:516px;height:760px;object-fit:contain">
-  <x-shape kind="rounded" class="ring box" style="left:0%;top:73%;width:100%;height:8.5%"></x-shape>
+<div class="fig" style="width:485px;height:760px">
+  <img src="/project/img/fig1-architecture-spaced.png" alt="Fig. 1 of the paper: the Transformer architecture, encoder on the left and decoder on the right" style="width:485px;height:760px;object-fit:contain">
+  <x-shape kind="rounded" class="ring box" style="left:-2.0%;top:71.1%;width:101.4%;height:7.6%"></x-shape>
 </div>
 </div>
-<p class="cite">Figure: Vaswani et al., NIPS 2017, Fig. 1, Sec. 3.5; orange box added by presenter</p>
+<p class="cite">Figure: Vaswani et al., NIPS 2017, Fig. 1, Sec. 3.5; spacing widened and orange box added by presenter</p>
 <aside>[≤ 8:23] Part C. One thing is still missing. Attention treats the sentence as a set, so the model has no idea about word order. The authors fix this at the input, and the orange box in the figure shows where. They add a position vector to every word embedding. The position vector is built from sine and cosine waves with many different frequencies. Why waves and not a learned table? With waves, a shift by a fixed number of words is a linear function of the encoding, so relative positions should be easy to learn. And waves may also work for sentences longer than any sentence in the training data.</aside>
 </section>

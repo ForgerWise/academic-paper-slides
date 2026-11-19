@@ -18,7 +18,7 @@ section {
 
 /* Content slide: content area is x 91-1829, y 221-990 (1738 x 769) */
 section.c { padding: 221px 91px 90px 91px; display: flex; flex-direction: column; gap: 24px; }
-section.c.mid { justify-content: center; }   /* a slide that holds only a diagram or a flow: it sits in the vertical middle and uses most of the height */
+section.c.mid { justify-content: center; }   /* content that does not reach the bottom sits in the vertical middle */
 
 /* Title bar: optional section label, title, rule, page number */
 .ttl { position: absolute; left: 91px; top: 58px; width: 1635px; font-size: 72px; font-weight: 700; color: var(--accent); line-height: 1.2; white-space: nowrap; }
@@ -70,7 +70,9 @@ section.lg .tbar { left: 190px; width: 1536px; }
 .eq .dim { color: #7F7F7F; }             /* the parts of the formula the slide does not talk about */
 .tcol { display: flex; flex-direction: column; align-items: center; gap: 4px; }   /* a boxed term with its name above it, when no panel below names it */
 .eq .tl { font-size: 0.6em; font-weight: 700; color: var(--accent); line-height: 1.2; }
-.term { display: flex; align-items: flex-end; gap: 0.2em; box-sizing: border-box; border: 4px solid var(--accent); border-radius: 18px; padding: 0.06em 0.32em; }
+.term { display: flex; align-items: flex-end; gap: 0.2em; box-sizing: border-box; border: 4px solid var(--accent); border-radius: 18px; padding: 4px 0.32em; margin-bottom: -8px; }
+/* margin-bottom = -(bottom padding + border): the box hangs below the line by that much, so the text
+   inside it stays on the baseline of the unboxed pieces. Change the padding or the border and change it too */
 
 /* Layouts. .txt must be a direct child of section.c, .split or .stack */
 .split { display: flex; flex: 1; gap: 50px; align-items: center; min-height: 0; }
@@ -86,6 +88,9 @@ section.lg .tbar { left: 190px; width: 1536px; }
 .ring.red { border-color: var(--em); }   /* a second colour, when the text names two areas of one picture */
 .badge { position: absolute; width: 60px; height: 60px; box-sizing: border-box; border-radius: 30px; background: var(--mark); border: 3px solid #FFFFFF; color: #FFFFFF; font-size: 32px; font-weight: 700; line-height: 54px; text-align: center; }
 .figcap { font-size: 30px; text-align: center; line-height: 1.25; }
+/* Placeholder for a picture or video only the presenter can supply: a sized box that says what goes there */
+.ph { flex: none; box-sizing: border-box; border: 4px dashed #7F7F7F; background: #F2F2F2; display: flex; flex-direction: column; justify-content: center; gap: 8px; padding: 24px; }
+.ph p { font-size: 34px; line-height: 1.3; text-align: center; color: #595959; }
 .note { position: absolute; font-size: 34px; font-weight: 700; color: var(--em); line-height: 1.2; white-space: nowrap; }   /* a value written on a chart, such as "+76%" */
 
 /* Diagram drawn on the slide: a host of fixed size holding boxes, icons, labels and connectors.
@@ -111,10 +116,11 @@ section.lg .tbar { left: 190px; width: 1536px; }
 .tb.roomy th, .tb.roomy td { padding: 0.7em 0.6em; }   /* taller rows, when a short table would leave the slide half empty */
 
 /* Flow of boxes. ONE font-size, set inline on .flow; check_layout.js fits it (32 to 56px).
+   One or two lines of text (.txt) stand above the flow and say what it shows.
    The boxes are tall: room above and below the lines, and a step's name larger than its lines.
    Between two boxes sits a block arrow: <x-shape kind="arrow-right" class="arw"></x-shape> */
 .flow { display: flex; gap: 20px; align-items: stretch; font-size: 44px; }
-section.c.mid > .flow { min-height: 500px; }   /* alone on its slide, a flow is never a low strip */
+section.c > .flow { min-height: 460px; }   /* under its line of text, a flow is never a low strip */
 .card { flex: 1; background: #FFFFFF; border: 3px solid var(--accent); border-radius: 22px; padding: 0.7em 0.6em 0.8em 0.6em; display: flex; flex-direction: column; gap: 0.32em; }
 .card.key { border: 6px solid var(--accent); }
 .card .hd { display: flex; align-items: center; gap: 0.3em; font-size: 1.3em; padding-bottom: 0.12em; }   /* a step's number and name: <div class="hd"><p class="circ">1</p><p class="bd">Train</p></div> */

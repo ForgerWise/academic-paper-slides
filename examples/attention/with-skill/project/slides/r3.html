@@ -5,11 +5,8 @@
 <div class="stack">
 <div class="txt" style="font-size:46px">
   <div class="grp">
-    <ul class="bl"><li>Changes one setting of the base model at a time</li></ul>
-  </div>
-  <div class="grp">
-    <ul class="bl"><li><span class="k">Result</span></li></ul>
-    <ul class="bl sub"><li>The base settings are best; <span class="em">dropout</span> matters most</li></ul>
+    <ul class="bl"><li><span class="k">One setting of the base model changed at a time</span></li></ul>
+    <ul class="bl sub"><li>Too few or too many heads score lower; a bigger model scores higher</li><li><span class="em">Dropout</span> is very helpful: 1.2 BLEU lower without it</li></ul>
   </div>
 </div>
 <table class="tb" style="font-size:40px">
@@ -17,10 +14,10 @@
 <tr class="hl"><td>None (8 heads, dropout 0.1, sinusoids)</td><td class="ctr">25.8</td></tr>
 <tr><td>1 head</td><td class="ctr">24.9</td></tr>
 <tr><td>32 heads</td><td class="ctr">25.4</td></tr>
+<tr><td>Larger feed-forward layer (4096)</td><td class="ctr">26.2</td></tr>
 <tr><td>No dropout</td><td class="ctr">24.6</td></tr>
-<tr><td>Learned position embeddings</td><td class="ctr">25.7</td></tr>
 </table>
 </div>
-<p class="cite">Table: Vaswani et al., NIPS 2017, Table 3 rows (A), (D), (E), Sec. 6.2</p>
-<aside>[≤ 11:36] Which parts of the model matter? The authors changed one setting at a time and measured BLEU on the development set. The first row is the base model, with 25.8. Now look at the heads. One head is clearly worse than eight, but thirty-two heads is also worse, so more is not always better. Next, dropout. Without dropout the score falls by more than one point, the largest drop in this table. Last, the position vectors. A learned table gives almost the same score as the sine and cosine waves. So the choice of waves is not what makes the model work.</aside>
+<p class="cite">Table: Vaswani et al., NIPS 2017, Table 3 (five of twenty rows: base, A, C, D), Sec. 6.2</p>
+<aside>[≤ 11:36] Which parts of the model matter? The authors changed one setting at a time and measured BLEU on the development set. The first row is the base model, with 25.8. Look at the heads first. One head is clearly worse than eight, and thirty-two heads is also worse. A larger feed-forward layer scores higher, so a bigger model helps. Next, dropout. Without dropout the score falls by more than one point.</aside>
 </section>

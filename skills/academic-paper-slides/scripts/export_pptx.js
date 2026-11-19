@@ -1,6 +1,7 @@
 #!/usr/bin/env node
-// export_pptx.js <deck_root> <out.pptx> [--font "Arial"]
+// export_pptx.js <deck_root> <out.pptx> [--font "Arial"] [--no-notes]
 //
+// --no-notes leaves the speaker notes out of the file (a version to hand out).
 // --font lays the deck out again in that font before measuring it, so the file is correct where the
 // deck's own font is not installed (PowerPoint replaces a missing font and the lines break differently).
 //
@@ -35,8 +36,9 @@ const argv = process.argv.slice(2);
 const root = argv[0];
 const out = argv[1];
 const fontArg = argv.indexOf('--font') > 0 ? argv[argv.indexOf('--font') + 1] : null;
+const noNotes = argv.includes('--no-notes');
 if (!root || !out || !fs.existsSync(path.join(root, 'project', 'deck.json'))) {
-  console.error('usage: export_pptx.js <deck_root> <out.pptx> [--font "Arial"]');
+  console.error('usage: export_pptx.js <deck_root> <out.pptx> [--font "Arial"] [--no-notes]');
   process.exit(2);
 }
 const projectDir = path.resolve(root, 'project');
@@ -306,7 +308,7 @@ function extract() {
       if (el !== sec && r.w > 0 && r.h > 0) {
         const fill = hex(cs.backgroundColor), lw = px(cs.borderTopWidth);
         // A painted or outlined container: the boxes and panels of a diagram, a boxed term of a formula
-        if (lw > 0) items.push({ type: 'box', r, fill, line: hex(cs.borderTopColor), linePx: lw, radius: px(cs.borderTopLeftRadius) });
+        if (lw > 0) items.push({ type: 'box', r, fill, line: hex(cs.borderTopColor), linePx: lw, radius: px(cs.borderTopLeftRadius), dash: cs.borderTopStyle === 'dashed' });
         else if (fill) items.push({ type: 'rect', r, fill });
         // A box that centres its lines (a node or panel of a diagram) becomes ONE text box over its inside, anchored
         // in the middle. Its lines then stay centred when another font breaks them differently, and it is one box to edit.
@@ -435,7 +437,7 @@ function extract() {
         const r = { x: it.r.x + h, y: it.r.y + h, w: it.r.w - it.linePx, h: it.r.h - it.linePx };
         const round = it.radius > 1;
         slide.addShape(round ? 'roundRect' : 'rect', { ...box(r), fill: it.fill ? { color: it.fill } : { type: 'none' },
-          line: { color: it.line || s.ink, width: PT(it.linePx) },
+          line: { color: it.line || s.ink, width: PT(it.linePx), ...(it.dash ? { dashType: 'dash' } : {}) },
           ...(round ? { rectRadius: IN(Math.min(it.radius, Math.min(r.w, r.h) / 2)) } : {}) });
       } else if (it.type === 'conn') {
         // One line per leg; only the last leg carries the arrow head
@@ -512,7 +514,7 @@ function extract() {
           colW: it.rows[0].cells.map((c) => IN(c.w)), rowH: it.rows.map((row) => IN(row.h)) });
       }
     }
-    if (s.notes) slide.addNotes(s.notes);
+    if (s.notes && !noNotes) slide.addNotes(s.notes);
   }
 
   // pptxgenjs derives a bullet's indent from its level alone. Rewrite each bulleted paragraph's
@@ -563,7 +565,7 @@ function extract() {
     console.log('Note: bullet indents were left at the library defaults (' + e.message + ').');
   }
   fs.writeFileSync(path.resolve(out), data);
-  console.log(`Wrote ${out}: ${slides.length} slides.`);
+  console.log(`Wrote ${out}: ${slides.length} slides${noNotes ? ', without speaker notes' : ''}.`);
   const used = [...new Set(slides.map((s) => fontArg || s.font || 'Arial'))];
   const rare = used.filter((f) => !COMMON_FONTS.includes(f.toLowerCase()));
   if (rare.length && !fontArg) {
