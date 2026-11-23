@@ -1,7 +1,12 @@
 #!/usr/bin/env node
-// export_pptx.js <deck_root> <out.pptx> [--font "Arial"] [--no-notes]
+// export_pptx.js <deck_root> <out.pptx> [--font "Arial"] [--no-notes] [--margin 0.08]
 //
 // --no-notes leaves the speaker notes out of the file (a version to hand out).
+// --margin measures the deck with every character that much wider (in em), because PowerPoint sets text a
+//   little wider than the browser that measures it here, most of all Japanese, Chinese and Korean text. Nothing
+//   of it is written into the file: it only leaves room, so a line that fits here still fits there.
+//   Default: 0.08 when --font is given and the deck is mostly CJK text, otherwise 0. Use the same value
+//   in check_layout.js (it has the same option and the same default).
 // --font lays the deck out again in that font before measuring it, so the file is correct where the
 // deck's own font is not installed (PowerPoint replaces a missing font and the lines break differently).
 //
@@ -37,8 +42,32 @@ const root = argv[0];
 const out = argv[1];
 const fontArg = argv.indexOf('--font') > 0 ? argv[argv.indexOf('--font') + 1] : null;
 const noNotes = argv.includes('--no-notes');
+const marginArg = argv.indexOf('--margin') > 0 ? Number(argv[argv.indexOf('--margin') + 1]) : null;
+if (marginArg !== null && !(marginArg >= 0 && marginArg <= 0.3)) { console.error('--margin takes a number between 0 and 0.3 (em)'); process.exit(2); }
+
+// Runs inside the page. Share of CJK characters in the slides' text, and whether a font is really installed
+function probe(fontName) {
+  let cjk = 0, all = 0, kana = 0, hangul = 0;
+  document.querySelectorAll('body > section').forEach((sec) => {
+    const c = sec.cloneNode(true);
+    c.querySelectorAll('aside').forEach((e) => e.remove());
+    const t = c.textContent.replace(/\s+/g, '');
+    all += t.length;
+    cjk += (t.match(/[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uac00-\ud7af]/g) || []).length;
+    kana += (t.match(/[\u3040-\u30ff]/g) || []).length;
+    hangul += (t.match(/[\uac00-\ud7af]/g) || []).length;
+  });
+  let installed = true;
+  if (fontName) {
+    // A missing font falls back to the generic family, so the text is then exactly as wide as in that family
+    const ctx = document.createElement('canvas').getContext('2d');
+    const w = (f) => { ctx.font = '72px ' + f; return ctx.measureText('mmmmmmmmmmlli 0123456789 あいう日本語').width; };
+    installed = ['serif', 'sans-serif', 'monospace'].some((g) => w(`"${fontName}", ${g}`) !== w(g));
+  }
+  return { share: all ? cjk / all : 0, lang: kana ? 'ja-JP' : hangul ? 'ko-KR' : null, installed };
+}
 if (!root || !out || !fs.existsSync(path.join(root, 'project', 'deck.json'))) {
-  console.error('usage: export_pptx.js <deck_root> <out.pptx> [--font "Arial"] [--no-notes]');
+  console.error('usage: export_pptx.js <deck_root> <out.pptx> [--font "Arial"] [--no-notes] [--margin 0.08]');
   process.exit(2);
 }
 const projectDir = path.resolve(root, 'project');
@@ -358,13 +387,33 @@ function extract() {
   });
   await page.goto('http://deck.local/', { waitUntil: 'load' });
   await page.waitForTimeout(300);
+  const info = await page.evaluate(probe, fontSafe);
+  const margin = marginArg !== null ? marginArg : (fontSafe && info.share > 0.3 ? 0.08 : 0);
+  if (margin) {
+    // Wider characters while measuring only: PowerPoint needs a little more width for the same text
+    await page.evaluate((m) => {
+      const st = document.createElement('style');
+      st.textContent = `body > section, body > section * { letter-spacing: ${m}em !important }`;
+      document.head.appendChild(st);
+    }, margin);
+  }
   const slides = await page.evaluate(extract);
 
-  // Vector drawings are placed as pictures of themselves
+  // Vector drawings are placed as pictures of themselves. Everything else on the page is hidden for the picture:
+  // text that the slide paints over a drawing (the year and date on the cover badge) is exported as text boxes,
+  // and must not also be baked into the picture under them.
   const svgPng = {};
   for (const s of slides) for (const it of s.items) {
     if (it.type !== 'svg') continue;
-    const buf = await page.locator(`[data-xid="${it.xid}"]`).screenshot({ omitBackground: true });
+    const sel = `[data-xid="${it.xid}"]`;
+    await page.evaluate((q) => {
+      const st = document.createElement('style');
+      st.id = 'svg-alone';
+      st.textContent = `body, body * { visibility: hidden !important } ${q}, ${q} * { visibility: visible !important }`;
+      document.head.appendChild(st);
+    }, sel);
+    const buf = await page.locator(sel).screenshot({ omitBackground: true });
+    await page.evaluate(() => document.getElementById('svg-alone').remove());
     svgPng[it.xid] = 'image/png;base64,' + buf.toString('base64');
   }
   await browser.close();
@@ -503,8 +552,23 @@ function extract() {
         slide.addImage({ path: file, ...box(r) });
       } else if (it.type === 'table') {
         const line = { type: 'solid', pt: 1, color: 'A6A6A6' };   // grid lines, as Slides draws them
+        // A cell keeps the colour, bold and italic of the words inside it, and a <br> stays a line break
+        const cellText = (row, c) => {
+          const parts = [];
+          let brk = false;
+          for (const r of c.runs) {
+            if (r.text === '\n') { brk = true; continue; }
+            const o = { fontFace: font, fontSize: PT(it.size), bold: row.head || !!r.bold, italic: !!r.italic,
+              color: r.color || c.color || s.ink };
+            if (r.underline) o.underline = { style: 'sng' };
+            if (brk) o.softBreakBefore = true;
+            parts.push({ text: r.text, options: o });
+            brk = false;
+          }
+          return parts.length ? parts : '';
+        };
         const rows = it.rows.map((row) => row.cells.map((c) => ({
-          text: c.runs.map((r) => r.text).join(''),
+          text: cellText(row, c),
           options: { fontFace: font, fontSize: PT(it.size), bold: row.head || c.bold, color: c.color || s.ink,
             align: c.align, valign: 'middle', margin: [PT(c.padY), PT(c.padX), PT(c.padY), PT(c.padX)],
             fill: row.fill && row.fill !== s.bg ? { color: row.fill } : undefined,
@@ -559,13 +623,31 @@ function extract() {
         }));
       }
     }
-    if (ok) data = await zip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE' });
-    else console.log('Note: bullet indents were left at the library defaults (unexpected file layout).');
+    if (!ok) console.log('Note: bullet indents were left at the library defaults (unexpected file layout).');
+    // East Asian text: say on every paragraph, table cells included, that a line must not start with 、 or 。
+    // (eaLnBrk), that such marks may hang past the edge (hangingPunct) and that Latin words stay whole. Table
+    // cells do not inherit these from the presentation. Japanese and Korean text is also marked as such.
+    for (const name of Object.keys(zip.files).filter((n) => /^ppt\/slides\/slide\d+\.xml$/.test(n))) {
+      let xml = await zip.file(name).async('string');
+      xml = xml.replace(/<a:pPr\b([^>]*?)(\/?)>/g, (m, attrs, slash) => (/eaLnBrk=/.test(attrs) ? m
+        : `<a:pPr${attrs} eaLnBrk="1" latinLnBrk="0" hangingPunct="1"${slash}>`));
+      if (info.lang) {
+        const cs = info.lang === 'ja-JP' ? '-128' : '-127';
+        xml = xml.replace(/(<a:(?:rPr|endParaRPr)\b[^>]*?)lang="en-US"/g, `$1lang="${info.lang}" altLang="en-US"`)
+          .replace(/(<a:ea typeface="[^"]*")( pitchFamily="\d+")? charset="-122"\/>/g, `$1 pitchFamily="50" charset="${cs}"/>`);
+      }
+      zip.file(name, xml);
+    }
+    data = await zip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE' });
   } catch (e) {
     console.log('Note: bullet indents were left at the library defaults (' + e.message + ').');
   }
   fs.writeFileSync(path.resolve(out), data);
   console.log(`Wrote ${out}: ${slides.length} slides${noNotes ? ', without speaker notes' : ''}.`);
+  if (margin) console.log(`Measured with a width margin of ${margin} em per character (--margin), so that lines which fit here still fit in PowerPoint.`);
+  if (fontSafe && !info.installed) console.log(`Note: the font "${fontSafe}" is not installed on this machine, so the layout was measured with another font. `
+    + 'Lines can break differently in the real file: export on a machine that has the font, or open the file in PowerPoint and look at every slide.');
+  console.log('Before delivery, render this file with PowerPoint or LibreOffice and look at every slide: line breaks in the real file can differ from the ones measured here.');
   const used = [...new Set(slides.map((s) => fontArg || s.font || 'Arial'))];
   const rare = used.filter((f) => !COMMON_FONTS.includes(f.toLowerCase()));
   if (rare.length && !fontArg) {

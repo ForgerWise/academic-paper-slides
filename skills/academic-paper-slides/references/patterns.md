@@ -392,7 +392,7 @@ Related work as a comparison (approach, one column per axis; the row for this pa
 </div>
 ```
 
-A `text-align` on one cell applies to its whole column. Only the header row is bold. Grid lines are drawn by the Slides type itself and by the PowerPoint export, so add no border rules. `class="hl"` fills the one row to stress; `class="em"` on its cells makes them red. `class="tb roomy"` gives taller rows to a table of four rows or fewer. Set column widths with `style="width:46%"` on header cells so the key column does not wrap. Marks in a comparison table (✓ yes, △ under conditions, ✗ no) are explained in the source line.
+A `text-align` on one cell applies to its whole column. Only the header row is bold. To stress a value, colour the whole cell: `em` on the `<td>`. A phrase inside a cell (`<span class="em">`) is one colour with its cell in Claude Slides; the PowerPoint export keeps it red, but do not rely on it. In a cell with Chinese, Japanese or Korean text, do not leave the line break to the program: where a cell needs two lines, break it yourself with `<br>` at a sensible place, and keep the other cells to one line by giving their column enough width. The export also tells PowerPoint not to start a line with 、 or 。 in a cell. Grid lines are drawn by the Slides type itself and by the PowerPoint export, so add no border rules. `class="hl"` fills the one row to stress; `class="em"` on its cells makes them red. `class="tb roomy"` gives taller rows to a table of four rows or fewer. Set column widths with `style="width:46%"` on header cells so the key column does not wrap. Marks in a comparison table (✓ yes, △ under conditions, ✗ no) are explained in the source line.
 
 ## A value written on a chart
 

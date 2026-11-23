@@ -36,12 +36,29 @@ The deck is always the same set of files: `project/deck.json`, `project/deck.css
 - **Claude Slides artifact** (default when the Slides artifact type is available and the user named no format): create the deck from that type and follow its own instructions for the index file, uploads and publishing. Pictures are uploaded and referenced by the URL the type returns. The artifact itself exports to PowerPoint and PDF.
 - **PowerPoint (.pptx)** (the user asks for PowerPoint or a file, or there is no Slides type here, for example in a terminal agent): write the same files into a local folder `<deck_root>/project/`. The index is just `{"title": "...", "order": ["cover", "problem", ...]}`. Put pictures in `project/img/` and reference them as `src="/project/img/<name>.png"`. Run both checks, then export:
   ```bash
-  node scripts/export_pptx.js <deck_root> <name>.pptx
+  node scripts/check_layout.js <deck_root> --font "Arial"
+  node scripts/export_pptx.js <deck_root> <name>.pptx --font "Arial"
   ```
-  The result is editable, not pictures of slides: each `.txt` block is one text box with real two-level bullets, tables are PowerPoint tables, flow boxes, the boxes and arrows of a diagram, rings and circled numbers are shapes, the notes are speaker notes.
+  `--font` names the font the file is opened with, in both commands (Arial for English, Meiryo or Yu Gothic for Japanese on Windows). The result is editable, not pictures of slides: each `.txt` block is one text box with real two-level bullets, tables are PowerPoint tables, flow boxes, the boxes and arrows of a diagram, rings and circled numbers are shapes, the notes are speaker notes.
 - **Google Slides**: export the PowerPoint file as above. If a Google Drive tool that can convert on upload is connected, upload it as a Google Slides presentation and give the link. Otherwise deliver the .pptx and tell the user to upload it to Drive and open it with Google Slides.
 
-For PowerPoint and Google Slides, set the font in `deck.css` to one that exists where the file will be opened, because a substituted font changes the line breaks: Arial for Latin text; for Chinese, Japanese or Korean, a Noto Sans family for Google Slides, or ask which system the user presents on. If LibreOffice is available, convert the .pptx to PDF and look at the pages before delivering.
+For PowerPoint and Google Slides, name a font that exists where the file will be opened (`--font`, or the font in `deck.css`), because a substituted font changes the line breaks: Arial for Latin text; for Chinese, Japanese or Korean, a Noto Sans family for Google Slides, Meiryo or Yu Gothic for PowerPoint on Windows, or ask which system the user presents on.
+
+**PowerPoint sets text wider than the browser that measures it here**, most of all Japanese, Chinese and Korean text, so a line that just fits in the check can wrap onto an extra line in the real file, sometimes in the middle of a word. Two things guard against it, and both are required:
+
+1. The width margin. With `--font` on a deck that is mostly Chinese, Japanese or Korean, `check_layout.js` and `export_pptx.js` measure every character 0.08 em wider (`--margin 0.08`; set another value, or `--margin 0`, in both commands alike). Sizes the check accepts or suggests then leave about 8% of the line free. Nothing of the margin is written into the file. For a Latin deck the default is 0; give `--margin 0.03` when lines wrap in the real file.
+2. A look at the real file. **A PowerPoint deck is not delivered before it has been rendered by PowerPoint or LibreOffice and every slide has been looked at**: a clean `check_layout.js` does not show how PowerPoint breaks the lines. If the font named by `--font` is not installed on the machine that runs the scripts, both scripts say so, and this look is the only check there is.
+   - LibreOffice: `soffice --headless --convert-to pdf <name>.pptx`, then `pdftoppm -r 80 -png <name>.pdf page` and read the pictures.
+   - Windows without LibreOffice: let PowerPoint itself write one PNG per slide, then read the pictures.
+     ```powershell
+     $ppt = New-Object -ComObject PowerPoint.Application
+     $deck = $ppt.Presentations.Open("C:\full\path\name.pptx", -1, 0, 0)   # read-only, untitled off, no window
+     $deck.Export("C:\full\path\png", "PNG", 1920, 1080)                    # Slide1.PNG, Slide2.PNG, ...
+     $deck.Close(); $ppt.Quit()
+     ```
+   - Neither at hand: say so when you deliver, and ask the user to page through the file once.
+
+   A line that wraps in the real file: shorten it or lower the size of its block, export again, look again.
 
 ## 1. Before you start
 
@@ -150,6 +167,7 @@ Also:
 - The first sentence of a slide's notes links it to the slide before ("This design has two problems"), so the talk is one story and not a list of slides.
 - Start each slide's notes with the time by which the presenter should reach it, for example `[≤ 7:45]`. It is the one non-spoken token allowed. Take the value from `check_notes.py`, do not estimate it.
 - Pace: 125 words per minute (150 for a native speaker), 260 characters per minute for Chinese, Japanese or Korean, 3 seconds per slide change. Leave one minute of buffer.
+- Sentence length: the check warns above 28 words, or above 60 characters in Chinese, Japanese and Korean, where it counts characters and splits at 。！？ (`--max-words`, `--max-chars`).
 - Notes are plain text, at most 4,000 characters per slide.
 
 Then run the check and fix every `E` line. Read every `W` line and fix it unless it is a false alarm:
@@ -210,7 +228,7 @@ Use both kinds sparingly. A slide where everything is stressed stresses nothing.
 - Figures cropped from the paper lose the paper's own panel letters and figure headings that mean nothing on the slide ("(b) Simulator architecture", "(c)", "(d)"), unless the text of the slide refers to them.
 - A large architecture or pipeline figure gets as much of the slide as it can: one short line of text above it, and the figure at the largest size that stays sharp.
 - A diagram that is explained in parts gets one slide per part: the same figure on every slide, with the part under discussion ringed. These slides are one topic continued, so they share a title and a running number.
-- Tables: grid lines drawn, grey bold header, no zebra fill. To stress one row (this paper, the best result), give that row the highlight fill and, if it helps, red text; at most one row per table. Size the columns so the key column does not wrap. A short table gets class `roomy` so that it does not leave the slide half empty.
+- Tables: grid lines drawn, grey bold header, no zebra fill. To stress one row (this paper, the best result), give that row the highlight fill and, if it helps, red text; at most one row per table. Size the columns so the key column does not wrap. A short table gets class `roomy` so that it does not leave the slide half empty. In a cell, colour the whole cell (`em` on the `<td>`), not a phrase inside it: Claude Slides shows a cell in one colour, and only the PowerPoint export keeps a red phrase. In a cell with Chinese, Japanese or Korean text, break lines yourself with `<br>` where the cell is too narrow for one line, so that no office program chooses the break.
 - Diagrams fill the space under the text: icons 160 to 220px, tall boxes with text of 44 to 52px, the lowest element ending near y 960. A diagram squeezed into a strip under the text reads as unfinished.
 - A box that explains something (a panel, a step of a flow) starts with a title that is larger than its lines. Panels in a row start their titles on one line.
 
@@ -288,7 +306,7 @@ Slides draws `<x-connector>` itself; the script draws the same lines for its scr
    - Lines: no line ends in a single word, no table cell or box wraps for one word, nothing touches or covers its neighbour. Look hardest at the text you enlarged.
    - Shape: a slide that lists steps, cases or properties as sentences is redrawn as a flow, a diagram or a table.
 7. If subagents are available, have one that has not seen your work check the deck against the paper (numbers, figure numbers, claims) and against these rules. Reviewers make mistakes too: verify each finding in the paper before changing anything.
-8. For PowerPoint or Google Slides, export with `export_pptx.js` and look at the result (section 0).
+8. For PowerPoint or Google Slides, export with `export_pptx.js`, render the file with PowerPoint or LibreOffice and look at every slide (section 0). This look is required, not optional: fix what wraps or overlaps there and export again.
 9. Whatever you changed in steps 6 to 8, finish with section 6 step 7: one more run of `check_layout.js` and one more look at its screenshots.
 10. Deliver in one sentence, plus the inputs that are still missing (date, presenter) and, when the deck has placeholders, the list of pictures and videos the user has to supply (section 3).
 

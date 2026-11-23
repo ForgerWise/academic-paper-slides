@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""check_notes.py <deck_root> [--minutes 15] [--wpm 125] [--cpm 260] [--turn 3] [--own]
+"""check_notes.py <deck_root> [--minutes 15] [--wpm 125] [--cpm 260] [--turn 3] [--own] [--max-words 28] [--max-chars 60]
 
 Checks the speaker notes (<aside>) of a Slides deck as a script that will be
 read aloud word for word, and prints the timing of every slide.
@@ -12,6 +12,8 @@ read aloud word for word, and prints the timing of every slide.
 --cpm      speaking rate in characters per minute for Chinese, Japanese and Korean
 --turn     seconds lost on every slide change
 --own      the presenter is an author of the paper, so "we propose" is fine
+--max-words  longest sentence, in words, before a warning (languages written with spaces)
+--max-chars  longest sentence, in characters, before a warning (Chinese, Japanese, Korean)
 
 <deck_root> is the folder that contains project/deck.json. Standard library only.
 Exit code 0 = no E findings, 1 = at least one E finding, 2 = could not run.
@@ -64,6 +66,38 @@ def words_and_chars(text):
     return latin, cjk
 
 
+# Sentence ends. Chinese, Japanese and Korean put no space after 。！？, and a closing bracket may follow the mark
+SENT_END = re.compile(r"(?<=[.!?])[\"'”’)\]]*\s+|(?<=[。．！？])[」』）】”’]*\s*|\n+")
+
+
+def sentences(text):
+    """Split notes into sentences, whatever the script."""
+    out, pos = [], 0
+    for m in SENT_END.finditer(text):
+        # the closing brackets belong to the sentence they close
+        end = m.start() + len(m.group(0).rstrip()) if m.group(0).strip() else m.start()
+        piece = text[pos:end].strip()
+        if piece:
+            out.append(piece)
+        pos = m.end()
+    tail = text[pos:].strip()
+    if tail:
+        out.append(tail)
+    return out
+
+
+def sentence_length(sent, max_words, max_chars):
+    """How long a sentence is to say, as a share of the limit, and how to name its length.
+    CJK characters are counted one by one; words written with spaces are counted as words."""
+    w, c = words_and_chars(sent)
+    load = w / max_words + c / max_chars
+    if c and c >= 2 * w:
+        return load, "%d characters" % (c + sum(len(x) for x in re.findall(r"[A-Za-z0-9]+", re.sub("[%s]" % CJK, " ", sent))))
+    if c:
+        return load, "%d words and %d characters" % (w, c)
+    return load, "%d words" % w
+
+
 def strip_tags(s):
     return re.sub(r"\s+", " ", html.unescape(re.sub(r"<[^>]+>", " ", s))).strip()
 
@@ -86,6 +120,8 @@ def main():
     ap.add_argument("--cpm", type=float, default=260)
     ap.add_argument("--turn", type=float, default=3)
     ap.add_argument("--own", action="store_true")
+    ap.add_argument("--max-words", type=float, default=28)
+    ap.add_argument("--max-chars", type=float, default=60)
     a = ap.parse_args()
 
     try:
@@ -95,6 +131,7 @@ def main():
         return 2
 
     elapsed, errors, warnings = 0.0, 0, 0
+    total_words, total_cjk = 0, 0
     print("#\tid\twords\ttalk\tstart-by")
     for n, sid in enumerate(deck.get("order", []), 1):
         if not re.fullmatch(r"[A-Za-z0-9_-]{1,64}", sid):
@@ -122,10 +159,10 @@ def main():
                 found.append(("W", "we-for-authors", "this is someone else's paper: say 'the authors'", snippet(notes, hit)))
 
         # Sentences that are hard to say or to follow by ear
-        for sent in re.split(r"(?<=[.!?。！？])\s+|\n+", notes):
-            w, c = words_and_chars(sent)
-            if w > 28 or c > 70:
-                found.append(("W", "long-sentence", "%d words: split it, one idea per sentence" % (w or c), sent[:60]))
+        for sent in sentences(notes):
+            load, size = sentence_length(sent, a.max_words, a.max_chars)
+            if load > 1:
+                found.append(("W", "long-sentence", "%s: split it, one idea per sentence" % size, sent[:60]))
             if len(re.findall(r"\d+(?:\.\d+)?", sent)) >= 4:
                 found.append(("W", "number-pile", "four or more numbers in one sentence are lost on a listener", sent[:60]))
 
@@ -140,6 +177,8 @@ def main():
             found.append(("W", "reads-the-slide", "%d slide lines are repeated word for word. Say them in your own words" % len(copied), copied[0][:60]))
 
         w, c = words_and_chars(notes)
+        total_words += w
+        total_cjk += c
         talk = w / a.wpm * 60 + c / a.cpm * 60
         if mark:
             claimed = int(mark.group(1)) * 60 + int(mark.group(2))
@@ -161,8 +200,10 @@ def main():
         limit = a.minutes * 60
         if total > limit - 60:
             errors += 1
-            print("E over-time: %s leaves less than a minute of buffer in a %g-minute talk. Cut %d words."
-                  % (clock(total), a.minutes, int((total - (limit - 60)) / 60 * a.wpm) + 1))
+            over = total - (limit - 60)
+            cut = ("%d characters" % (int(over / 60 * a.cpm) + 1)) if total_cjk > total_words else ("%d words" % (int(over / 60 * a.wpm) + 1))
+            print("E over-time: %s leaves less than a minute of buffer in a %g-minute talk. Cut %s."
+                  % (clock(total), a.minutes, cut))
         elif total < limit * 0.75:
             warnings += 1
             print("W short: the script uses under 75%% of a %g-minute talk." % a.minutes)

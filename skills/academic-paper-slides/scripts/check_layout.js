@@ -1,5 +1,12 @@
 #!/usr/bin/env node
-// check_layout.js <deck_root> [--shots <dir>] [--min 36] [--max 60] [--where "<css selector>"] [--font "Arial"]
+// check_layout.js <deck_root> [--shots <dir>] [--min 36] [--max 60] [--where "<css selector>"] [--font "Arial"] [--margin 0.08]
+//
+// --font    checks the deck as it is laid out in that font: the PowerPoint target (export_pptx.js --font).
+// --margin  measures with every character that much wider (in em). PowerPoint sets text a little wider than the
+//           browser used here, most of all Japanese, Chinese and Korean text, so a line that just fits here wraps
+//           there. With the margin, every size this script accepts or suggests leaves that much room.
+//           Default: 0.08 when --font is given and the deck is mostly CJK text, otherwise 0.
+//           export_pptx.js has the same option and the same default: use the same value in both.
 //
 // Renders a Slides deck locally (no network, page scripts off) and reports per slide:
 //   - top and bottom edge of the content (must stay inside y = 221..990)
@@ -33,7 +40,7 @@ const opt = (name, dflt) => {
   return i > 0 && argv[i + 1] ? argv[i + 1] : dflt;
 };
 if (!root || !fs.existsSync(path.join(root, 'project', 'deck.json'))) {
-  console.error('usage: check_layout.js <deck_root> [--shots <dir>] [--min 36] [--max 60] [--where "<css selector>"] [--font "Arial"]');
+  console.error('usage: check_layout.js <deck_root> [--shots <dir>] [--min 36] [--max 60] [--where "<css selector>"] [--font "Arial"] [--margin 0.08]');
   process.exit(2);
 }
 const cfg = {
@@ -51,6 +58,28 @@ const where = opt('--where', null);   // print the boxes of these elements, to p
 // --font checks the deck as it will be laid out in that font: the one export_pptx.js --font writes into the file
 const fontSafe = (opt('--font', '') || '').replace(/[^\p{L}\p{N} _-]/gu, '').trim();
 const withFont = (text) => (fontSafe ? text.replace(/font-family\s*:\s*/g, (m) => `${m}'${fontSafe}', `) : text);
+const marginArg = argv.indexOf('--margin') > 0 ? Number(argv[argv.indexOf('--margin') + 1]) : null;
+if (marginArg !== null && !(marginArg >= 0 && marginArg <= 0.3)) { console.error('--margin takes a number between 0 and 0.3 (em)'); process.exit(2); }
+
+// Runs inside the page. Share of CJK characters in the slides' text, and whether a font is really installed
+function probe(fontName) {
+  let cjk = 0, all = 0;
+  document.querySelectorAll('body > section').forEach((sec) => {
+    const c = sec.cloneNode(true);
+    c.querySelectorAll('aside').forEach((e) => e.remove());
+    const t = c.textContent.replace(/\s+/g, '');
+    all += t.length;
+    cjk += (t.match(/[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uac00-\ud7af]/g) || []).length;
+  });
+  let installed = true;
+  if (fontName) {
+    // A missing font falls back to the generic family, so the text is then exactly as wide as in that family
+    const ctx = document.createElement('canvas').getContext('2d');
+    const w = (f) => { ctx.font = '72px ' + f; return ctx.measureText('mmmmmmmmmmlli 0123456789 あいう日本語').width; };
+    installed = ['serif', 'sans-serif', 'monospace'].some((g) => w(`"${fontName}", ${g}`) !== w(g));
+  }
+  return { share: all ? cjk / all : 0, installed };
+}
 
 // Same base rules the Slides preview uses, so local boxes match the real page closely.
 const BASE_CSS = [
@@ -178,8 +207,10 @@ function measure(cfg) {
     // In a box of a diagram, where text is centered, a short last line is normal: only a very short one counts there
     const boxed = el.closest('.node, .panel, .lbl') || getComputedStyle(el).textAlign === 'center';
     if (!few || total < 3 || last.width >= (boxed ? 0.34 : 0.6) * Math.max(...ls.map((l) => l.width))) return null;
-    const all = ls.map((l) => l.text).join(' ');
-    return { el, word: last.text, line: all.length > 48 ? all.slice(0, 45) + '...' : all };
+    // Chinese and Japanese are measured character by character; show them without the spaces between
+    const tidy = (t) => t.replace(new RegExp(`\\s+(?=[${CJK}、。，．・（）「」])|(?<=[${CJK}、。，．・（）「」])\\s+`, 'g'), '');
+    const all = tidy(ls.map((l) => l.text).join(' '));
+    return { el, word: tidy(last.text), line: all.length > 48 ? all.slice(0, 45) + '...' : all };
   }).filter(Boolean);
   const WIDER = 'give the line more width (narrow the figure beside it, widen the column or the box) or shorten the wording';
   // A formula has its own size and its own flag, so it does not count here
@@ -365,6 +396,19 @@ function measure(cfg) {
         out.flags.push('LOGO missing: every content slide starts with <img class="logo"> (assets/logo.png)');
     }
 
+    // The cover of a template that requires its logos (deck.css: section { --logo: required }).
+    // class="cover": the full cover for talks outside the lab, with both logos and the affiliations.
+    // class="cover internal": talks inside the lab, with the presenter's name and the lab logo only.
+    if (out.cover && getComputedStyle(sec).getPropertyValue('--logo').trim() === 'required') {
+      const internal = sec.classList.contains('internal');
+      const univ = sec.querySelector('img.cv-univ'), lab = sec.querySelector('img.cv-lab');
+      if (!lab) out.flags.push('LOGO missing: the cover carries the lab logo, <img class="cv-lab"> (assets/logo-lab.png)');
+      if (internal && univ) out.flags.push('COVER: an internal cover (class="cover internal") has no university logo. Remove <img class="cv-univ">, or use class="cover" for a talk outside the lab');
+      const aff = [...sec.querySelectorAll('.cv-aff')].map((e) => e.textContent).join(' ');
+      if (internal && (sec.querySelector('ol.cv-aff') || /University|Graduate School|Laborator|\bLab\b|大学|大學|研究科|研究室/i.test(aff)))
+        out.flags.push('COVER: an internal cover shows the presenter\'s name only, with no affiliation. Remove the affiliation from .cv-aff (a line that names the paper of a paper reading may stay)');
+      if (!internal && !univ) out.flags.push('COVER: the full cover carries both logos. For a talk inside the lab (lab meeting, 輪講, progress report) write class="cover internal"; for a talk outside it add <img class="cv-univ"> (assets/logo-univ.png)');
+    }
     // Every visual has a line of text that says what it shows. A flow of steps is a visual like any other
     if (!out.cover) {
       const before = (a, b) => !!(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING);
@@ -479,6 +523,16 @@ function measure(cfg) {
   });
   await page.goto('http://deck.local/', { waitUntil: 'load' });
   await page.waitForTimeout(300);
+  const info = await page.evaluate(probe, fontSafe);
+  const margin = marginArg !== null ? marginArg : (fontSafe && info.share > 0.3 ? 0.08 : 0);
+  if (margin) {
+    // Wider characters while measuring: PowerPoint needs a little more width for the same text
+    await page.evaluate((m) => {
+      const st = document.createElement('style');
+      st.textContent = `body > section, body > section * { letter-spacing: ${m}em !important }`;
+      document.head.appendChild(st);
+    }, margin);
+  }
 
   const rows = await page.evaluate(measure, { ...cfg, where });
   let bad = 0;
@@ -512,6 +566,9 @@ function measure(cfg) {
     }
   }
   if (unexplained.length) console.log(`\nNote: first shown without an explanation on the slide: ${unexplained.slice(0, 16).join(', ')}${unexplained.length > 16 ? ', ...' : ''}. Explain an abbreviation in a few words where the audience first sees it, on the slide and not only in the notes, unless every listener knows it.`);
+  if (margin) console.log(`\nPowerPoint margin: measured with every character ${margin} em wider (--margin), so the sizes above leave room for PowerPoint's wider text. Export with the same value.`);
+  if (fontSafe && !info.installed) console.log(`\nNote: the font "${fontSafe}" is not installed on this machine, so this check measured with another font. Run it where the font is installed, or trust only the rendered PowerPoint file.`);
+  if (fontSafe) console.log('\nPowerPoint deck: after exporting, render the .pptx with PowerPoint or LibreOffice and look at every slide. A clean result here does not show how PowerPoint breaks the lines.');
   console.log(bad ? `\n${bad} thing(s) to fix. Fix them and run again.` : '\nLayout clean.');
 
   // "Method 1", "Method 2": a label with only a number says nothing about the slide
