@@ -78,18 +78,40 @@ For PowerPoint and Google Slides, name a font that exists where the file will be
 The deck tells one connected story. Each slide follows from the one before it, in this order:
 
 1. Cover
-2. Background: the situation the problem comes from
-3. Problem: what goes wrong in that situation. The last line is the goal, "→ Goal: …", bold and larger than every other line of the body, because it is the sentence the rest of the talk answers. If the background and the problem are both short, put them on one slide.
+2. Background: the situation the problem comes from, as one plain message the whole audience accepts ("camera drones are expected to automate crop monitoring"), with one small visual. A busy background slide is not read. A concept the problem slide depends on (SfM, attention) is introduced here, so that it does not appear on the problem slide out of nowhere
+3. Problem: what goes wrong in that situation. The last line is the goal, "→ Goal: …", bold and larger than every other line of the body, because it is the sentence the rest of the talk answers. The goal must follow from what the audience has seen so far. When the goal is a tool or a system (a simulator, a dataset, a platform), do not state it on the problem slide: first build the need for it ("Opening for a system paper" below). If the background and the problem are both short, put them on one slide.
 4. Preliminaries: the terms and concepts the audience needs for the rest. Only if they are needed.
 5. Related work: how others approached the problem, as one comparison table with the row for this paper highlighted
-6. Method overview: the approach on one slide, as a diagram of its parts. When the method has two or three named parts, letter them here ("A | Encoder and decoder stacks", "B | Attention")
-7. Method details: one idea per slide, with the figure, demonstration or formula that shows it. Every slide of a lettered part carries that part's name as a small section label above its title, so the audience always knows which part they are in
+6. Method overview: the approach on one slide, as a diagram of its parts and how they act on one another (UAV → airflow → plants).
+   - The heading says what the parts are ("Simulator Components", "Transformer Components"), not "Method".
+   - Name each part in plain words the audience knows, with no letter or number in front: "A |" tells the audience nothing.
+   - The list of parts is complete: every actor the audience expects is a part, even a simple one (a UAV simulator lists the UAV's flight model). Two things that work as one (a plant model and its response to the airflow) are one part.
+   - Draw the system's input into the diagram as the first box, with an arrow into the system ("Input: flight plan (height, speed, camera angle)"), not as a separate line of text.
+   - No stray numbers or settings.
+7. Method details: the parts in the order of the overview, one idea per slide, with the figure, demonstration or formula that shows it. Every slide of a part carries that part's name, as the overview has it and without a letter, as a small section label above its title, so the audience always knows which part they are in.
+   - For each part say how it works: what goes in, what is computed, what comes out, and what is simplified. A simple model is explained too.
+   - Say why a part is built the way it is ("single leaves must move, so plants are built from movable parts").
+   - Give the actual computation: the model used, its inputs, the formula or rule, and which parameters were fitted to what data ("momentum theory gives the induced speed; a jet profile spreads it; three factors fitted to CFD at 2, 4 and 6 m/s").
+   - Never fill a method slide with behaviour the audience already expects ("the downwash moves backwards in forward flight").
+   - A pipeline or loop figure shows only what belongs to that slide's topic.
+   - Why a platform, engine or tool was chosen: compare it with the named alternatives on the properties the work actually uses, as a small table with this work's choice highlighted (UE5, Unity and Godot against small-leaf shadows, accuracy of object positions, access to the engine source), and say which of its features the system uses. "Powerful and popular" is not a reason.
 8. Experiment setup: data, environment, procedure and baselines, and the default settings the results rely on (such as the flight speed or the model size), stated once here, before the result slides. One or two lines of text and a flow of boxes (① → ② → ③ → ④) under them, plus screenshots or photos of the environment when there are any
-9. Results: one result per slide, with its chart or table
-10. Conclusion: one line each for the background, the problem and the solution, then the results with their key numbers
+9. Results: one result per slide, with its chart or table. Their share of the talk follows the contribution: when the contribution is a system, the experiments are an "Example use" of two or three slides, and the rest goes to the appendix
+10. Conclusion: one line each for the background, the problem and the solution, then the results with their key numbers. When the contribution is a system, list the system first and the example use last
 11. Appendix: only if there is material for it
 
-Test the chain before building: read your one-sentence summaries of the slides in order. Each must follow from the one before with a plain link ("so", "but", "to solve this", "to test this"). If a link is missing, reorder, merge or cut until it is there.
+**Opening for a system paper.** When the contribution is a tool or a system, the opening answers these in order, one link per slide or per line:
+
+1. the application is wanted;
+2. but something goes wrong in it;
+3. so the ways of working must be compared with that effect included, and doing it for real is costly or cannot be repeated;
+4. so a tool of this kind is needed;
+5. but existing tools leave the effect out (the related-work table);
+6. so this work builds one.
+
+The kind of solution ("simulator") is not named on any slide before step 4, and the goal line stands where step 4 is reached, not on the problem slide.
+
+**Story check.** Test the chain before building: read your one-sentence summaries of the slides in order. Each must follow from the one before with a plain link ("so", "but", "to solve this", "to test this"). If a link is missing, reorder, merge or cut until it is there. The kind of solution is not named before the slide that says why it is needed. No abbreviation and no score appears before it has been explained.
 
 Slides of one kind are titled by their topic, not by a running number (section 3).
 
@@ -100,11 +122,11 @@ A 15-minute talk is 15 to 17 slides. Scale with the talk length at about one sli
 ## 3. Content rules
 
 - One slide says one thing. Two things means two slides, or the minor one moves to the notes.
-- Titles name the topic of the slide in a short phrase, at most five words, in title case: "Scaled Dot-Product Attention", "Training Cost". Never a sentence, a claim or a figure number. The title must fit on one line and stay clear of the page number.
+- Titles name the topic of the slide in a short phrase, at most five words, in title case: "Scaled Dot-Product Attention", "Training Cost". Never a sentence, a claim or a figure number. The title must fit on one line and stay clear of the page number. A listener from outside the project can tell from the title what the slide is about: "Flight Plan Comparison", not the project's own label such as "Side Passes".
   - The only slide of its kind takes the kind as its title: "Related Work", "Conclusion".
   - Slides of one kind about different things are each named by their own topic, not "Method 1", "Result 2".
   - Put the kind in front only when the name alone would not tell the audience where they are in the talk: "Preliminary: Attention" in a talk whose method slides are also about attention.
-  - A slide that belongs to a lettered part of the method gets a section label above the title: `<p class="sec">B | Attention</p>`.
+  - A slide that belongs to a part of the method gets that part's name as a section label above the title, with no letter in front: `<p class="sec">Attention</p>`.
   - One topic that continues because it does not fit on one slide keeps its title and adds a circled number, written as a block beside the title (patterns, "Frame of a content slide"). Do not type the characters ① ②: fonts draw them at very different sizes.
 - Write only what carries information, but do not abbreviate until it is unreadable.
 - Define a term on the line where it is first needed, in a few words in parentheses, for example "ViT (an image model built from Transformer blocks)". Do not spend an earlier slide on it, and do not explain common knowledge. An abbreviation (CFD, SfM, F-score, nadir) is explained on the slide where the audience first sees it, not only in the notes; `check_layout.js` lists the ones that are not. A measured quantity names its reference once: "height h above the canopy".
@@ -122,16 +144,28 @@ A 15-minute talk is 15 to 17 slides. Scale with the talk length at about one sli
 - Every slide earns a visual. Before you write a list, ask what the content looks like, and show that:
   - what a thing is or looks like → a photo or the paper's figure, with a caption
   - steps or a pipeline (input → model → output, train → test) → a flow of boxes, or boxes joined by arrows
+  - one line of reasoning ("wanted, but …, so …") → one chain of boxes, left to right, with the link words on the arrows
+  - something that moves → a short looping GIF or video
   - how an idea works → a small diagram from boxes, icons and arrows, carrying ONE concrete example through it (a query word, three scores, the weights they turn into, the output). A worked number explains a method faster than any sentence
   - the same properties of several things → a table
-  - a formula → the formula itself, large and easy to read, the terms the slide is about boxed with room around them, and under each a panel that starts with the term's name
-  - a result → the paper's chart or table, with the key value written on it in red
+  - a formula → the formula itself, as large as the slide allows and easy to read, the terms the slide is about boxed with room around them, and under each a panel that starts with the term's name
+  - a result → the paper's chart or table, with the key value written on it in red; a chart with many bars is redrawn with the two or three the slide discusses
+  - a metric → pictures of what counts as right, wrong and missed, before any number
   - two areas of one picture → outline each area in its own colour and write the words that name it in the same colour
 
-  The text above the visual is two to four short lines that say what to look for, and every visual has it. A flow of steps is a visual like any other: one or two short lines above it say what the flow is (what is tested and how). A slide is never a title and a flow, or a title and a diagram, alone. A numbered list is for content that has no such shape. Text-only slides are for the conclusion and little else: `check_layout.js` lists them, and fails the deck when more than a third of its slides have no visual.
+  The text above the visual is one sentence, or two to four short lines, that say what to look for, and every visual has it. A flow of steps is a visual like any other: one or two short lines above it say what the flow is (what is tested and how). A slide is never a title and a flow, or a title and a diagram, alone. A numbered list is for content that has no such shape. Text-only slides are for the conclusion and little else: `check_layout.js` lists them, and fails the deck when more than a third of its slides have no visual.
+- An argument that is one line of reasoning is drawn as one chain, left to right, with the links written on the arrows between the boxes ("but", "so", "costly", "none has it"; patterns, "Chain of reasoning"). Never split it into two side-by-side panels (field test against simulation) with a conclusion under them: listeners read that as a comparison and lose the "therefore".
+- Anything that moves (plants bending in the airflow, a camera view along a flight, a running simulation) is shown moving: a short looping GIF or video, not a still with an outline around the moving part. The caption says what to watch.
+- Metrics: show a metric's numbers only after a slide has made it intuitive with a picture of what counts as right, wrong and missed. Otherwise do not show the score at all.
+  - Show the pictures side by side (correct parts in one colour, wrong in another, missed in a third) and state the result as a plain share: "of the whole true plant surface, 36% is rebuilt within 2 cm with downwash off, 14% with it on".
+  - Score tables go to the appendix or nowhere.
+- A figure made for the paper is not automatically a slide figure: a paper figure is read from 30 cm for minutes, a slide from the back row in under a minute. If its smallest text cannot be read from the back row, or not everything in it serves the slide's one message, redraw it on the slide.
+  - An architecture or pipeline figure is redrawn as boxes and block arrows, with only this slide's steps and the overview's names.
+  - A chart with many bars, of which the slide discusses two or three, is redrawn with only those, labels at 36px or more; the full chart goes to the appendix.
+  - Keep the paper's figure when it is itself the evidence (photo, rendered frame, validation plot) and legible at slide size.
 - Diagrams are drawn on the slide, not pasted as a picture, so the presenter can edit them: white boxes with a thin outline, dark arrows thick enough to see from the back row, black line icons from `assets/icons/`, a few words per box, red for the one value or word that matters. No fills, no shadows, no gradients. A diagram or example you made up to explain the paper says so in the source line ("diagram drawn by presenter", "example values chosen by presenter").
 - Pictures from outside the paper. When a picture the paper does not have would make a slide clearer (a photo of the device or the place, the scene of the problem), look on the web for one that may be reused: public domain or CC0, CC BY or CC BY-SA (Wikimedia Commons, Openverse, agencies such as NASA), or a site whose license allows reuse (Unsplash, Pexels). Read the license on the picture's own page, not in a search result, and credit the picture in the source line: "Photo: Author, CC BY 4.0, via Wikimedia Commons". Do not use a picture whose license you cannot find, and never one that only decorates. If nothing reusable turns up, build the slide without it and say so when you deliver.
-- Pictures only the presenter can supply. When a slide needs a picture or a video that is in neither the paper nor the web (a demonstration of the system, a screenshot of results), leave a sized placeholder on the slide (patterns, "Placeholder") and, when you deliver, give the user a plain-text list with one item per slide: what the picture must show, the viewpoint, the length for a video, the format and size, and whether it is required or optional. A demonstration shot under settings other than the paper's experiments says so on the slide, in its caption: "0.5 m above the canopy (demonstration)".
+- Pictures only the presenter can supply. When a slide needs a picture or a video that is in neither the paper nor the web (a demonstration of the system, a screenshot of results), leave a sized placeholder on the slide (patterns, "Placeholder"; for something that moves, a placeholder that asks for a looping GIF or video) and, when you deliver, give the user a plain-text list with one item per slide: what the picture must show, the viewpoint, the length for a video, the format and size, and whether it is required or optional. A demonstration shot under settings other than the paper's experiments says so on the slide, in its caption: "0.5 m above the canopy (demonstration)".
 - Sources.
   - Someone else's paper: every content slide ends with a source line (`.cite`): "Source: Author et al., Venue Year, Sec. 3" or "Figure: Author et al., Venue Year, Fig. 4; orange ring added by presenter". A table you compiled says "Table compiled by presenter".
   - Several sources on one slide: mark each claim with [1], [2] in the line and list them in the source block at the bottom, one per line, shortened to authors, title, venue and year ("cite two", "cite three" in patterns).
@@ -185,6 +219,7 @@ Add `--own` when the presenter is an author. The script catches mechanics. It ca
 - White background, near-black text. The accent color for the title bar and the outlines of diagram boxes and panels, dark grey for arrows, red for emphasis. Nothing else.
 - Theme = the variables at the top of `deck.css`: `--ink`, `--accent`, `--line`, `--hl`, `--head`, `--mark`, `--em`. With a user template or brand, set `--accent` to its theme color, so the titles and boxes match the template, set the font, and add the logo (see patterns). Without one, keep the neutral defaults. Do not add colors.
 - Boxes are for diagrams: nodes, panels, flow steps, a boxed term of a formula. They are white with an outline, never filled. Ordinary text is never put in a box or a card to decorate it.
+- Text inside every box and node is centred, horizontally and vertically; the stylesheet does it. Boxes in one row hold the same number of lines, so that their titles still start on one line (`check_layout.js`: `BOXES`).
 - Slides keeps only colour, bold, italic and underline on words inside a line. Anything that needs its own size, border or position is a block of its own: no `<sub>`, `<sup>`, badges or pills inside a sentence. `check_layout.js` reports these as `INLINE`.
 
 **Emphasis**
@@ -196,7 +231,7 @@ Use both kinds sparingly. A slide where everything is stressed stresses nothing.
 
 **Formulas**
 
-- One formula per slide, centered across the slide, on one line, never beside a figure. First it has to read well as a formula: large (60 to 72px), with a clear gap between its pieces and real subscripts and superscripts. It is a row of pieces (`.eq`, patterns "Formula"): a symbol and its subscript or superscript form a group, and the parts the slide does not discuss can be grey.
+- One formula per slide, centered across the slide, on one line, never beside a figure. First it has to read well as a formula: with a clear gap between its pieces and real subscripts and superscripts. On a slide whose message is a formula, make the formula as large as the slide allows (often 80px or more), and make the panels under it large too: `check_layout.js` prints both sizes, and the text block under them takes what is left. It is a row of pieces (`.eq`, patterns "Formula"): a symbol and its subscript or superscript form a group, and the parts the slide does not discuss can be grey.
 - The terms the slide discusses are boxed. A box has room inside and a gap outside: its outline never touches or covers a character, and no more than three terms are boxed.
 - The text in a box sits on the same baseline as the pieces outside it. The box's padding and border must not lift it: `.term` offsets them with a negative bottom margin equal to its bottom padding plus its border. Change one and change the other, and look in the screenshot that every character of the formula lines up.
 - Under the formula, one panel per boxed term, in the same left-to-right order. Each panel starts with the name of its term as a title, larger than its lines, then one or two short lines on what the term does. A line joins term and panel, straight down or in right angles, never diagonal.
@@ -204,7 +239,8 @@ Use both kinds sparingly. A slide where everything is stressed stresses nothing.
 
 **Bullets**
 
-- Always two levels, and the levels mean something: level one is the point, level two is its detail or example.
+- A text block that says one thing is one sentence or one short paragraph, without any bullet or dash (a `<p>` in the `.txt`). Before using bullets, try to merge short lines into one sentence. Bullets are only for two or more separate points; `check_layout.js` reports a list of one bullet.
+- Bullets have two levels, and the levels mean something: level one is the point, level two is its detail or example.
 - Both levels use the same solid marker at the same size. Only the indent differs.
 - Do not put every line on level one. That is a paragraph cut into lines, not a list.
 - Level one may be just a bold lead-in such as "**Result**", with the content on level two.
@@ -217,20 +253,20 @@ Use both kinds sparingly. A slide where everything is stressed stresses nothing.
 - Title: 72px, bold, one line. Section label above it: 40px.
 - The goal line of the problem slide is the largest text in the body: 64px, bold, on one line if it can be.
 - Use the height. A block with empty bands above and below it is too small: the text beside a figure starts near the top of its column and ends near the bottom, and a flow or a diagram alone on a slide takes most of the slide. Enlarge the text first; when a line's wording is what keeps it small, reword that line.
-- Body text as large as fits: 36 to 60px. Tables 36 to 44px. Nothing under 24px.
+- Body text as large as fits: 36 to 60px. Tables 36 to 44px. Nothing under 27px (2.5% of the slide height) except the source line at 24px: the back row cannot read it.
 - Flow boxes are tall, with text as large as fits (32 to 56px) and each step's name larger than its lines. Keep the lines in a box short so that the text can grow. Between two boxes sits a block arrow, not a typed "→". Above the flow stand one or two lines of text.
 - Arrows are easy to see: connectors in a diagram are dark and 6px wide, never under 4px.
-- Figures as large as they stay sharp: at most about 1.3× their native pixel size. A figure that cannot be read is left out and replaced by text.
+- Figures as large as they stay sharp: at most about 1.3× their native pixel size. A figure whose smallest text cannot be read from the back row is redrawn on the slide (section 3), or left out and replaced by text.
 - Mark the important part of a figure with a ring (`.ring`, or `.ring.box` around a block) or a numbered badge (`.badge`), and say so in the source line when the slide has one.
   - A ring never crosses the figure's own text: panel titles, labels, legends, axis labels. Make it larger rather than tighter, with a clear margin around everything it encloses, and let it reach a little beyond the figure if it must.
   - When the gaps between the items of a figure are too narrow for a ring to pass without crossing text, add white space between the items in a copy of the figure, then ring the part. Change the layout only, never the data, and say so in the source line ("spacing widened by presenter").
   - When the part to mark includes a panel's title, ring the whole panel with its title inside.
 - Figures cropped from the paper lose the paper's own panel letters and figure headings that mean nothing on the slide ("(b) Simulator architecture", "(c)", "(d)"), unless the text of the slide refers to them.
-- A large architecture or pipeline figure gets as much of the slide as it can: one short line of text above it, and the figure at the largest size that stays sharp.
+- An architecture or pipeline figure that is kept from the paper (legible from the back row, and all of it serving the slide) gets as much of the slide as it can: one short line of text above it, and the figure at the largest size that stays sharp. Otherwise it is redrawn as boxes and block arrows.
 - A diagram that is explained in parts gets one slide per part: the same figure on every slide, with the part under discussion ringed. These slides are one topic continued, so they share a title and a running number.
 - Tables: grid lines drawn, grey bold header, no zebra fill. To stress one row (this paper, the best result), give that row the highlight fill and, if it helps, red text; at most one row per table. Size the columns so the key column does not wrap. A short table gets class `roomy` so that it does not leave the slide half empty. In a cell, colour the whole cell (`em` on the `<td>`), not a phrase inside it: Claude Slides shows a cell in one colour, and only the PowerPoint export keeps a red phrase. In a cell with Chinese, Japanese or Korean text, break lines yourself with `<br>` where the cell is too narrow for one line, so that no office program chooses the break.
 - Diagrams fill the space under the text: icons 160 to 220px, tall boxes with text of 44 to 52px, the lowest element ending near y 960. A diagram squeezed into a strip under the text reads as unfinished.
-- A box that explains something (a panel, a step of a flow) starts with a title that is larger than its lines. Panels in a row start their titles on one line.
+- A box that explains something (a panel, a step of a flow) starts with a title that is larger than its lines. Its text is centred like that of every box, and boxes in a row hold the same number of lines, so their titles start on one line.
 
 **Canvas**
 
@@ -249,6 +285,7 @@ The usual failure is a short text block at a cautious size, floating in a tall c
    node scripts/check_layout.js <deck_root> --shots <empty_temp_dir>
    ```
    - `GROW: set .txt font-size:NNpx` or `GROW: set .flow font-size:NNpx`: set exactly that size.
+   - `GROW: set .eq font-size:NNpx` or `GROW: set .cols font-size:NNpx`: a formula, and the panels under it, as large as the slide allows. Set the size, run again, set the text size the next run names, and measure the connectors again with `--where`.
    - `GROW: the text fits at NNpx, but "word" would then stand alone…`: there is room for larger text and one line's wording is in the way. Reword that line so that it fits on one line or breaks evenly, then set the size. Do not leave the text small.
    - `TEXT TOO BIG` or `TEXT TOO LONG` or `OVERFLOW`: move detail to the notes or split the slide. Do not go below 36px to make it fit.
    - `FLOW TOO BIG` or `FLOW TOO LONG`: set the size it names, or shorten the lines in the boxes. A line in a box may wrap once at most.
@@ -261,6 +298,11 @@ The usual failure is a short text block at a cautious size, floating in a tall c
    - `OVERLAP`, `OFF THE SLIDE`, `OVERFLOW: text is wider than its box`: a block grew into its neighbour or out of its box. Give it room or make its text shorter or smaller.
    - `DIAGRAM`: a part lies outside its host, or the host holds more than 24 pinned parts. Enlarge the host, move the part, or split the diagram.
    - `LIST: a <br> inside a list item`: use an explanation paragraph (`.ex`) instead.
+   - `BULLET`: a list of one bullet. Write it as a sentence: `<div class="txt"><p>…</p></div>`.
+   - `BOXES`: the titles of the boxes in a row start at different heights, because their text is centred and they hold different numbers of lines. Give them the same number of lines: merge two short lines, or break one with `<br>`.
+   - `LABEL`: a part's name with a letter or number in front ("A | …"). Name the part in plain words.
+   - `SVG TEXT`: words typed inside an `<svg>`. Keep the drawing plain and write the words as real text over it.
+   - `SMALL`: text under 27px, which the back row cannot read. Enlarge it or move it to the notes.
    - `INLINE`: something inside a line that Slides drops (`<sub>`, `<sup>`, a circled number in a sentence). Make it a block as the message says.
    - `TEXT ONLY`: too many slides without a visual. Give them one (section 3, "Every slide earns a visual").
    - `TEXT: the flow has no text above it` or `TEXT: the slide shows a visual with no line of text`: add one or two short lines above the visual that say what it shows.
@@ -284,16 +326,21 @@ Slides draws `<x-connector>` itself; the script draws the same lines for its scr
 ## 7. Workflow
 
 1. Read the paper. Write one sentence per slide: "this slide says …". Reading only those sentences must tell the whole paper, and each must follow from the one before (section 2).
-2. Extract figures: render pages with `pdftoppm -r 300`, crop each figure, and note its native pixel size for the 1.3× limit. Crop away the paper's panel letters and figure headings unless the slide's text will refer to them. Upload them as the Slides type instructs, or save them in `project/img/` for PowerPoint output.
+2. Extract figures: render pages with `pdftoppm -r 300`, crop each figure, and note its native pixel size for the 1.3× limit. For each figure decide whether it is kept or redrawn on the slide (section 3: can its smallest text be read from the back row, and does all of it serve the slide?). Crop away the paper's panel letters and figure headings unless the slide's text will refer to them. Upload them as the Slides type instructs, or save them in `project/img/` for PowerPoint output.
 3. Create the deck as a Slides artifact or in a local folder (section 0). Write the index, `project/deck.css` (from `assets/deck.css`, themed) and the slides (from `references/patterns.md`), then publish.
 4. Run `check_layout.js` and work through section 6 until clean.
 5. Write the notes last, when the slides are final. Run `check_notes.py` and work through section 4 until no `E` remains. Copy the `start-by` column into the `[≤ m:ss]` markers.
 6. Look at every screenshot yourself, slide by slide. The scripts cannot judge these, and they are what users send back:
-   - Story: the titles and first lines, read in order, tell the paper. No slide comes out of nowhere.
-   - Titles: named by topic, no bare "Method ①", one line. A number sits in a circle no taller than the capital letters beside it.
+   - Story: the titles and first lines, read in order, tell the paper. No slide comes out of nowhere. The kind of solution is not named before the slide that says why it is needed, and no abbreviation or score appears before it has been explained.
+   - Method: the overview names every part in plain words, with the input as its first box, and the method slides follow in its order. Each says what goes in, what is computed, what comes out and what is simplified.
+   - Titles: named by topic, no bare "Method ①", one line, and clear to a listener from outside the project. A number sits in a circle no taller than the capital letters beside it.
    - Alignment: lines of one level start at the same position whether they have a bullet or a number. Markers are one size, none hollow.
    - Space: nothing floats in an empty area, and no block has empty bands above and below it. Text beside a figure that starts halfway down, a table with half a slide under it, a flow or a row of boxes in a strip: enlarge it, and reword the line that stops it, before you accept it.
    - Arrows: every arrow is seen at a glance from the back of the room. Block arrows between the boxes of a flow, thick dark connectors in a diagram.
+   - Boxes: the text of every box is centred, across and down, and the titles of boxes in a row start on one line.
+   - Bullets: no list of one bullet, and no short lines that would read better as one sentence.
+   - Figures from the paper: every word in them can be read from the back row, and nothing in them is beside the slide's point. Otherwise redraw.
+   - Motion and metrics: what moves is shown moving, with a caption that says what to watch. No score appears before a picture has shown what it counts.
    - Goal: on the problem slide the goal line is the largest text in the body.
    - Tables: grid lines visible, at most one highlighted row, the key column not wrapped.
    - Figures: sharp. When a diagram is explained in parts, the part is ringed and the figure keeps its size and place from slide to slide.
@@ -305,7 +352,10 @@ Slides draws `<x-connector>` itself; the script draws the same lines for its scr
    - Visuals: almost every slide has one, it has a line or two of text above it, and it fills the space under the text. A diagram's arrows start and end on the boxes and icons they join.
    - Lines: no line ends in a single word, no table cell or box wraps for one word, nothing touches or covers its neighbour. Look hardest at the text you enlarged.
    - Shape: a slide that lists steps, cases or properties as sentences is redrawn as a flow, a diagram or a table.
-7. If subagents are available, have one that has not seen your work check the deck against the paper (numbers, figure numbers, claims) and against these rules. Reviewers make mistakes too: verify each finding in the paper before changing anything.
+7. If subagents are available, have two that have not seen your work review the deck.
+   - The first checks it against the paper (numbers, figure numbers, claims) and against these rules. Reviewers make mistakes too: verify each finding in the paper before changing anything.
+   - The second plays a listener in the last row with no background in the field. Give it only the slide pictures (the screenshots of `check_layout.js --shots`; no notes, no paper), and tell it to treat text under about 2.5% of the slide height (27px) as unreadable. It reports, slide by slide, what it could not see and what it could not understand: an unexplained term, symbol, score or abbreviation, a title that says nothing, a missing step in the story.
+   - Fix what the second reviewer reports before delivering. Without subagents, do this pass yourself: look at each screenshot at a quarter of its size and read only what is still legible.
 8. For PowerPoint or Google Slides, export with `export_pptx.js`, render the file with PowerPoint or LibreOffice and look at every slide (section 0). This look is required, not optional: fix what wraps or overlaps there and export again.
 9. Whatever you changed in steps 6 to 8, finish with section 6 step 7: one more run of `check_layout.js` and one more look at its screenshots.
 10. Deliver in one sentence, plus the inputs that are still missing (date, presenter) and, when the deck has placeholders, the list of pictures and videos the user has to supply (section 3).

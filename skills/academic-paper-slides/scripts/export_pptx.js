@@ -284,11 +284,28 @@ function extract() {
       if (tag === 'IMG') {
         const u = el.getAttribute('src') ? new URL(el.src) : null;
         if (!el.naturalWidth && el.style.width && el.style.height) { r.w = px(el.style.width); r.h = px(el.style.height); }
+        const clip = el.getAttribute('data-video');
         items.push({ type: 'image', r, path: u ? u.pathname : null, alt: el.alt || '',
-          nw: el.naturalWidth, nh: el.naturalHeight, fit: cs.objectFit });
+          nw: el.naturalWidth, nh: el.naturalHeight, fit: cs.objectFit, video: clip ? new URL(clip, location.href).pathname : null });
         return;
       }
-      if (tag === 'SVG') { el.setAttribute('data-xid', String(++xid)); items.push({ type: 'svg', r, xid }); return; }
+      if (tag === 'SVG') {
+        // One filled polygon and nothing else: export it as an editable shape of the same outline
+        const kids = [...el.children];
+        const vb = (el.getAttribute('viewBox') || '').trim().split(/[\s,]+/).map(Number);
+        if (kids.length === 1 && kids[0].tagName.toLowerCase() === 'polygon' && vb.length === 4 && vb[2] > 0 && vb[3] > 0) {
+          const nums = (kids[0].getAttribute('points') || '').trim().split(/[\s,]+/).map(Number);
+          const fill = hex(getComputedStyle(kids[0]).fill);
+          if (nums.length >= 6 && nums.length % 2 === 0 && nums.every((v) => Number.isFinite(v)) && fill) {
+            const pts = [];
+            for (let k = 0; k < nums.length; k += 2) pts.push([(nums[k] - vb[0]) / vb[2] * r.w, (nums[k + 1] - vb[1]) / vb[3] * r.h]);
+            items.push({ type: 'poly', r, pts, fill });
+            return;
+          }
+        }
+        el.setAttribute('data-xid', String(++xid)); items.push({ type: 'svg', r, xid });
+        return;
+      }
       if (tag === 'X-SHAPE') {
         items.push({ type: 'shape', r, kind: el.getAttribute('kind') || 'rect', fill: hex(cs.backgroundColor),
           line: px(cs.borderTopWidth) ? hex(cs.borderTopColor) : null, linePx: px(cs.borderTopWidth) });
@@ -426,7 +443,7 @@ function extract() {
   const SHAPES = { ellipse: 'ellipse', rect: 'rect', rounded: 'roundRect', diamond: 'diamond', line: 'line',
     'arrow-right': 'rightArrow', 'arrow-left': 'leftArrow', 'arrow-up': 'upArrow', 'arrow-down': 'downArrow' };
   const box = (r) => ({ x: IN(r.x), y: IN(r.y), w: IN(r.w), h: IN(r.h) });
-  let missing = 0;
+  let missing = 0, clips = 0, clipsMissing = 0;
   const bulletFix = [];        // per slide: the indent each bulleted paragraph should have, in order
 
   for (const s of slides) {
@@ -514,7 +531,7 @@ function extract() {
           const f = g.ps[0], l = g.ps[g.ps.length - 1];
           // A line beside a circled number runs to the right edge of the box, so a slightly wider font does not wrap it
           const r = g.own ? { x: f.r.x, y: f.r.y, w: inner.x + inner.w - f.r.x, h: f.r.h }
-            : { x: inner.x, y: k ? f.r.y : inner.y, w: inner.w, h: l.r.y + l.r.h - (k ? f.r.y : inner.y) };
+            : { x: inner.x, y: f.r.y, w: inner.w, h: l.r.y + l.r.h - f.r.y };
           slide.addText(body(g.ps.map((p, j) => (j ? p : { ...p, before: 0 }))), { ...box(r), margin: 0, valign: 'top', fit: 'none' });
         });
       } else if (it.type === 'badge') {
@@ -532,6 +549,9 @@ function extract() {
         o.fill = it.fill ? { color: it.fill } : { type: 'none' };
         o.line = it.line ? { color: it.line, width: PT(it.linePx) } : { type: 'none' };
         slide.addShape(SHAPES[it.kind] || 'rect', o);
+      } else if (it.type === 'poly') {
+        slide.addShape('custGeom', { ...box(it.r), fill: { color: it.fill }, line: { type: 'none' },
+          points: [...it.pts.map(([x, y], k) => (k ? { x: IN(x), y: IN(y) } : { x: IN(x), y: IN(y), moveTo: true })), { close: true }] });
       } else if (it.type === 'svg') {
         slide.addImage({ data: svgPng[it.xid], ...box(it.r) });
       } else if (it.type === 'image') {
@@ -549,7 +569,15 @@ function extract() {
           const w = it.nw * k, h = it.nh * k;
           r = { x: it.r.x + (it.r.w - w) / 2, y: it.r.y + (it.r.h - h) / 2, w, h };
         }
-        slide.addImage({ path: file, ...box(r) });
+        const clipFile = it.video ? deckFile(it.video) : null;
+        if (clipFile) {
+          // A clip plays in the slide show; its still is the picture shown everywhere else
+          slide.addMedia({ type: 'video', path: clipFile, cover: 'image/' + (path.extname(file).slice(1).toLowerCase().replace('jpg', 'jpeg') || 'png') + ';base64,' + fs.readFileSync(file).toString('base64'), ...box(r) });
+          clips++;
+        } else {
+          if (it.video) clipsMissing++;
+          slide.addImage({ path: file, altText: it.alt || path.basename(file), ...box(r) });
+        }
       } else if (it.type === 'table') {
         const line = { type: 'solid', pt: 1, color: 'A6A6A6' };   // grid lines, as Slides draws them
         // A cell keeps the colour, bold and italic of the words inside it, and a <br> stays a line break
@@ -654,5 +682,7 @@ function extract() {
     console.log(`Note: the text is set in ${rare.join(', ')}. PowerPoint replaces a font that is not installed, and the lines then break differently.`
       + ' For PowerPoint, export again with --font "Arial" (the deck is laid out in that font first). Google Slides has its own font list: check that this font is in it.');
   }
+  if (clips) console.log(`${clips} video clip(s) placed. They play in the slide show; a PDF made from the file shows only their still picture.`);
+  if (clipsMissing) console.log(`${clipsMissing} video clip(s) were not local files: only their still picture is in the file. Put the clip in project/img/ and name it with data-video="/project/img/<name>.mp4".`);
   if (missing) console.log(`${missing} picture(s) were not local files and became placeholders. Put them in project/img/ and use src="/project/img/<name>".`);
 })().catch((e) => { console.error(e.message); process.exit(2); });

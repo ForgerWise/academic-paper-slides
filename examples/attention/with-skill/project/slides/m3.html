@@ -1,5 +1,5 @@
 <section id="m3" class="c">
-<p class="sec">B | Attention</p>
+<p class="sec">Attention</p>
 <h2 class="ttl">Multi-Head Attention</h2>
 <div class="rule"></div>
 <div class="pnum"></div>
@@ -22,5 +22,5 @@
 </div>
 </div>
 <p class="cite">Figure: Vaswani et al., NIPS 2017, Fig. 2 (right), Sec. 3.2.2</p>
-<aside>[≤ 7:22] Still in part B. One attention function gives one set of weights for each word. The authors found that this is not enough, so they run eight attention layers side by side. Each one is called a head. Every head first projects the queries, keys and values into a smaller space of sixty-four dimensions, with its own learned weights. Then it runs the attention you just saw. At the end the outputs of all heads are joined and projected once more. Why does this help? Different heads can look at different things. A single head has to average everything into one set of weights. And because each head is small, the total cost is about the same as one large head.</aside>
+<aside>[≤ 7:33] We are still on attention. One attention function gives one set of weights for each word. The authors found that this is not enough, so they run eight attention layers side by side. Each one is called a head. Every head first projects the queries, keys and values into a smaller space of sixty-four dimensions, with its own learned weights. Then it runs the attention you just saw. At the end the outputs of all heads are joined and projected once more. Why does this help? Different heads can look at different things. A single head has to average everything into one set of weights. And because each head is small, the total cost is about the same as one large head.</aside>
 </section>

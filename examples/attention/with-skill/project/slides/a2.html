@@ -1,6 +1,6 @@
 <section id="a2" class="c">
-<p class="sec">A | Encoder and Decoder Stacks</p>
-<div class="tbar"><h2 class="ttl">Architecture</h2><p class="circ">2</p></div>
+<p class="sec">Encoder and Decoder Stacks</p>
+<h2 class="ttl">Decoder Layer</h2>
 <div class="rule"></div>
 <div class="pnum"></div>
 <div class="split">
@@ -22,11 +22,22 @@
     <ul class="bl"><li>On top: a linear layer and softmax give the next-word probabilities</li></ul>
   </div>
 </div>
-<div class="fig" style="width:485px;height:760px">
-  <img src="/project/img/fig1-architecture-spaced.png" alt="Fig. 1 of the paper: the Transformer architecture, encoder on the left and decoder on the right" style="width:485px;height:760px;object-fit:contain">
-  <x-shape kind="rounded" class="ring box" style="left:47.7%;top:18.4%;width:48.5%;height:51.4%"></x-shape>
+<div class="host" style="width:590px;height:760px;font-size:40px">
+  <div class="node" style="left:0px;top:0px;width:480px;height:100px"><p>Words written so far</p></div>
+  <div class="node" style="left:0px;top:150px;width:480px;height:100px"><p class="bd">Masked self-attention</p></div>
+  <div class="node" style="left:0px;top:300px;width:480px;height:130px"><p class="bd">Attention over<br>the encoder output</p></div>
+  <div class="node" style="left:0px;top:480px;width:480px;height:100px"><p class="bd">Feed-forward</p></div>
+  <div class="node" style="left:0px;top:630px;width:480px;height:130px"><p>Next-word<br>probabilities</p></div>
+  <x-connector x1="240" y1="100" x2="240" y2="150" style="color:#404040;border-width:6px"></x-connector>
+  <x-connector x1="240" y1="250" x2="240" y2="300" style="color:#404040;border-width:6px"></x-connector>
+  <x-connector x1="240" y1="430" x2="240" y2="480" style="color:#404040;border-width:6px"></x-connector>
+  <x-connector x1="240" y1="580" x2="240" y2="630" style="color:#404040;border-width:6px"></x-connector>
+  <x-connector x1="480" y1="200" x2="510" y2="200" head="none" style="color:#404040;border-width:4px"></x-connector>
+  <x-connector x1="510" y1="200" x2="510" y2="530" head="none" style="color:#404040;border-width:4px"></x-connector>
+  <x-connector x1="510" y1="530" x2="480" y2="530" head="none" style="color:#404040;border-width:4px"></x-connector>
+  <p class="lbl bd" style="left:522px;top:340px;width:68px">×&nbsp;6</p>
 </div>
 </div>
-<p class="cite">Figure: Vaswani et al., NIPS 2017, Fig. 1, Sec. 3.1 and 3.4; spacing widened and orange box added by presenter</p>
-<aside>[≤ 5:29] The other stack is the decoder, marked by the orange box on the right. It also has six identical layers, but each layer has three parts. The first part is self-attention over the words written so far. It is masked, so a word can only look at the words before it. The second part attends over the output of the encoder. This is how the decoder reads the input sentence. The third part is the same feed-forward network as in the encoder. At the top, a linear layer and a softmax turn the result into a probability for every possible next word.</aside>
+<p class="cite">Source: Vaswani et al., NIPS 2017, Sec. 3.1 and 3.4; diagram redrawn by presenter from Fig. 1</p>
+<aside>[≤ 5:38] The other stack is the decoder, and the diagram shows one of its layers. It also has six identical layers, but each layer has three parts. The first part is self-attention over the words written so far. It is masked, so a word can only look at the words before it. The second part attends over the output of the encoder. This is how the decoder reads the input sentence. The third part is the same feed-forward network as in the encoder. At the top, a linear layer and a softmax turn the result into a probability for every possible next word.</aside>
 </section>

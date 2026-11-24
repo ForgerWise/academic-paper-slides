@@ -1,18 +1,19 @@
 <section id="overview" class="c">
-<h2 class="ttl">Method Overview</h2>
+<h2 class="ttl">Transformer Components</h2>
 <div class="rule"></div>
 <div class="pnum"></div>
-<p class="goal" style="padding-top:0px;color:#C00000;text-align:center;font-size:54px">The Transformer: attention and feed-forward layers only</p>
-<div class="host" style="width:1738px;height:590px;font-size:44px">
-  <div class="panel top" style="left:0px;top:20px;width:540px;height:330px"><p class="pt">A | Encoder and decoder stacks</p><p>Six layers each, with no recurrence inside</p></div>
-  <div class="panel top" style="left:599px;top:20px;width:540px;height:330px"><p class="pt">B | Attention</p><p>Scaled dot-product attention, run as 8 parallel heads</p></div>
-  <div class="panel top" style="left:1198px;top:20px;width:540px;height:330px"><p class="pt">C | Positional encoding</p><p>Tells the model the order of the words</p></div>
-  <div class="node" style="left:469px;top:470px;width:800px;height:110px"><p class="bd">Translation without recurrence</p></div>
-  <x-connector x1="270" y1="350" x2="270" y2="410" head="none" style="color:#404040;border-width:6px"></x-connector>
-  <x-connector x1="1468" y1="350" x2="1468" y2="410" head="none" style="color:#404040;border-width:6px"></x-connector>
-  <x-connector x1="270" y1="410" x2="1468" y2="410" head="none" style="color:#404040;border-width:6px"></x-connector>
-  <x-connector x1="869" y1="350" x2="869" y2="470" style="color:#404040;border-width:6px"></x-connector>
+<div class="txt" style="font-size:60px"><p>The Transformer is an encoder and a decoder built from <span class="em">attention and feed-forward layers only</span>.</p></div>
+<div class="host" style="width:1738px;height:560px;font-size:44px">
+  <div class="node" style="left:0px;top:30px;width:330px;height:220px"><p class="bd">Input</p><p>source sentence</p></div>
+  <div class="panel" style="left:430px;top:20px;width:878px;height:240px"><p class="pt">Encoder and Decoder Stacks</p><p>Six layers each, no recurrence</p></div>
+  <div class="node" style="left:1408px;top:30px;width:330px;height:220px"><p class="bd">Output</p><p>translation</p></div>
+  <div class="panel" style="left:180px;top:340px;width:660px;height:210px"><p class="pt">Attention</p><p>Relates all words<br>in every layer</p></div>
+  <div class="panel" style="left:900px;top:340px;width:660px;height:210px"><p class="pt">Positional Encoding</p><p>Adds the word order<br>to the input</p></div>
+  <x-connector x1="330" y1="140" x2="430" y2="140" style="color:#404040;border-width:6px"></x-connector>
+  <x-connector x1="1308" y1="140" x2="1408" y2="140" style="color:#404040;border-width:6px"></x-connector>
+  <x-connector x1="640" y1="340" x2="640" y2="260" style="color:#404040;border-width:6px"></x-connector>
+  <x-connector x1="1100" y1="340" x2="1100" y2="260" style="color:#404040;border-width:6px"></x-connector>
 </div>
 <p class="cite">Source: Vaswani et al., NIPS 2017, Sec. 3; diagram drawn by presenter</p>
-<aside>[≤ 4:06] So here is the authors' answer. They call the model the Transformer. It keeps the encoder and decoder, but everything inside is built from attention and small feed-forward layers. I will explain it in three parts. Part A is the encoder and decoder stacks. Part B is attention, the function at the core and how it is run as several heads. Part C is how the model learns word order.</aside>
+<aside>[≤ 4:06] So here is the authors' answer. They call the model the Transformer. It keeps the encoder and decoder, but everything inside is built from attention and small feed-forward layers. A sentence goes in on the left and its translation comes out on the right. I will explain the model in three parts. First come the encoder and decoder stacks. Then attention, which works inside every layer of both stacks. Last comes positional encoding, which gives the stacks the order of the words.</aside>
 </section>

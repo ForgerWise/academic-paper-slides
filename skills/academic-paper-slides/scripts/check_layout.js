@@ -154,6 +154,16 @@ function measure(cfg) {
     if (!kids.length) return 0;
     return kids[kids.length - 1].getBoundingClientRect().bottom - kids[0].getBoundingClientRect().top;
   };
+  // The height a block needs. A block that stretches to fill the slide (a flow of boxes, panels in a row)
+  // is measured without the stretch
+  const natural = (k) => {
+    if (getComputedStyle(k).flexGrow === '0') return k.getBoundingClientRect().height;
+    const keep = k.style.flex;
+    k.style.flex = 'none';
+    const h = k.getBoundingClientRect().height;
+    k.style.flex = keep;
+    return h;
+  };
   // Height the text block could use: the whole row in a .split, or what its
   // siblings leave free in a column (.stack or the slide itself).
   const available = (txt) => {
@@ -165,7 +175,11 @@ function measure(cfg) {
       const s = getComputedStyle(k);
       return s.position !== 'absolute' && s.display !== 'none' && k.tagName !== 'ASIDE';
     });
-    const others = flow.filter((k) => k !== txt).reduce((a, k) => a + k.getBoundingClientRect().height, 0);
+    // the height of the other blocks, with their own margins (the panels under a formula keep a gap above them)
+    const others = flow.filter((k) => k !== txt).reduce((a, k) => {
+      const ks = getComputedStyle(k);
+      return a + natural(k) + px(ks.marginTop) + px(ks.marginBottom);
+    }, 0);
     return inner - others - px(cs.rowGap) * Math.max(0, flow.length - 1);
   };
   // The lines of a paragraph as lists of words. A word that breaks across lines counts on each line
@@ -224,14 +238,18 @@ function measure(cfg) {
     const sr = sec.getBoundingClientRect();
     const out = { n: i + 1, id: sec.id, cover: sec.classList.contains('cover'), flags: [], notes: [], txt: [] };
 
-    let top = Infinity, bottom = 0;
-    sec.querySelectorAll('p,li,img,table,h1,h2,h3,svg,x-shape,.fig,.card,.node,.panel,.host,.ph').forEach((el) => {
-      if (el.closest(CHROME)) return;
-      const r = el.getBoundingClientRect();
-      if (!r.width || !r.height) return;
-      top = Math.min(top, r.top - sr.top);
-      bottom = Math.max(bottom, r.bottom - sr.top);
-    });
+    const extent = () => {
+      let t = Infinity, b = 0;
+      sec.querySelectorAll('p,li,img,table,h1,h2,h3,svg,x-shape,.fig,.card,.node,.panel,.host,.ph').forEach((el) => {
+        if (el.closest(CHROME)) return;
+        const r = el.getBoundingClientRect();
+        if (!r.width || !r.height) return;
+        t = Math.min(t, r.top - sr.top);
+        b = Math.max(b, r.bottom - sr.top);
+      });
+      return { top: t, bottom: b };
+    };
+    const { top, bottom } = extent();
     out.top = Number.isFinite(top) ? Math.round(top) : null;
     out.bottom = Math.round(bottom);
     if (!out.cover) {
@@ -271,6 +289,26 @@ function measure(cfg) {
       });
     });
     if (sec.querySelector('li ul, li ol')) out.flags.push('NESTED list inside <li>: write the second level as a sibling ul.bl.sub');
+    // A text block that says one thing is a sentence, not a list of one bullet
+    if (!out.cover) sec.querySelectorAll('.txt').forEach((txt) => {
+      const lis = txt.querySelectorAll('li');
+      if (lis.length === 1 && !txt.querySelector('.ex, :scope > p'))
+        out.flags.push(`BULLET: a single bullet ("${lis[0].textContent.trim().replace(/\s+/g, ' ').slice(0, 40)}"). A text block that says one thing is a sentence with no bullet: <div class="txt"><p>…</p></div>. Bullets are for two or more separate points`);
+    });
+    // The parts of a method are named in plain words: "A | Encoder" tells the audience nothing
+    sec.querySelectorAll('.sec, .pt, .hd p:not(.circ)').forEach((el) => {
+      const t = el.textContent.trim();
+      if (/^[A-Za-z0-9]\s*[|｜]\s*\S/.test(t)) out.flags.push(`LABEL: "${t.slice(0, 30)}" starts with a letter or number. Name the part in plain words, with nothing in front: "${t.replace(/^[A-Za-z0-9]\s*[|｜]\s*/, '').slice(0, 30)}"`);
+    });
+    // Text typed into a drawing becomes part of a picture: it cannot be edited, and fonts do not load there
+    if (sec.querySelector('svg:not(.xconn) text')) out.flags.push('SVG TEXT: text typed inside an <svg> is baked into a picture. Keep the drawing plain and write the words as real text over it (a <p> placed on top)');
+    // The back row cannot read text under about 2.5% of the slide height. The source line is the one exception
+    {
+      const small = [...sec.querySelectorAll('p, li, td, th, h1, h2, h3')].filter((el) => !el.closest('aside, .cite, .pnum, .cv-pnum')
+        && [...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim()) && el.getBoundingClientRect().height > 0
+        && px(getComputedStyle(el).fontSize) < 27);
+      if (small.length) out.flags.push(`SMALL: ${small.length} line(s) under 27px ("${small[0].textContent.trim().replace(/\s+/g, ' ').slice(0, 30)}" at ${Math.round(px(getComputedStyle(small[0]).fontSize))}px). The back row cannot read text under about 2.5% of the slide height: enlarge it or move it to the notes`);
+    }
     if (!out.cover && sec.querySelector('ul, ol') && ![...sec.querySelectorAll('ul, ol')].every((u) => u.closest('.txt, .card, .panel, .node, table')))
       out.flags.push('LIST outside .txt: wrap the text of the slide in one .txt block');
 
@@ -287,6 +325,8 @@ function measure(cfg) {
       const cur = Math.round(px(getComputedStyle(flow).fontSize));
       const avail = available(flow);
       const keep = flow.style.fontSize;
+      const keepFlex = flow.style.flex;
+      flow.style.flex = 'none';   // measured at the height its text needs; on the slide it stretches to the bottom
       let fit = null, best = null;
       // the line that is too wide for its box, or wraps more than once, at the size now set
       const widest = () => [...flow.querySelectorAll('.card p')].find((el) => el.scrollWidth > el.clientWidth + 1
@@ -330,7 +370,33 @@ function measure(cfg) {
           : `UNDERUSED: the flow fills ${Math.round(fill * 100)}% of the height. Give each box one more line of what it does, or put a .txt line above the flow`);
       }
       if (flow.querySelector(':scope > p.arrow')) out.flags.push('ARROW: a typed arrow between boxes is hard to see. Use a block arrow: <x-shape kind="arrow-right" class="arw"></x-shape>');
+      flow.style.flex = keepFlex;
     });
+
+    // Text in a box is centred across and down, so the titles of boxes in a row start on one line only when
+    // the boxes hold the same number of lines
+    if (!out.cover) {
+      const rows = [];
+      sec.querySelectorAll('.flow, .cols').forEach((row) => rows.push([...row.children].filter((k) => k.matches('.card, .panel'))));
+      sec.querySelectorAll('.host').forEach((h) => {
+        const byTop = {};
+        [...h.children].filter((k) => k.matches('.panel')).forEach((k) => {
+          const r = k.getBoundingClientRect();
+          (byTop[Math.round(r.top / 4) + ':' + Math.round(r.height / 4)] = byTop[Math.round(r.top / 4) + ':' + Math.round(r.height / 4)] || []).push(k);
+        });
+        Object.values(byTop).forEach((g) => rows.push(g));
+      });
+      rows.forEach((boxes) => {
+        const heads = boxes.map((b) => b.querySelector(':scope > .hd, :scope > .pt')).filter(Boolean);
+        if (heads.length < 2 || heads.length !== boxes.length) return;
+        const tops = heads.map((h) => h.getBoundingClientRect().top);
+        if (Math.max(...tops) - Math.min(...tops) > 6) {
+          const hi = heads[tops.indexOf(Math.min(...tops))], lo = heads[tops.indexOf(Math.max(...tops))];
+          const nm = (h) => h.textContent.trim().replace(/^\d+\s*/, '').replace(/\s+/g, ' ').slice(0, 24);
+          out.flags.push(`BOXES: the titles of the boxes in this row start at different heights ("${nm(hi)}" ${Math.round(Math.max(...tops) - Math.min(...tops))}px above "${nm(lo)}"). Text in a box is centred, so give the boxes the same number of lines: merge two short lines in the taller one, or break a line of the shorter one with <br>`);
+        }
+      });
+    }
 
     // A line that wraps for one last word, outside the blocks that are sized above and below (those report their own)
     orphans(sec).filter((o) => !o.el.closest('.txt, .flow')).forEach((o) =>
@@ -364,6 +430,59 @@ function measure(cfg) {
           ? `FORMULA too wide at ${Math.round(cur)}px: set style="font-size:${fit}px" on .eq`
           : 'FORMULA too wide even at 36px: crop it from the paper as a picture, or show only the part the slide is about');
       });
+      // A slide whose message is a formula: the formula as large as the slide allows, and the panels under it large too.
+      // The formula comes first: the text block gives way, down to its smallest size
+      {
+        const EQ_MAX = 96, EQ_WANT = 80, COLS_MAX = 60;
+        const FLOOR = Math.max(cfg.min, 44);   // the text under a formula gives way, but not below this size
+        const txts = [...sec.querySelectorAll('.txt')];
+        const withTxt = (size, fn) => {
+          const keep = txts.map((t) => t.style.fontSize);
+          if (size) txts.forEach((t) => { t.style.fontSize = size + 'px'; });
+          const v = fn();
+          txts.forEach((t, k) => { t.style.fontSize = keep[k]; });
+          return v;
+        };
+        const eqs = [...sec.querySelectorAll('.eq')];
+        if (eqs.length === 1 && eqs[0].scrollWidth <= eqs[0].clientWidth + 1) {
+          const el = eqs[0];
+          const cur = Math.round(px(getComputedStyle(el).fontSize));
+          const keep = el.style.fontSize;
+          const wide = () => {
+            const kids = [...el.children].filter((k) => k.getBoundingClientRect().width > 0);
+            return kids.length ? kids[kids.length - 1].getBoundingClientRect().right - kids[0].getBoundingClientRect().left : 0;
+          };
+          const fitsAt = (s) => { el.style.fontSize = s + 'px'; return wide() <= el.clientWidth * 0.94 && extent().bottom <= cfg.bottom + 0.5; };
+          let fit = null;
+          for (let s = EQ_MAX; s > cur; s -= 2) if (fitsAt(s)) { fit = s; break; }
+          if ((fit === null || fit < EQ_WANT) && cur < EQ_WANT) {
+            // with the text under it at 44px, up to 80px
+            const alt = withTxt(FLOOR, () => { for (let s = EQ_WANT; s > Math.max(cur, fit || 0); s -= 2) if (fitsAt(s)) return s; return null; });
+            if (alt) fit = alt;
+          }
+          el.style.fontSize = keep;
+          if (fit !== null && fit - cur >= 4) out.flags.push(`GROW: set .eq font-size:${fit}px (now ${cur}px). A formula is as large as the slide allows; then run again, set the text size the check names, and measure the connectors again (--where)`);
+        }
+        // The panels that explain the terms
+        if (eqs.length) sec.querySelectorAll('.cols').forEach((cols) => {
+          const cur = Math.round(px(getComputedStyle(cols).fontSize));
+          const keep = cols.style.fontSize;
+          const ps = [...cols.querySelectorAll('.panel p')];
+          const count = () => ps.map((q) => linesOf(q).length);
+          const base = count();
+          const fitsAt = (s) => {
+            cols.style.fontSize = s + 'px';
+            const c = count();
+            return c.every((n, k) => n <= base[k]) && ![...cols.querySelectorAll('.panel')].some((pn) => pn.scrollWidth > pn.clientWidth + 1)
+              && !orphans(cols).length && extent().bottom <= cfg.bottom + 0.5;
+          };
+          let fit = null;
+          for (let s = COLS_MAX; s > cur; s -= 2) if (fitsAt(s)) { fit = s; break; }
+          if (fit === null) fit = withTxt(FLOOR, () => { for (let s = COLS_MAX; s > cur; s -= 2) if (fitsAt(s)) return s; return null; });
+          cols.style.fontSize = keep;
+          if (fit !== null && fit - cur >= 4) out.flags.push(`GROW: set .cols font-size:${fit}px (now ${cur}px). The panels under a formula are large too`);
+        });
+      }
       // Under a formula, each panel that explains a term starts with the term's name
       if (sec.querySelector('.eq .term')) {
         const untitled = [...sec.querySelectorAll('.panel')].filter((pn) => !pn.querySelector('.pt'));
@@ -407,6 +526,7 @@ function measure(cfg) {
       const aff = [...sec.querySelectorAll('.cv-aff')].map((e) => e.textContent).join(' ');
       if (internal && (sec.querySelector('ol.cv-aff') || /University|Graduate School|Laborator|\bLab\b|大学|大學|研究科|研究室/i.test(aff)))
         out.flags.push('COVER: an internal cover shows the presenter\'s name only, with no affiliation. Remove the affiliation from .cv-aff (a line that names the paper of a paper reading may stay)');
+      if (sec.querySelector('.cv-pnum, .pnum')) out.flags.push('COVER: the cover has no page number. Remove <p class="cv-pnum">');
       if (!internal && !univ) out.flags.push('COVER: the full cover carries both logos. For a talk inside the lab (lab meeting, 輪講, progress report) write class="cover internal"; for a talk outside it add <img class="cv-univ"> (assets/logo-univ.png)');
     }
     // Every visual has a line of text that says what it shows. A flow of steps is a visual like any other
@@ -480,7 +600,9 @@ function measure(cfg) {
           ? `GROW: the text fits at ${fit}px (now ${cur}px, fill ${t.fill}% -> ${Math.round(fillFit * 100)}%), but "${lf[0].word}" would then stand alone on the last line of "${lf[0].line}". Reword that line so it breaks evenly or fits on one line, then set .txt font-size:${fit}px`
           : `GROW: set .txt font-size:${fit}px (now ${cur}px, fill ${t.fill}% -> ${Math.round(fillFit * 100)}%)`);
       }
-      if (best !== null && cur <= best && fillFit < (txt.parentElement === sec ? cfg.lowFillSolo : cfg.lowFill))
+      // Under the text a flow of boxes or a row of panels stretches to the bottom of the slide, so the text is never lost there
+      const filler = txt.parentElement === sec && [...sec.children].some((k) => k !== txt && k.matches('.flow, .cols') && getComputedStyle(k).flexGrow !== '0');
+      if (!filler && best !== null && cur <= best && fillFit < (txt.parentElement === sec ? cfg.lowFillSolo : cfg.lowFill))
         out.flags.push(`UNDERFILL: only ${Math.round(fillFit * 100)}% even at ${fit}px. Rebalance the layout (see "Fill the slide", step 5)`);
     });
     if (cfg.where) {

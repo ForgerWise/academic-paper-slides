@@ -1,16 +1,16 @@
 <section id="a1" class="c">
-<p class="sec">A | Encoder and Decoder Stacks</p>
-<div class="tbar"><h2 class="ttl">Architecture</h2><p class="circ">1</p></div>
+<p class="sec">Encoder and Decoder Stacks</p>
+<h2 class="ttl">Encoder Layer</h2>
 <div class="rule"></div>
 <div class="pnum"></div>
 <div class="split">
-<div class="txt num" style="font-size:56px">
+<div class="txt num" style="font-size:58px">
   <div class="grp">
     <ul class="bl"><li>Encoder: 6 layers, 2 sub-layers each</li></ul>
   </div>
   <div class="grp">
     <ol class="bl"><li>Self-attention</li></ol>
-    <ul class="bl sub"><li>Each input word looks at every other one</li></ul>
+    <ul class="bl sub"><li>Every input word looks at all others</li></ul>
   </div>
   <div class="grp">
     <ol class="bl" start="2"><li>Feed-forward network</li></ol>
@@ -18,14 +18,23 @@
   </div>
   <div class="grp">
     <ul class="bl"><li>Around each sub-layer</li></ul>
-    <ul class="bl sub"><li>Residual connection, then layer normalization (“Add &amp; Norm”)</li></ul>
+    <ul class="bl sub"><li>Residual connection</li><li>Layer normalization</li></ul>
   </div>
 </div>
-<div class="fig" style="width:485px;height:760px">
-  <img src="/project/img/fig1-architecture-spaced.png" alt="Fig. 1 of the paper: the Transformer architecture, encoder on the left and decoder on the right" style="width:485px;height:760px;object-fit:contain">
-  <x-shape kind="rounded" class="ring box" style="left:1.0%;top:31.7%;width:45.5%;height:38.1%"></x-shape>
+<div class="host" style="width:590px;height:760px;font-size:44px">
+  <div class="node" style="left:0px;top:0px;width:480px;height:120px"><p>Input words</p></div>
+  <div class="node" style="left:0px;top:210px;width:480px;height:130px"><p class="bd">Self-attention</p></div>
+  <div class="node" style="left:0px;top:420px;width:480px;height:130px"><p class="bd">Feed-forward</p></div>
+  <div class="node" style="left:0px;top:640px;width:480px;height:120px"><p>One vector per word</p></div>
+  <x-connector x1="240" y1="120" x2="240" y2="210" style="color:#404040;border-width:6px"></x-connector>
+  <x-connector x1="240" y1="340" x2="240" y2="420" style="color:#404040;border-width:6px"></x-connector>
+  <x-connector x1="240" y1="550" x2="240" y2="640" style="color:#404040;border-width:6px"></x-connector>
+  <x-connector x1="480" y1="275" x2="500" y2="275" head="none" style="color:#404040;border-width:4px"></x-connector>
+  <x-connector x1="500" y1="275" x2="500" y2="485" head="none" style="color:#404040;border-width:4px"></x-connector>
+  <x-connector x1="500" y1="485" x2="480" y2="485" head="none" style="color:#404040;border-width:4px"></x-connector>
+  <p class="lbl bd" style="left:510px;top:352px;width:80px">×&nbsp;6</p>
 </div>
 </div>
-<p class="cite">Figure: Vaswani et al., NIPS 2017, Fig. 1, Sec. 3.1; spacing widened and orange box added by presenter</p>
-<aside>[≤ 4:42] Part A is the two stacks. The orange box marks the encoder, which reads the input sentence. The encoder is a stack of six identical layers. Each layer has two parts. The first part is self-attention, where every input word looks at every other input word. The second part is a small feed-forward network, which is applied to each word position separately. Around each part there is a residual connection, followed by layer normalization. The last layer gives one vector per input word, and the decoder will read these vectors.</aside>
+<p class="cite">Source: Vaswani et al., NIPS 2017, Sec. 3.1; diagram redrawn by presenter from Fig. 1</p>
+<aside>[≤ 4:48] We start with the two stacks. The encoder reads the input sentence, and the diagram shows one of its layers from top to bottom. The encoder is a stack of six identical layers. Each layer has two parts. The first part is self-attention, where every input word looks at every other input word. The second part is a small feed-forward network, which is applied to each word position separately. Around each part there is a residual connection, followed by layer normalization. The last layer gives one vector per input word, and the decoder will read these vectors.</aside>
 </section>
