@@ -85,6 +85,10 @@ section.lg .tbar { left: 190px; width: 1536px; }
 .stack { display: flex; flex-direction: column; flex: 1; gap: 24px; min-height: 0; }
 .stack > .fig, .stack > .host { align-self: center; }
 .row { display: flex; gap: 30px; align-items: flex-start; justify-content: center; }   /* pictures side by side, each a .fig with its caption */
+/* A row of pictures with arrows between them: spread to the slide edges, everything on the pictures' centre line,
+   clear space on both sides of each arrow (text and shapes render wider on another machine) */
+.row.spread { justify-content: space-between; align-items: center; }
+.row.spread > .arw { margin: 0 24px; }
 
 /* Figures and presenter annotations. Always give .fig and its img a px width and height */
 .fig { position: relative; flex: none; }
@@ -103,7 +107,7 @@ section.lg .tbar { left: 190px; width: 1536px; }
 .host { position: relative; flex: none; align-self: center; font-size: 44px; }
 .node { position: absolute; box-sizing: border-box; background: #FFFFFF; border: 3px solid var(--accent); border-radius: 22px; display: flex; flex-direction: column; justify-content: center; gap: 6px; padding: 10px 18px; }
 .node p { font-size: 1em; line-height: 1.25; text-align: center; }
-.panel { position: absolute; box-sizing: border-box; background: #FFFFFF; border: 3px solid var(--accent); border-radius: 44px; display: flex; flex-direction: column; justify-content: center; gap: 8px; padding: 18px 28px; }
+.panel { position: absolute; box-sizing: border-box; background: #FFFFFF; border: 3px solid var(--accent); border-radius: 22px; display: flex; flex-direction: column; justify-content: center; gap: 8px; padding: 18px 28px; }   /* one radius for every box, so that a frame and the boxes inside it match */
 .panel p { font-size: 1em; line-height: 1.3; text-align: center; }
 .panel li { font-size: 1em; line-height: 1.3; }
 .panel ul { width: 100%; text-align: left; }   /* the one exception to centred text: a bulleted list in a panel is left-aligned */

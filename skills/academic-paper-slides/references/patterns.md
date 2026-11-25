@@ -162,7 +162,7 @@ The layout of every slide that has text and a picture, chart, diagram or video: 
 </div>
 ```
 
-Several pictures of the same kind (three test sites, two views) stand in a `.row` under the text, each a `.fig` with a caption below it. When the text names two areas of a picture, outline each with a ring in its own colour and write the words that name it in the same colour.
+Several pictures of the same kind (three test sites, two views) stand in a `.row` under the text, each a `.fig` with a caption below it. Sibling slides (the same kind of slide in one section) use the same text size, text width and picture width. A row of pictures with arrows between them is a `.row spread`: it reaches the slide edges, every picture, icon, box and arrow sits on one centre line, and each `<x-shape kind="arrow-right" class="arw">` keeps clear space on both sides. When the text names two areas of a picture, outline each with a ring in its own colour and write the words that name it in the same colour.
 
 ```html
 <div class="row">
@@ -239,6 +239,7 @@ Use it to show how something works: who sees what, what blocks what, what is com
 
 - `<div class="node">`: a small white box with an outline in the accent color.
 - `<div class="panel">`: a larger rounded box that holds a title (`<p class="pt">`) and one or two short lines.
+- Nested boxes share one corner radius: nodes, panels and flow boxes all have the same radius in px, and `export_pptx.js` writes it per shape (in PowerPoint a rounded rectangle's radius scales with its shorter side, so a frame and the boxes inside it would differ). Do not frame boxes with `<x-shape kind="rounded">`, whose radius scales.
 - Text inside every box is centred, across and down; the stylesheet does it. Boxes in one row hold the same number of lines, so that their titles still start on one line (`check_layout.js`: `BOXES`).
 - `<img class="ico">`: an icon from `assets/icons/` or a small photo.
 - `<p class="lbl">`: plain text. Add `bd` for bold, `ctr` to center it in its width. Give every label a `width` wide enough for its longest line.

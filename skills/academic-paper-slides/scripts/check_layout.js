@@ -606,7 +606,7 @@ function measure(cfg) {
       // Under the text a flow of boxes or a row of panels stretches to the bottom of the slide, so the text is never lost there
       const filler = txt.parentElement === sec && [...sec.children].some((k) => k !== txt && k.matches('.flow, .cols') && getComputedStyle(k).flexGrow !== '0');
       if (!filler && best !== null && cur <= best && fillFit < (txt.parentElement === sec ? cfg.lowFillSolo : cfg.lowFill))
-        out.flags.push(`UNDERFILL: only ${Math.round(fillFit * 100)}% even at ${fit}px. Rebalance the layout (see "Fill the slide", step 5)`);
+        out.flags.push(`UNDERFILL: only ${Math.round(fillFit * 100)}% even at ${fit}px. Enlarge the visual, bring back one helpful detail from the notes, or accept one short statement over a large visual (SKILL.md, section 7)`);
     });
     if (cfg.where) {
       try {
