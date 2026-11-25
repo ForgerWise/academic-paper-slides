@@ -3,24 +3,26 @@
 <h2 class="ttl">Multi-Head Attention</h2>
 <div class="rule"></div>
 <div class="pnum"></div>
-<div class="split">
-<div class="txt" style="font-size:48px">
-  <div class="grp">
-    <ul class="bl"><li>Multi-head attention: 8 attention layers (heads) in parallel</li></ul>
-    <ul class="bl sub"><li>Each head projects Q, K, V to 64 dimensions with its own weights</li><li>Head outputs are concatenated and projected once more</li></ul>
-  </div>
-  <div class="grp">
-    <ul class="bl"><li>Why several heads</li></ul>
-    <ul class="bl sub"><li>Heads attend to different positions; a single head averages them</li></ul>
-  </div>
-  <div class="grp">
-    <ul class="bl"><li>Total cost is close to one full-size head</li></ul>
-  </div>
+<div class="txt" style="font-size:52px">
+  <div class="grp"><ul class="bl"><li>Multi-head attention: 8 attention layers (heads) run in parallel</li></ul></div>
+  <div class="grp"><ul class="bl"><li>Each head projects Q, K, V to 64 dimensions with its own weights</li></ul><p class="ex">→ heads attend to different positions; a single head averages them</p></div>
+  <div class="grp"><ul class="bl"><li>Total cost is close to one full-size head</li></ul></div>
 </div>
-<div class="fig" style="width:584px;height:760px">
-  <img src="/project/img/fig2-multi-head.png" alt="Fig. 2 (right) of the paper: multi-head attention, h parallel scaled dot-product attention layers, concatenated and projected" style="width:584px;height:760px;object-fit:contain">
+<div class="host" style="width:1738px;height:400px;font-size:40px">
+  <div class="node" style="left:0px;top:15px;width:215px;height:280px"><p class="bd">Q,&nbsp;K,&nbsp;V</p></div>
+  <div class="node" style="left:252px;top:15px;width:330px;height:280px"><p>Project to<br>64 dimensions</p></div>
+  <div class="node" style="left:664px;top:15px;width:450px;height:280px"><p class="bd">Scaled dot-product<br>attention</p></div>
+  <div class="node" style="left:1196px;top:15px;width:210px;height:280px"><p>Join the<br>heads</p></div>
+  <div class="node" style="left:1488px;top:15px;width:250px;height:280px"><p>Project<br>once more</p></div>
+  <x-connector x1="215" y1="155" x2="252" y2="155" style="color:#404040;border-width:6px"></x-connector>
+  <x-connector x1="582" y1="155" x2="664" y2="155" style="color:#404040;border-width:6px"></x-connector>
+  <x-connector x1="1114" y1="155" x2="1196" y2="155" style="color:#404040;border-width:6px"></x-connector>
+  <x-connector x1="1406" y1="155" x2="1488" y2="155" style="color:#404040;border-width:6px"></x-connector>
+  <x-connector x1="417" y1="295" x2="417" y2="325" head="none" style="color:#404040;border-width:4px"></x-connector>
+  <x-connector x1="417" y1="325" x2="889" y2="325" head="none" style="color:#404040;border-width:4px"></x-connector>
+  <x-connector x1="889" y1="325" x2="889" y2="295" head="none" style="color:#404040;border-width:4px"></x-connector>
+  <p class="lbl bd ctr" style="left:252px;top:333px;width:802px">×&nbsp;8 heads in parallel</p>
 </div>
-</div>
-<p class="cite">Figure: Vaswani et al., NIPS 2017, Fig. 2 (right), Sec. 3.2.2</p>
+<p class="cite">Source: Vaswani et al., NIPS 2017, Sec. 3.2.2; diagram redrawn by presenter from Fig. 2 (right)</p>
 <aside>[≤ 7:33] We are still on attention. One attention function gives one set of weights for each word. The authors found that this is not enough, so they run eight attention layers side by side. Each one is called a head. Every head first projects the queries, keys and values into a smaller space of sixty-four dimensions, with its own learned weights. Then it runs the attention you just saw. At the end the outputs of all heads are joined and projected once more. Why does this help? Different heads can look at different things. A single head has to average everything into one set of weights. And because each head is small, the total cost is about the same as one large head.</aside>
 </section>

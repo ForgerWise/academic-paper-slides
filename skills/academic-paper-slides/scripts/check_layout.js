@@ -226,7 +226,7 @@ function measure(cfg) {
     const all = tidy(ls.map((l) => l.text).join(' '));
     return { el, word: tidy(last.text), line: all.length > 48 ? all.slice(0, 45) + '...' : all };
   }).filter(Boolean);
-  const WIDER = 'give the line more width (narrow the figure beside it, widen the column or the box) or shorten the wording';
+  const WIDER = 'give the line more width (widen the column or the box) or shorten the wording';
   // A formula has its own size and its own flag, so it does not count here
   const tooWide = (txt) => {
     const eqWide = [...txt.querySelectorAll('.eq')].some((el) => el.scrollWidth > el.clientWidth + 1);
@@ -289,6 +289,9 @@ function measure(cfg) {
       });
     });
     if (sec.querySelector('li ul, li ol')) out.flags.push('NESTED list inside <li>: write the second level as a sibling ul.bl.sub');
+    // Text goes above the visual, never beside it
+    if ([...sec.querySelectorAll('.split')].some((sp) => sp.querySelector('.txt') && sp.querySelector('img, .fig, .host, .dia, .ph, table, .flow')))
+      out.flags.push('SIDE BY SIDE: text stands beside a picture or diagram. Put all the text at the top and the visual under it (.stack, or the text block followed by the visual), and let the visual take the full width');
     // A text block that says one thing is a sentence, not a list of one bullet
     if (!out.cover) sec.querySelectorAll('.txt').forEach((txt) => {
       const lis = txt.querySelectorAll('li');

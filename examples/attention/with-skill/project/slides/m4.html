@@ -3,8 +3,7 @@
 <h2 class="ttl">Encoding Word Order</h2>
 <div class="rule"></div>
 <div class="pnum"></div>
-<div class="split">
-<div class="txt" style="font-size:60px">
+<div class="txt" style="font-size:58px">
   <div class="grp">
     <ul class="bl"><li>Without recurrence the model cannot see word order</li></ul>
     <ul class="bl sub"><li>Add a position vector to each word</li></ul>
@@ -17,13 +16,12 @@
     <ul class="bl sub"><li>Relative positions are easy to learn</li><li>May extend to longer sentences</li></ul>
   </div>
 </div>
-<div class="host" style="width:560px;height:700px;font-size:44px">
-  <div class="node" style="left:0px;top:0px;width:560px;height:130px"><p class="bd">Word embedding</p></div>
-  <p class="lbl bd ctr" style="left:0px;top:140px;width:560px;font-size:72px">+</p>
-  <div class="node" style="left:0px;top:250px;width:560px;height:190px"><p class="bd">Position vector</p><p>sine and cosine waves</p></div>
-  <div class="node" style="left:0px;top:560px;width:560px;height:140px"><p>Input to both stacks</p></div>
-  <x-connector x1="280" y1="440" x2="280" y2="560" style="color:#404040;border-width:6px"></x-connector>
-</div>
+<div class="host" style="width:1738px;height:190px;font-size:44px">
+  <div class="node" style="left:0px;top:20px;width:460px;height:150px"><p class="bd">Word embedding</p></div>
+  <p class="lbl bd ctr" style="left:460px;top:50px;width:120px;font-size:72px">+</p>
+  <div class="node" style="left:580px;top:20px;width:560px;height:150px"><p class="bd">Position vector</p><p>sine and cosine waves</p></div>
+  <div class="node" style="left:1260px;top:20px;width:478px;height:150px"><p>Input to both stacks</p></div>
+  <x-connector x1="1140" y1="95" x2="1260" y2="95" style="color:#404040;border-width:6px"></x-connector>
 </div>
 <p class="cite">Source: Vaswani et al., NIPS 2017, Sec. 3.5; diagram redrawn by presenter from Fig. 1</p>
 <aside>[≤ 8:35] Now the last part. One thing is still missing. Attention treats the sentence as a set, so the model has no idea about word order. The authors fix this at the input, as the diagram shows. They add a position vector to every word embedding. The position vector is built from sine and cosine waves with many different frequencies. Why waves and not a learned table? With waves, a shift by a fixed number of words is a linear function of the encoding, so relative positions should be easy to learn. And waves may also work for sentences longer than any sentence in the training data.</aside>

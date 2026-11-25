@@ -3,40 +3,27 @@
 <h2 class="ttl">Decoder Layer</h2>
 <div class="rule"></div>
 <div class="pnum"></div>
-<div class="split">
-<div class="txt num" style="font-size:58px">
-  <div class="grp">
-    <ul class="bl"><li>Decoder: 6 layers, 3 sub-layers each</li></ul>
-  </div>
-  <div class="grp">
-    <ol class="bl"><li>Masked self-attention</li></ol>
-    <ul class="bl sub"><li>A position sees only earlier outputs</li></ul>
-  </div>
-  <div class="grp">
-    <ol class="bl" start="2"><li>Attention over the encoder output</li></ol>
-  </div>
-  <div class="grp">
-    <ol class="bl" start="3"><li>Feed-forward network</li></ol>
-  </div>
-  <div class="grp">
-    <ul class="bl"><li>On top: a linear layer and softmax give the next-word probabilities</li></ul>
-  </div>
+<div class="txt num" style="font-size:52px">
+  <div class="grp"><ul class="bl"><li>Decoder: 6 layers, 3 sub-layers each</li></ul></div>
+  <div class="grp"><ol class="bl"><li>Masked self-attention: a position sees only earlier outputs</li></ol></div>
+  <div class="grp"><ol class="bl" start="2"><li>Attention over the encoder output</li></ol></div>
+  <div class="grp"><ol class="bl" start="3"><li>Feed-forward network</li></ol></div>
+  <div class="grp"><ul class="bl"><li>On top, a linear layer and softmax give the next-word probabilities</li></ul></div>
 </div>
-<div class="host" style="width:590px;height:760px;font-size:40px">
-  <div class="node" style="left:0px;top:0px;width:480px;height:100px"><p>Words written so far</p></div>
-  <div class="node" style="left:0px;top:150px;width:480px;height:100px"><p class="bd">Masked self-attention</p></div>
-  <div class="node" style="left:0px;top:300px;width:480px;height:130px"><p class="bd">Attention over<br>the encoder output</p></div>
-  <div class="node" style="left:0px;top:480px;width:480px;height:100px"><p class="bd">Feed-forward</p></div>
-  <div class="node" style="left:0px;top:630px;width:480px;height:130px"><p>Next-word<br>probabilities</p></div>
-  <x-connector x1="240" y1="100" x2="240" y2="150" style="color:#404040;border-width:6px"></x-connector>
-  <x-connector x1="240" y1="250" x2="240" y2="300" style="color:#404040;border-width:6px"></x-connector>
-  <x-connector x1="240" y1="430" x2="240" y2="480" style="color:#404040;border-width:6px"></x-connector>
-  <x-connector x1="240" y1="580" x2="240" y2="630" style="color:#404040;border-width:6px"></x-connector>
-  <x-connector x1="480" y1="200" x2="510" y2="200" head="none" style="color:#404040;border-width:4px"></x-connector>
-  <x-connector x1="510" y1="200" x2="510" y2="530" head="none" style="color:#404040;border-width:4px"></x-connector>
-  <x-connector x1="510" y1="530" x2="480" y2="530" head="none" style="color:#404040;border-width:4px"></x-connector>
-  <p class="lbl bd" style="left:522px;top:340px;width:68px">×&nbsp;6</p>
-</div>
+<div class="host" style="width:1738px;height:280px;font-size:40px">
+  <div class="node" style="left:0px;top:20px;width:260px;height:160px"><p>Words<br>so far</p></div>
+  <div class="node" style="left:330px;top:20px;width:300px;height:160px"><p class="bd">Masked<br>self-attention</p></div>
+  <div class="node" style="left:700px;top:20px;width:340px;height:160px"><p class="bd">Attention over<br>encoder output</p></div>
+  <div class="node" style="left:1110px;top:20px;width:280px;height:160px"><p class="bd">Feed-forward</p></div>
+  <div class="node" style="left:1460px;top:20px;width:278px;height:160px"><p>Next-word<br>probabilities</p></div>
+  <x-connector x1="260" y1="100" x2="330" y2="100" style="color:#404040;border-width:6px"></x-connector>
+  <x-connector x1="630" y1="100" x2="700" y2="100" style="color:#404040;border-width:6px"></x-connector>
+  <x-connector x1="1040" y1="100" x2="1110" y2="100" style="color:#404040;border-width:6px"></x-connector>
+  <x-connector x1="1390" y1="100" x2="1460" y2="100" style="color:#404040;border-width:6px"></x-connector>
+  <x-connector x1="480" y1="180" x2="480" y2="212" head="none" style="color:#404040;border-width:4px"></x-connector>
+  <x-connector x1="480" y1="212" x2="1250" y2="212" head="none" style="color:#404040;border-width:4px"></x-connector>
+  <x-connector x1="1250" y1="212" x2="1250" y2="180" head="none" style="color:#404040;border-width:4px"></x-connector>
+  <p class="lbl bd ctr" style="left:715px;top:220px;width:300px">×&nbsp;6 layers</p>
 </div>
 <p class="cite">Source: Vaswani et al., NIPS 2017, Sec. 3.1 and 3.4; diagram redrawn by presenter from Fig. 1</p>
 <aside>[≤ 5:38] The other stack is the decoder, and the diagram shows one of its layers. It also has six identical layers, but each layer has three parts. The first part is self-attention over the words written so far. It is masked, so a word can only look at the words before it. The second part attends over the output of the encoder. This is how the decoder reads the input sentence. The third part is the same feed-forward network as in the encoder. At the top, a linear layer and a softmax turn the result into a probability for every possible next word.</aside>

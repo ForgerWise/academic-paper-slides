@@ -39,6 +39,8 @@ section.lg .tbar { left: 190px; width: 1536px; }
 /* Sources of other people's work, at the bottom. Two or three lines: class "cite two" / "cite three" */
 .cite { position: absolute; left: 91px; top: 1030px; width: 1738px; font-size: 24px; color: var(--ink); line-height: 1.3; }
 .cite.two { top: 999px; } .cite.three { top: 968px; }
+/* A citation for a prior method, apart from the figure: a small block in the bottom right corner */
+.cite.corner { left: auto; right: 91px; width: 620px; text-align: right; }
 
 /* Text block: ONE font-size per slide, set inline on .txt; lists inherit it.
    check_layout.js reads and fits this single value. */
@@ -77,6 +79,7 @@ section.lg .tbar { left: 190px; width: 1536px; }
    inside it stays on the baseline of the unboxed pieces. Change the padding or the border and change it too */
 
 /* Layouts. .txt must be a direct child of section.c, .split or .stack */
+/* .split sets a picture beside the diagram that reads from it. It never holds text: text goes above the visual */
 .split { display: flex; flex: 1; gap: 50px; align-items: center; min-height: 0; }
 .split > .txt { flex: 1; }
 .stack { display: flex; flex-direction: column; flex: 1; gap: 24px; min-height: 0; }
@@ -103,6 +106,7 @@ section.lg .tbar { left: 190px; width: 1536px; }
 .panel { position: absolute; box-sizing: border-box; background: #FFFFFF; border: 3px solid var(--accent); border-radius: 44px; display: flex; flex-direction: column; justify-content: center; gap: 8px; padding: 18px 28px; }
 .panel p { font-size: 1em; line-height: 1.3; text-align: center; }
 .panel li { font-size: 1em; line-height: 1.3; }
+.panel ul { width: 100%; text-align: left; }   /* the one exception to centred text: a bulleted list in a panel is left-aligned */
 /* Text in every box is centred, across and down. Boxes in a row hold the same number of lines,
    so that their titles still start on one line (check_layout.js: BOXES). "top" is kept for old decks and does nothing */
 .panel .pt, .node .pt { font-size: 1.2em; font-weight: 700; color: var(--accent); line-height: 1.25; }   /* the title of a box: <p class="pt">Scaling</p>, then its lines */

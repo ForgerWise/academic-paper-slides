@@ -11,13 +11,13 @@ The examples come from one talk (`examples/attention/` in the repository), so th
 - One sentence, two-level bullets, and a lead-in with its explanation (`.ex`)
 - Numbered steps
 - Emphasis
-- Text left, figure right (`.split`)
-- Text on top, figure below (`.stack`), pictures side by side (`.row`)
+- Marking a figure (rings and badges)
+- Text on top, visual below (`.stack`), pictures side by side (`.row`)
 - Paper figure or slide figure
 - Something that moves (GIF or video)
 - A metric made visible
 - Problem slide
-- Chain of reasoning (`.flow` with link words)
+- Line of reasoning (bullets with "→" lines)
 - Diagram drawn on the slide (`.host`)
 - Method overview: the parts and how they act on one another
 - Formula with named terms
@@ -38,7 +38,7 @@ The examples come from one talk (`examples/attention/` in the repository), so th
 <h2 class="ttl">Scaled Dot-Product Attention</h2>
 <div class="rule"></div>
 <div class="pnum"></div>
-<!-- the body: a .txt, then a visual (.host | .fig | table | .flow | .eq …), or a .split / .stack of the two -->
+<!-- the body: a .txt, then a visual (.host | .fig | table | .flow | .eq …), or a .stack of the two: text above, visual below -->
 <p class="cite">Source: Author et al., Venue Year, Sec. 3</p>
 <aside>[≤ 7:10] The script for this slide, in full sentences.</aside>
 </section>
@@ -79,7 +79,7 @@ A text block that says one thing is one sentence or one short paragraph: a `<p>`
 <div class="txt" style="font-size:60px"><p>The Transformer is an encoder and a decoder built from <span class="em">attention and feed-forward layers only</span>.</p></div>
 ```
 
-With two or more points, the list has two levels. The Slides format turns a `<ul>` nested inside an `<li>` into hollow markers. So level two is a sibling list, `ul.bl.sub`, never a child of the `<li>`. One `.grp` holds a level-one line and its level-two lines. The font size is set once, on `.txt`; `check_layout.js` tells you the size that fits.
+With two or more points, the levels follow the logic. Parallel points are level one and equal. A line that follows from or answers its parent (cause → effect, gap → our fix) is a "→" line under it with no bullet: `<p class="ex">→ so the point must stay in place between the photos</p>`. A detail that says nothing by itself is merged with its parent into one sentence. Level two is for details and examples that stand as lines of their own. The Slides format turns a `<ul>` nested inside an `<li>` into hollow markers. So level two is a sibling list, `ul.bl.sub`, never a child of the `<li>`. One `.grp` holds a level-one line and its level-two lines. The font size is set once, on `.txt`; `check_layout.js` tells you the size that fits.
 
 ```html
 <div class="txt" style="font-size:44px">
@@ -134,29 +134,24 @@ Level one is an `<ol class="bl">` when the lines are steps in order, parts of a 
 
 Red is a `<span class="em">` around a key term or a key number, at most three on a slide: `<li>The big model costs <span class="em">less than 1/4</span> of the previous best</li>`. In a table cell or a box the class goes on the cell or the paragraph. Bold is only for sub-headings such as `<span class="k">Result</span>`.
 
-## Text left, figure right (`.split`)
+## Marking a figure (rings and badges)
 
-For figures narrower than 1.8 : 1. Give `.fig` and the `<img>` the same px width and height. The text column gets `1738 − 50 − figure width`.
+Text never stands beside a figure: every slide with text and a visual is a `.stack`, text above and visual below (next section). A `.split` never holds text: it only sets a picture beside the diagram that reads from it ("Rows of box, arrow, outcome"). `check_layout.js` reports text beside a visual (`SIDE BY SIDE`).
 
 ```html
-<div class="split">
-  <div class="txt" style="font-size:44px"><!-- two-level bullets --></div>
-  <div class="fig" style="width:930px;height:620px">
-    <img src="/_blob/FIG" alt="Fig. 9 of the paper: accuracy of the three settings" style="width:930px;height:620px;object-fit:contain">
-    <x-shape kind="ellipse" class="ring" style="left:66%;top:9%;width:8%;height:16%"></x-shape>
-  </div>
+<div class="fig" style="width:1100px;height:520px">
+  <img src="/_blob/FIG" alt="Fig. 9 of the paper: accuracy of the three settings" style="width:1100px;height:520px;object-fit:contain">
+  <x-shape kind="ellipse" class="ring" style="left:66%;top:9%;width:8%;height:16%"></x-shape>
 </div>
 ```
-
-The text beside a figure uses the height of the figure: it starts near the top of the column and ends near the bottom. A few lines floating in the middle of a tall column are too small. `check_layout.js` prints the largest size that fits (up to 60px) and, when one line's wording is all that keeps the text small, names that line: reword it so that it fits on one line or breaks evenly, then set the size.
 
 `.ring` and `.badge` are positioned in % of the figure box. To mark a block of a diagram, use a box instead of an ellipse: `<x-shape kind="rounded" class="ring box" style="left:9%;top:35%;width:40%;height:39%"></x-shape>`. When a diagram is explained over several slides, repeat the figure at the same size and move only the ring. A badge holds its number as text: `<div class="badge" style="left:12%;top:40%">1</div>`.
 
 A ring never crosses the figure's own text (panel titles, labels, legends, axis labels). Make it larger rather than tighter: leave a clear margin around everything it encloses, and let it reach a little beyond the figure if it must (`left:-2%;width:101%`). When the part includes a panel's title, ring the whole panel with the title inside. When the gaps between the items of a figure are too narrow for any ring to pass without crossing text, add white space between the items in a copy of the figure first: find a row or column of pixels that only straight lines cross and repeat it (layout only, never the data), then ring the part and say so in the source line ("spacing widened and orange box added by presenter"). After placing a ring, look at the figure at full size in the screenshot.
 
-## Text on top, figure below (`.stack`), pictures side by side (`.row`)
+## Text on top, visual below (`.stack`), pictures side by side (`.row`)
 
-For figures 1.8 : 1 or wider. The figure height is what the text leaves: `769 − text height − 24`.
+The layout of every slide that has text and a picture, chart, diagram or video: all the text at the top, the visual under it. A result or legend line of a drawn diagram joins the text at the top. The visual is as large as the slide allows: full width, and the height the text leaves (`769 − text height − 24`), with no wide gap above or below it. When the picture gets smaller (a crop), the text grows into the freed room at once: `check_layout.js` prints the size. A tall figure is cropped to the panel the slide is about, or redrawn wider than tall.
 
 ```html
 <div class="stack">
@@ -176,7 +171,7 @@ Several pictures of the same kind (three test sites, two views) stand in a `.row
 </div>
 ```
 
-Crop away the paper's own panel letters and figure headings ("(b) Simulator architecture") unless the text of the slide refers to them.
+Crop a paper figure to the panel the slide is about. Crop away the paper's own panel letters and figure headings ("(b) Simulator architecture") unless the text of the slide refers to them, remove rings and marks the slide no longer needs, and add the labels the crop lost ("air" on the arrows) as real text over the picture.
 
 ## Paper figure or slide figure
 
@@ -201,11 +196,12 @@ Anything that moves (plants bending in the airflow, a camera view along a flight
 
 - A GIF is an ordinary picture: `<img src="/_blob/LOOP-GIF" …>`. Keep it short (3 to 8 s), looping, and no larger than it is shown.
 - A video is a still picture that names its clip in `data-video` (MP4 with H.264, or WebM, 20 MB or less). Upload both; the clip plays, looping, while the slide is presented, and the still is what thumbnails, PDF and PNG show. For PowerPoint output keep both in `project/img/` (`src="/project/img/still.png" data-video="/project/img/clip.mp4"`); `export_pptx.js` places the clip with the still as its cover.
+- Comparing several clips: one large video that plays the cases in sequence, each introduced by a title card (its name over the dimmed first frame, for about 1.5 s) and labelled in a corner while it plays. Not small GIFs side by side. Cut from the highest-resolution source, and crop away labels in another language.
 - When only the presenter can make the clip, leave a placeholder that asks for it ("Placeholder" below).
 
 ## A metric made visible
 
-A metric's numbers appear only after a slide has made the metric intuitive with a picture of what counts as right, wrong and missed. Otherwise do not show the score at all. Show the pictures side by side, with the correct parts in one colour, the wrong ones in another and the missed ones in a third, say in the text what each colour means, and state the result as a plain share. Score tables go to the appendix or nowhere.
+Explain the mechanism the result depends on first ("a point found in two photos gives its 3D position → the point must stay in place between the photos"). A metric's numbers appear only after a slide has made the metric intuitive with a picture of what counts as right, wrong and missed. Otherwise do not show the score at all. Show the pictures side by side, with the correct parts in one colour, the wrong ones in another and the missed ones in a third, say in the text what each colour means, and state the result as a plain share. Score tables go to the appendix or nowhere.
 
 ```html
 <div class="txt" style="font-size:46px">
@@ -225,20 +221,15 @@ The last line of the slide is the goal, after the text and any diagram. The goal
 <p class="goal">→ Goal: locate a phone in a building nobody has surveyed</p>
 ```
 
-## Chain of reasoning (`.flow` with link words)
+## Line of reasoning (bullets with "→" lines)
 
-An argument that is one line of reasoning is drawn as one chain, left to right, with the word that links two boxes written on the arrow between them: "but", "so", "costly", "none has it". Never split it into two side-by-side panels (field test against simulation) with a conclusion under them: listeners read two panels as a comparison and lose the "therefore".
-
-A link is a `.lk` between two cards: the word, then the block arrow. The boxes carry no numbers, and each holds a title and two short lines. Three boxes keep the text large; four fit only with lines of a word or two. A longer chain continues on the next slide, or runs one link per slide. Like every flow, the chain takes the rest of the slide under its sentence.
+An argument that is one line of reasoning, such as the opening of a talk, is written as bullets, not boxes: large type, generous paragraph spacing on an emptier slide, and each link that follows from the line above as a "→" line under it. The order for a system paper: what is wanted → why it is hard → testing for real is costly → a tool "is needed" → existing tools lack it → we built it. Never split the argument into two side-by-side panels (field test against simulation) with a conclusion under them: listeners read two panels as a comparison and lose the "therefore".
 
 ```html
-<div class="txt" style="font-size:60px"><p>Recurrent translation models cannot be trained in parallel.</p></div>
-<div class="flow" style="font-size:54px">
-  <div class="card"><p class="pt">Wanted</p><p>Models trained<br>on more data</p></div>
-  <div class="lk"><p>but</p><x-shape kind="arrow-right" class="arw"></x-shape></div>
-  <div class="card"><p class="pt">Recurrence</p><p>Reads one word<br>after another</p></div>
-  <div class="lk"><p>so</p><x-shape kind="arrow-right" class="arw"></x-shape></div>
-  <div class="card key"><p class="pt">Needed</p><p>A model with<br>no recurrence</p></div>
+<div class="txt" style="font-size:60px">
+  <div class="grp"><ul class="bl"><li>Translation models should train on more data</li></ul><p class="ex">→ but a recurrent network reads one word after another</p></div>
+  <div class="grp"><ul class="bl"><li>Nothing in it runs in parallel</li></ul><p class="ex">→ so training is slow</p></div>
+  <div class="grp"><ul class="bl"><li><span class="em">A model with no recurrence is needed</span></li></ul></div>
 </div>
 ```
 
@@ -355,7 +346,7 @@ The formula must be easy to read before anything is added to it: one line, with 
 - The text in a box stays on the baseline of the pieces outside it. The stylesheet does this with a negative bottom margin on `.term` equal to its bottom padding plus its border; if you change one, change the other. In the screenshot every character of the formula stands on one line.
 - Pieces the slide does not discuss can get class `dim` (grey).
 
-Under the formula, one panel per boxed term, in the same left-to-right order. Each panel starts with the **name of its term as a title** (`<p class="pt">`), then one or two short lines that say what the term does. The text of a panel is centred, and the panels hold the same number of lines, so their titles start on one line. A line joins each term to its panel.
+Under the formula, one panel per boxed term, in the same left-to-right order. Each panel starts with the **name of its term as a title** (`<p class="pt">`), then one or two short lines that say what the term does. The text of a panel is centred, and the panels hold the same number of lines, so their titles start on one line. A line joins each term to its panel. When the term has symbols of its own, the panel gives the term's name, its expression, and its symbols as a short bulleted list, left-aligned inside the box (the stylesheet does it; never centred bullets): `<div class="panel"><p class="pt">Scaling</p><p>1 / √d<span class="sb">k</span></p><ul class="bl"><li>d<span class="sb">k</span>: size of the key vectors</li></ul></div>`. The formula must match the implementation (check the code, not only the paper), its symbols are named in the slide's language, and each term box is centred on its letters.
 
 ```html
 <div class="eq" style="font-size:74px"><p>Attention(Q, K, V) = softmax(</p><div class="term"><div class="pc"><p>QK</p><p class="sp">T</p></div></div><p>/</p><div class="term"><div class="pc"><p>√d</p><p class="sb">k</p></div></div><p>) V</p></div>
@@ -425,8 +416,8 @@ Here the picture is on the left because the diagram reads from it. Two to four r
 When a slide needs a picture or a video that only the presenter can make (a demonstration of the system, a screenshot of results), leave a box of the final size that says what goes there. The box takes the place of the `.fig`: give it the width and height the picture will have.
 
 ```html
-<div class="split">
-  <div class="txt" style="font-size:52px"><!-- two-level bullets --></div>
+<div class="stack">
+  <div class="txt" style="font-size:52px"><!-- one or two lines --></div>
   <div class="ph" style="width:900px;height:506px"><p class="bd">Video: the simulator running one flight</p><p>Side view, 10 to 15 s, looping, 16:9, at least 1280 × 720</p></div>
 </div>
 ```
@@ -445,7 +436,9 @@ A demonstration shot under settings other than the paper's experiments says so i
 
 Related work as a comparison (approach, one column per axis; the row for this paper highlighted), and results the paper gives as numbers. The text above says what the table compares and what to read from it.
 
-Why a platform, engine or tool was chosen is a small table of the same kind: the named alternatives as rows, the properties the work actually uses as columns, and the row of this work's choice highlighted (UE5, Unity and Godot against small-leaf shadows, accuracy of object positions, access to the engine source). The line above says which of its features the system uses. "Powerful and popular" is not a reason.
+A comparison with prior methods goes in this order: the test object, then each prior method's simple pros and cons, then this method's pros and its limits, in plain words without numbers. Never claim "better in every situation" unless the paper shows it. The citation of a prior method goes in a small multi-line block in the corner, `<p class="cite corner two">…</p>`, kept apart from the figure so that it is not read as the figure's source.
+
+Why a platform, engine or tool was chosen: show what the tool is good at, with its logo next to the title and licensed promotional pictures in a `.row` below the text. Name known systems built on it, and verify that claim. State honestly what it lacks ("wind tools made for visual effects, not checked against real airflow") as a bullet, and what this work adds as the "→" line under it. Compare with named alternatives only on properties the slide can compare meaningfully. "Powerful and popular" is not a reason.
 
 ```html
 <div class="stack">
@@ -499,7 +492,7 @@ The presenter's own paper needs no source line for its own content. For other pe
 
 ## Conclusion
 
-One line each for the background, the problem and the solution, then the results with the key number in red. When the contribution is a system, the system comes first and the example use last.
+One line each for the background, the problem and the solution, then the results as findings, not values ("close to CFD", not "within 0.4–1.1 m/s"), with the key number in red. When the contribution is a system, the system comes first and the example use last.
 
 ```html
 <div class="txt" style="font-size:52px">
